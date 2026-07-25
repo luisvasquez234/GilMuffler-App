@@ -1,0 +1,40 @@
+name: Briefing diario de prospectos
+
+on:
+  schedule:
+    # 7am hora de Lawrence, MA (Eastern). Ojo: no ajusta solo por horario de
+    # verano/invierno — revisar y correr este número si se nota desfasado.
+    - cron: '0 11 * * 1-5'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  briefing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Generar briefing de prospectos
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          FECHA=$(date +%F)
+          echo "## Briefing $FECHA" > briefing_hoy.md
+          claude -p "Eres un investigador que ayuda a Luis a encontrar clientes potenciales para su negocio de diseño web. Luis vive en Lawrence, MA y su prueba social principal es la app de gestión que construyó para Gil's Muffler Inc, un taller de mufflers real en esa ciudad. Busca 3 negocios locales (cualquier giro: talleres, restaurantes, tiendas, servicios) en Lawrence, MA o pueblos cercanos (Methuen, Andover, Haverhill, North Andover) que no tengan página web propia o la tengan muy básica (solo ficha de Google/Facebook/Instagram, sin horarios, precios o forma de contactar claramente). Verifica cada uno de verdad antes de listarlo. Entrega la lista en este formato: - **[Nombre]** — [qué le falta] — contacto: [dato o 'no encontrado']. No inventes datos." --allowedTools "WebSearch,WebFetch" --permission-mode acceptEdits >> briefing_hoy.md
+
+          cat briefing_hoy.md >> briefing.md
+          echo "" >> briefing.md
+          rm briefing_hoy.md
+
+      - name: Commit y push del briefing
+        run: |
+          git config user.name "briefing-bot"
+          git config user.email "actions@github.com"
+          git add briefing.md
+          git diff --staged --quiet || git commit -m "Briefing diario $(date +%F)"
+          git push
