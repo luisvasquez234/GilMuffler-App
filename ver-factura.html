@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Factura</title>
+<style>
+  body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:1.5rem;max-width:40rem;margin:0 auto;background:#f6f7f9;}
+  .card{background:#fff;border-radius:12px;padding:1.75rem;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+  .header{border-bottom:3px solid #d5601a;padding-bottom:1rem;margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;flex-wrap:wrap;}
+  .header-brand{display:flex;align-items:center;gap:.8rem;}
+  .header-brand img{height:3rem;width:3rem;object-fit:cover;object-position:68% 55%;border-radius:8px;flex:none;}
+  .header h1{font-size:1.4rem;margin:0;color:#d5601a;}
+  .header .contacto{font-size:.8rem;color:#68707e;text-align:right;}
+  .meta{display:flex;justify-content:space-between;margin-bottom:1.5rem;font-size:.9rem;flex-wrap:wrap;gap:.5rem;}
+  .meta .estado{display:inline-block;padding:.2rem .6rem;border-radius:999px;background:#fdefe3;color:#d5601a;font-weight:600;font-size:.78rem;}
+  table{width:100%;border-collapse:collapse;margin-top:.5rem;}
+  th,td{text-align:left;padding:.5rem .6rem;border-bottom:1px solid #e1e4e9;font-size:.9rem;}
+  th{color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}
+  .totals{margin-top:1rem;text-align:right;font-size:.95rem;}
+  .totals strong{font-size:1.15rem;color:#d5601a;}
+  .notas{margin-top:1.5rem;padding:.9rem 1rem;background:#fafbfc;border-radius:8px;font-size:.85rem;}
+  .notas strong{display:block;margin-bottom:.3rem;color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}
+  .pie{margin-top:2rem;text-align:center;font-style:italic;color:#68707e;font-size:.9rem;}
+  .extra{margin-top:.75rem;text-align:center;color:#68707e;font-size:.8rem;white-space:pre-line;}
+  .btn-imprimir{display:block;margin:0 auto 1rem;padding:.6rem 1.2rem;border-radius:8px;border:none;background:#d5601a;color:#fff;font-size:.9rem;cursor:pointer;}
+  .estado-msg{text-align:center;color:#68707e;padding:3rem 1rem;}
+  @media print{ body{background:#fff;padding:0;} .btn-imprimir{display:none;} .card{box-shadow:none;} }
+</style>
+</head>
+<body>
+  <button class="btn-imprimir" id="btn-imprimir" hidden>Imprimir / Guardar como PDF</button>
+  <div class="card" id="contenido">
+    <p class="estado-msg">Cargando factura…</p>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    function escapeHtml(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+    function money(n) {
+      return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(n) || 0);
+    }
+    function formatDate(iso, formato) {
+      if (!iso || iso.length < 10) return iso || "";
+      const [anio, mes, dia] = iso.slice(0, 10).split("-");
+      return formato === "DD/MM/YYYY" ? dia + "/" + mes + "/" + anio : mes + "/" + dia + "/" + anio;
+    }
+    const ESTADO_LABELS = { pendiente: "Sin pagar", pagada: "Pagada", cancelada: "Cancelada" };
+
+    async function cargar() {
+      const contenido = document.getElementById("contenido");
+      const id = new URLSearchParams(location.search).get("id");
+      if (!id) {
+        contenido.innerHTML = '<p class="estado-msg">Falta el número de factura en el enlace.</p>';
+        return;
+      }
+
+      const sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+
+      const [{ data: factura, error: errF }, { data: cfg }] = await Promise.all([
+        sb.from("facturas").select("*, clientes(nombre)").eq("id", id).maybeSingle(),
+        sb.from("configuracion_negocio").select("*").eq("id", 1).maybeSingle(),
+      ]);
+
+      if (errF || !factura) {
+        contenido.innerHTML = '<p class="estado-msg">No se encontró esta factura.</p>';
+        return;
+      }
+
+      const { data: items } = await sb.from("factura_items").select("*").eq("factura_id", id).order("orden", { ascending: true });
+
+      const c = cfg || {};
+      const nombreNegocio = c.nombre_negocio || "Gil Muffler";
+      const contacto = [c.direccion, c.telefono, c.email].filter(Boolean).join(" · ");
+      const logoSrc = c.logo_url || "logo-muffler.webp";
+      const clienteNombre = factura.clientes ? factura.clientes.nombre : "—";
+
+      const filas = (items || [])
+        .map(
+          (it) =>
+            "<tr><td>" + escapeHtml(it.descripcion) + "</td><td>" + it.cantidad + "</td><td>" + money(it.precio_unitario) + "</td><td>" + money(it.subtotal) + "</td></tr>"
+        )
+        .join("");
+
+      const notasHtml = factura.notas ? "<div class='notas'><strong>Notas</strong><p>" + escapeHtml(factura.notas).replace(/\n/g, "<br>") + "</p></div>" : "";
+      const pieHtml = c.mensaje_pie ? "<p class='pie'>" + escapeHtml(c.mensaje_pie) + "</p>" : "";
+      const extraHtml = c.texto_adicional ? "<p class='extra'>" + escapeHtml(c.texto_adicional).replace(/\n/g, "<br>") + "</p>" : "";
+
+      contenido.innerHTML =
+        "<div class='header'><div class='header-brand'><img src='" +
+        logoSrc +
+        "' alt='' /><h1>" +
+        escapeHtml(nombreNegocio) +
+        "</h1></div><div class='contacto'>" +
+        escapeHtml(contacto) +
+        "</div></div>" +
+        "<div class='meta'><div><strong>Factura #" +
+        String(factura.numero).padStart(4, "0") +
+        "</strong><br>" +
+        escapeHtml(formatDate(factura.fecha, c.formato_fecha)) +
+        "<br>Cliente: " +
+        escapeHtml(clienteNombre) +
+        "</div><div><span class='estado'>" +
+        escapeHtml(ESTADO_LABELS[factura.estado] || factura.estado) +
+        "</span></div></div>" +
+        "<table><thead><tr><th>Descripción</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr></thead><tbody>" +
+        filas +
+        "</tbody></table>" +
+        "<div class='totals'><div>Subtotal: " +
+        money(factura.subtotal) +
+        "</div><div>Impuesto: " +
+        money(factura.impuesto) +
+        "</div><div><strong>Total: " +
+        money(factura.total) +
+        "</strong></div></div>" +
+        notasHtml +
+        pieHtml +
+        extraHtml;
+
+      const btn = document.getElementById("btn-imprimir");
+      btn.hidden = false;
+      btn.addEventListener("click", () => window.print());
+    }
+
+    cargar();
+  </script>
+</body>
+</html>

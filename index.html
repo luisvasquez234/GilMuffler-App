@@ -1,0 +1,807 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gil Muffler — Panel interno</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f5d92'/%3E%3Cpath d='M7 18c0-3 2-5 5-5h4.5a4.5 4.5 0 0 1 0 9H12c-3 0-5-2-5-4z' fill='none' stroke='white' stroke-width='2' stroke-linejoin='round'/%3E%3Ccircle cx='23.2' cy='18' r='1.8' fill='white'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<svg class="icon-defs" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;">
+  <symbol id="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+  </symbol>
+  <symbol id="icon-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+  </symbol>
+  <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
+  </symbol>
+  <symbol id="icon-check-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/>
+  </symbol>
+  <symbol id="icon-alert-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/><path d="M12 7.5v5.5"/><circle cx="12" cy="16.3" r="0.9" fill="currentColor" stroke="none"/>
+  </symbol>
+  <symbol id="icon-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3"/>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+  </symbol>
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 11.5L12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9v-6h6v6h2.5a1 1 0 0 0 1-1v-9"/>
+  </symbol>
+  <symbol id="icon-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>
+  </symbol>
+  <symbol id="icon-wrench" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.35-3.35a6 6 0 0 1-7.9 7.9L6.4 20.6a2.12 2.12 0 0 1-3-3l6.75-6.75a6 6 0 0 1 7.9-7.9L14.7 6.3z"/>
+  </symbol>
+  <symbol id="icon-box" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 8v8a2 2 0 0 1-1 1.73l-7 4a2 2 0 0 1-2 0l-7-4A2 2 0 0 1 3 16V8a2 2 0 0 1 1-1.73l7-4a2 2 0 0 1 2 0l7 4A2 2 0 0 1 21 8z"/>
+    <path d="M3.3 7l8.7 5 8.7-5M12 22V12"/>
+  </symbol>
+  <symbol id="icon-check-square" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/>
+  </symbol>
+  <symbol id="icon-file-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8M8 9h2"/>
+  </symbol>
+  <symbol id="icon-dollar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 1v22"/><path d="M17 5.5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+  </symbol>
+  <symbol id="icon-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>
+  </symbol>
+  <symbol id="icon-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M22 6l-10 7L2 6"/>
+  </symbol>
+  <symbol id="icon-map-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+  </symbol>
+  <symbol id="icon-car" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11"/>
+    <path d="M3 11h18v5a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H6v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-5z"/>
+    <circle cx="7.5" cy="16.3" r="1.2" fill="currentColor" stroke="none"/><circle cx="16.5" cy="16.3" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+  <symbol id="icon-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+  </symbol>
+  <symbol id="icon-hash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/>
+  </symbol>
+  <symbol id="icon-gauge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"/><path d="M12 12l3.5-3.5"/><path d="M12 4v1.2M4.8 12H6M18 12h1.2M6.5 6.5l.85.85M17.5 6.5l-.85.85"/>
+  </symbol>
+  <symbol id="icon-help-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2-3 4"/><circle cx="12" cy="17.3" r="0.9" fill="currentColor" stroke="none"/>
+  </symbol>
+  <symbol id="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+  </symbol>
+  <symbol id="icon-printer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
+  </symbol>
+  <symbol id="icon-more" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+    <circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>
+  </symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+  </symbol>
+  <symbol id="icon-muffler" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M0 12h5"/>
+    <rect x="5" y="7.5" width="13" height="9" rx="4.5"/>
+    <path d="M9 8.5v6.5M12.5 8v7.5M16 8.5v6.5" stroke-width="1"/>
+    <path d="M18 12h2.5"/>
+    <path d="M20.5 9.5l2.7 2.5-2.7 2.5"/>
+  </symbol>
+</svg>
+
+<div id="login-gate" class="login-gate">
+  <form id="login-form" class="login-card">
+    <h1>Gil Muffler</h1>
+    <p class="login-sub">Panel interno — acceso de empleados</p>
+    <input type="password" id="login-password" placeholder="Contraseña" autocomplete="current-password" required />
+    <button type="submit">Entrar</button>
+    <p id="login-error" class="login-error" hidden>Contraseña incorrecta.</p>
+  </form>
+</div>
+
+<div id="app" class="app" hidden>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-row">
+        <span class="brand-mark-photo"><img src="logo-muffler.webp" alt="" /></span>
+        <span class="brand-name">GIL MUFFLER</span>
+      </div>
+      <span class="brand-sub">Panel interno</span>
+    </div>
+    <button id="btn-open-search" class="search-trigger" type="button">
+      <svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg>
+      <span>Buscar...</span>
+      <span class="search-trigger-kbd">Ctrl K</span>
+    </button>
+    <nav class="nav">
+      <button class="nav-item is-active" data-view="dashboard"><svg class="icon" aria-hidden="true"><use href="#icon-home"></use></svg>Dashboard</button>
+      <button class="nav-item" data-view="clientes"><svg class="icon" aria-hidden="true"><use href="#icon-user"></use></svg>Clientes</button>
+      <button class="nav-item" data-view="ordenes"><svg class="icon" aria-hidden="true"><use href="#icon-wrench"></use></svg>Órdenes de servicio</button>
+      <button class="nav-item" data-view="inventario"><svg class="icon" aria-hidden="true"><use href="#icon-box"></use></svg>Inventario</button>
+      <button class="nav-item" data-view="tareas"><svg class="icon" aria-hidden="true"><use href="#icon-check-square"></use></svg>Tareas</button>
+      <button class="nav-item" data-view="facturas"><svg class="icon" aria-hidden="true"><use href="#icon-file-text"></use></svg>Facturas</button>
+      <button class="nav-item" data-view="finanzas"><svg class="icon" aria-hidden="true"><use href="#icon-dollar"></use></svg>Finanzas</button>
+      <button class="nav-item" data-view="configuracion"><svg class="icon" aria-hidden="true"><use href="#icon-settings"></use></svg>Configuración</button>
+    </nav>
+    <div class="sidebar-footer">
+      <button id="theme-toggle" class="link-btn" type="button">
+        <svg class="icon" aria-hidden="true"><use id="theme-toggle-icon" href="#icon-moon"></use></svg>
+        <span id="theme-toggle-label">Modo oscuro</span>
+      </button>
+      <button id="btn-shortcuts-help" class="link-btn" type="button">
+        <svg class="icon" aria-hidden="true"><use href="#icon-help-circle"></use></svg>
+        <span>Atajos de teclado</span>
+      </button>
+      <button id="logout-btn" class="link-btn" type="button">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <section id="view-setup" class="view" hidden>
+      <div class="table-wrap" style="padding:2rem;max-width:34rem;">
+        <h1 style="margin-bottom:.6rem;">Falta conectar la base de datos</h1>
+        <p class="view-sub" style="margin-bottom:1rem;">
+          Abre el archivo <code>config.js</code> y reemplaza <code>SUPABASE_URL</code> y
+          <code>SUPABASE_ANON_KEY</code> con los datos de tu proyecto de Supabase
+          (Project Settings → API). Luego recarga esta página.
+        </p>
+      </div>
+    </section>
+
+    <section id="view-dashboard" class="view">
+      <header class="view-header">
+        <div>
+          <h1>Dashboard</h1>
+          <p class="view-sub">Resumen general del taller</p>
+        </div>
+      </header>
+      <div class="kpi-grid">
+        <div class="kpi-card is-clickable" id="kpi-card-ingresos" data-goto="finanzas" role="button" tabindex="0">
+          <span class="kpi-label">Ingresos este mes</span>
+          <strong class="kpi-value" id="kpi-ingresos">$0.00</strong>
+        </div>
+        <div class="kpi-card is-clickable" id="kpi-card-facturas-pendientes" data-goto="facturas" data-goto-filter="pendiente" role="button" tabindex="0">
+          <span class="kpi-label">Facturas pendientes</span>
+          <strong class="kpi-value" id="kpi-facturas-pendientes">0</strong>
+          <span class="kpi-sub" id="kpi-facturas-pendientes-monto">$0.00</span>
+        </div>
+        <div class="kpi-card is-clickable" id="kpi-card-ordenes-activas" data-goto="ordenes" role="button" tabindex="0">
+          <span class="kpi-label">Órdenes activas</span>
+          <strong class="kpi-value" id="kpi-ordenes-activas">0</strong>
+        </div>
+        <div class="kpi-card is-clickable" id="kpi-card-tareas-vencidas" data-goto="tareas" role="button" tabindex="0">
+          <span class="kpi-label">Tareas vencidas</span>
+          <strong class="kpi-value" id="kpi-tareas-vencidas">0</strong>
+        </div>
+        <div class="kpi-card is-clickable" id="kpi-card-stock-bajo" data-goto="inventario" role="button" tabindex="0">
+          <span class="kpi-label">Piezas con stock bajo</span>
+          <strong class="kpi-value" id="kpi-stock-bajo">0</strong>
+        </div>
+      </div>
+      <div class="table-wrap chart-wrap">
+        <h2 class="chart-title">Ingresos de los últimos 6 meses</h2>
+        <canvas id="dashboard-chart" width="600" height="180" role="img" aria-label="Gráfica de ingresos de los últimos 6 meses"></canvas>
+      </div>
+      <div class="pago-panels">
+        <div class="pago-panel is-danger">
+          <div class="pago-panel-header">
+            <svg class="icon" aria-hidden="true"><use href="#icon-alert-circle"></use></svg>
+            <span>Sin pagar</span>
+            <span class="pago-panel-count" id="pago-panel-pendientes-count">0</span>
+          </div>
+          <div class="pago-panel-body" id="pago-panel-pendientes"></div>
+        </div>
+        <div class="pago-panel is-success">
+          <div class="pago-panel-header">
+            <svg class="icon" aria-hidden="true"><use href="#icon-check-circle"></use></svg>
+            <span>Pagadas</span>
+            <span class="pago-panel-count" id="pago-panel-pagadas-count">0</span>
+          </div>
+          <div class="pago-panel-body" id="pago-panel-pagadas"></div>
+        </div>
+      </div>
+      <div class="table-wrap" style="padding:1.5rem;">
+        <h2 style="font-size:1.05rem;margin-bottom:1rem;">Órdenes por etapa</h2>
+        <div class="etapa-counts" id="dashboard-etapa-counts"></div>
+      </div>
+    </section>
+
+    <section id="view-clientes" class="view" hidden>
+      <header class="view-header">
+        <div>
+          <h1>Clientes</h1>
+          <p class="view-sub">Directorio de clientes del taller</p>
+        </div>
+        <button class="btn-primary" id="btn-nuevo-cliente" type="button">+ Nuevo cliente</button>
+      </header>
+      <div class="toolbar">
+        <input type="search" id="clientes-search" placeholder="Buscar por nombre, teléfono o placa..." />
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th data-sort-key="nombre" class="is-sortable">Nombre</th>
+            <th data-sort-key="telefono" class="is-sortable">Teléfono</th>
+            <th data-sort-key="vehiculo" class="is-sortable">Vehículo</th>
+            <th data-sort-key="vehiculo_placa" class="is-sortable">Placa</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="clientes-tbody"></tbody>
+        </table>
+        <div id="clientes-empty" class="empty-state" hidden></div>
+      </div>
+    </section>
+
+    <section id="view-facturas" class="view" hidden>
+      <header class="view-header">
+        <div>
+          <h1><span class="view-title-mark"><img src="logo-muffler.webp" alt="" /></span>Facturas</h1>
+          <p class="view-sub">Historial de facturación</p>
+        </div>
+        <button class="btn-primary" id="btn-nueva-factura" type="button">+ Nueva factura</button>
+      </header>
+      <div class="bulk-bar" id="facturas-bulk-bar" hidden>
+        <span id="facturas-bulk-count">0 seleccionadas</span>
+        <span class="spacer"></span>
+        <button type="button" class="btn-ghost" id="btn-bulk-pagadas">
+          <svg class="icon" aria-hidden="true"><use href="#icon-check-circle"></use></svg>Marcar pagadas
+        </button>
+        <button type="button" class="btn-danger" id="btn-bulk-eliminar">
+          <svg class="icon" aria-hidden="true"><use href="#icon-trash"></use></svg>Eliminar
+        </button>
+        <button type="button" class="btn-ghost" id="btn-bulk-cancelar">Cancelar</button>
+      </div>
+      <div class="toolbar">
+        <input type="search" id="facturas-search" placeholder="Buscar por cliente o número..." />
+        <select id="facturas-filter-estado">
+          <option value="">Todos los estados</option>
+          <option value="pendiente">Sin pagar</option>
+          <option value="pagada">Pagada</option>
+          <option value="cancelada">Cancelada</option>
+        </select>
+        <input type="date" id="facturas-filter-desde" title="Desde" />
+        <input type="date" id="facturas-filter-hasta" title="Hasta" />
+      </div>
+      <div class="filter-chips" id="facturas-filter-chips"></div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th style="width:2rem;"><input type="checkbox" id="facturas-select-all" title="Seleccionar todas" /></th>
+            <th data-sort-key="numero" class="is-sortable">N.º</th>
+            <th data-sort-key="cliente" class="is-sortable">Cliente</th>
+            <th data-sort-key="fecha" class="is-sortable">Fecha</th>
+            <th data-sort-key="total" class="is-sortable">Total</th>
+            <th data-sort-key="estado" class="is-sortable">Estado</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="facturas-tbody"></tbody>
+        </table>
+        <div id="facturas-empty" class="empty-state" hidden></div>
+      </div>
+    </section>
+
+    <section id="view-finanzas" class="view" hidden>
+      <header class="view-header">
+        <div>
+          <h1>Finanzas</h1>
+          <p class="view-sub">Ingresos, gastos y ganancias por mes</p>
+        </div>
+        <div class="toolbar" style="margin:0;">
+          <select id="finanzas-anio"></select>
+        </div>
+      </header>
+
+      <div class="table-wrap" style="margin-bottom:1.75rem;">
+        <table class="data-table">
+          <thead><tr><th>Mes</th><th>Ingresos</th><th>Gastos</th><th>Ganancia neta</th></tr></thead>
+          <tbody id="finanzas-meses-tbody"></tbody>
+        </table>
+      </div>
+
+      <header class="view-header">
+        <div>
+          <h2 style="font-size:1.1rem;">Gastos</h2>
+          <p class="view-sub">Registro de gastos del negocio</p>
+        </div>
+        <button class="btn-primary" id="btn-nuevo-gasto" type="button">+ Nuevo gasto</button>
+      </header>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Monto</th><th></th></tr></thead>
+          <tbody id="gastos-tbody"></tbody>
+        </table>
+        <p id="gastos-empty" class="empty-state" hidden>Todavía no hay gastos registrados.</p>
+      </div>
+    </section>
+
+    <section id="view-configuracion" class="view" hidden>
+      <header class="view-header">
+        <div>
+          <h1><svg class="icon" style="width:1.3rem;height:1.3rem;vertical-align:-3px;margin-right:.4rem;" aria-hidden="true"><use href="#icon-settings"></use></svg>Configuración</h1>
+          <p class="view-sub">Estos datos son la identidad de tu negocio en cada factura</p>
+        </div>
+      </header>
+
+      <div class="config-layout">
+        <div class="table-wrap" style="padding:1.75rem;">
+          <form id="form-configuracion" class="modal-body">
+            <div class="field"><label>Nombre del negocio</label><input type="text" id="config-nombre" placeholder="Gil Muffler" /></div>
+            <div class="field"><label>Dirección</label><input type="text" id="config-direccion" placeholder="Lawrence, MA" /></div>
+            <div class="field-row">
+              <div class="field"><label>Teléfono</label><input type="text" id="config-telefono" /></div>
+              <div class="field"><label>Email</label><input type="email" id="config-email" /></div>
+            </div>
+            <div class="field">
+              <label>Logo (URL de una imagen de internet)</label>
+              <input type="url" id="config-logo-url" placeholder="https://..." />
+            </div>
+            <div class="field-row">
+              <div class="field"><label>Tasa de impuesto por defecto (%)</label><input type="number" id="config-tasa-impuesto-default" step="0.01" min="0" placeholder="0" /></div>
+              <div class="field">
+                <label>Formato de fecha</label>
+                <select id="config-formato-fecha">
+                  <option value="MM/DD/YYYY">MM/DD/YYYY (mes/día/año)</option>
+                  <option value="DD/MM/YYYY">DD/MM/YYYY (día/mes/año)</option>
+                </select>
+              </div>
+            </div>
+            <div class="field"><label>Mensaje de pie de página (sale en cada factura)</label><textarea id="config-mensaje-pie" rows="2" placeholder="¡Gracias por su preferencia!"></textarea></div>
+            <div class="field"><label>Texto adicional (términos, garantía, lo que quieras agregar)</label><textarea id="config-texto-adicional" rows="3" placeholder="Ej. Garantía de 90 días en piezas instaladas."></textarea></div>
+            <footer class="modal-footer" style="padding-top:.5rem;">
+              <span class="spacer"></span>
+              <button type="submit" class="btn-primary">Guardar</button>
+            </footer>
+          </form>
+        </div>
+
+        <div class="config-preview">
+          <span class="config-preview-label">Así se ve en la factura</span>
+          <div class="config-preview-card">
+            <div class="config-preview-header">
+              <div class="config-preview-brand">
+                <img id="preview-logo" class="config-preview-logo" src="logo-muffler.webp" alt="" hidden />
+                <strong id="preview-nombre">Gil Muffler</strong>
+              </div>
+              <span id="preview-contacto">—</span>
+            </div>
+            <div class="config-preview-body">
+              <div class="config-preview-line"></div>
+              <div class="config-preview-line" style="width:70%;"></div>
+              <div class="config-preview-line" style="width:40%;"></div>
+            </div>
+            <p class="config-preview-pie" id="preview-pie">¡Gracias por su preferencia!</p>
+            <p class="config-preview-extra" id="preview-extra" hidden></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-ordenes" class="view" hidden>
+      <header class="view-header">
+        <div>
+          <h1>Órdenes de servicio</h1>
+          <p class="view-sub">Seguimiento del trabajo en el taller</p>
+        </div>
+        <button class="btn-primary" id="btn-nueva-orden" type="button">+ Nueva orden</button>
+      </header>
+      <div class="toolbar">
+        <input type="search" id="ordenes-search" placeholder="Buscar por cliente, vehículo o número..." />
+      </div>
+      <div class="kanban" id="ordenes-kanban"></div>
+    </section>
+
+    <section id="view-inventario" class="view" hidden>
+      <header class="view-header">
+        <div>
+          <h1>Inventario</h1>
+          <p class="view-sub">Piezas y stock del taller</p>
+        </div>
+        <button class="btn-primary" id="btn-nueva-pieza" type="button">+ Nueva pieza</button>
+      </header>
+      <div class="toolbar">
+        <input type="search" id="piezas-search" placeholder="Buscar por nombre o SKU..." />
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th data-sort-key="nombre" class="is-sortable">Nombre</th>
+            <th data-sort-key="sku" class="is-sortable">SKU</th>
+            <th data-sort-key="stock" class="is-sortable">Stock</th>
+            <th data-sort-key="costo" class="is-sortable">Costo</th>
+            <th data-sort-key="precio_venta" class="is-sortable">Precio</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="piezas-tbody"></tbody>
+        </table>
+        <div id="piezas-empty" class="empty-state" hidden></div>
+      </div>
+    </section>
+
+    <section id="view-tareas" class="view" hidden>
+      <header class="view-header">
+        <div>
+          <h1>Tareas</h1>
+          <p class="view-sub">Seguimiento y recordatorios</p>
+        </div>
+        <button class="btn-primary" id="btn-nueva-tarea" type="button">+ Nueva tarea</button>
+      </header>
+      <div class="tareas-groups" id="tareas-groups"></div>
+    </section>
+  </main>
+</div>
+
+<div id="modal-cliente" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2 id="modal-cliente-title">Nuevo cliente</h2>
+      <button class="icon-btn" data-close-modal="modal-cliente" type="button">&times;</button>
+    </header>
+    <form id="form-cliente" class="modal-body">
+      <input type="hidden" id="cliente-id" />
+      <div class="field"><label><svg class="icon field-icon" aria-hidden="true"><use href="#icon-user"></use></svg>Nombre *</label><input type="text" id="cliente-nombre" required /></div>
+      <div class="field-row">
+        <div class="field"><label><svg class="icon field-icon" aria-hidden="true"><use href="#icon-phone"></use></svg>Teléfono</label><input type="text" id="cliente-telefono" /></div>
+        <div class="field"><label><svg class="icon field-icon" aria-hidden="true"><use href="#icon-mail"></use></svg>Email</label><input type="email" id="cliente-email" /></div>
+      </div>
+      <div class="field"><label><svg class="icon field-icon" aria-hidden="true"><use href="#icon-map-pin"></use></svg>Dirección</label><input type="text" id="cliente-direccion" /></div>
+      <div class="field"><label><svg class="icon field-icon" aria-hidden="true"><use href="#icon-edit"></use></svg>Notas</label><textarea id="cliente-notas" rows="2"></textarea></div>
+      <p class="orden-nota">Los vehículos se agregan desde la ficha del cliente, después de guardarlo.</p>
+      <footer class="modal-footer">
+        <button type="button" class="btn-danger" id="btn-eliminar-cliente" hidden>Eliminar</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn-ghost" data-close-modal="modal-cliente">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar</button>
+      </footer>
+    </form>
+  </div>
+</div>
+
+<div id="modal-factura" class="modal-backdrop" hidden>
+  <div class="modal modal-wide">
+    <header class="modal-header">
+      <h2 id="modal-factura-title">Nueva factura</h2>
+      <button class="icon-btn" data-close-modal="modal-factura" type="button">&times;</button>
+    </header>
+    <form id="form-factura" class="modal-body">
+      <input type="hidden" id="factura-id" />
+      <input type="hidden" id="factura-orden-id" />
+      <p id="factura-orden-nota" class="orden-nota" hidden></p>
+      <div class="field-row">
+        <div class="field">
+          <label>Cliente *</label>
+          <input type="text" id="factura-cliente" list="clientes-datalist" placeholder="Escribe el nombre del cliente..." required autocomplete="off" />
+          <datalist id="clientes-datalist"></datalist>
+        </div>
+        <div class="field"><label>Fecha</label><input type="date" id="factura-fecha" required /></div>
+        <div class="field">
+          <label>Estado</label>
+          <select id="factura-estado">
+            <option value="pendiente">Sin pagar</option>
+            <option value="pagada">Pagada</option>
+            <option value="cancelada">Cancelada</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field" style="max-width:16rem;">
+        <label>Mano de obra (Labor)</label>
+        <input type="number" id="factura-labor" min="0" step="0.01" value="0" />
+      </div>
+
+      <table class="items-table">
+        <thead><tr><th>Descripción</th><th>Cant.</th><th>Precio</th><th>Subtotal</th><th></th></tr></thead>
+        <tbody id="factura-items-tbody"></tbody>
+      </table>
+      <button type="button" class="btn-ghost" id="btn-add-item">+ Agregar línea</button>
+
+      <div class="totals">
+        <div class="field-row">
+          <div class="field"><label>Impuesto (%)</label><input type="number" id="factura-impuesto-pct" value="0" min="0" step="0.01" /></div>
+          <div class="totals-numbers">
+            <div><span>Subtotal</span><strong id="factura-subtotal">$0.00</strong></div>
+            <div><span>Impuesto</span><strong id="factura-impuesto-monto">$0.00</strong></div>
+            <div class="total-final"><span>Total</span><strong id="factura-total">$0.00</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field"><label>Notas</label><textarea id="factura-notas" rows="2"></textarea></div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn-danger" id="btn-eliminar-factura" hidden>Eliminar</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn-ghost" data-close-modal="modal-factura">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar factura</button>
+      </footer>
+    </form>
+  </div>
+</div>
+
+<div id="modal-pieza" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2 id="modal-pieza-title">Nueva pieza</h2>
+      <button class="icon-btn" data-close-modal="modal-pieza" type="button">&times;</button>
+    </header>
+    <form id="form-pieza" class="modal-body">
+      <input type="hidden" id="pieza-id" />
+      <div class="field"><label>Nombre *</label><input type="text" id="pieza-nombre" required /></div>
+      <div class="field-row">
+        <div class="field"><label>SKU</label><input type="text" id="pieza-sku" /></div>
+        <div class="field"><label>Categoría</label><input type="text" id="pieza-categoria" /></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Costo</label><input type="number" id="pieza-costo" min="0" step="0.01" value="0" /></div>
+        <div class="field"><label>Precio de venta</label><input type="number" id="pieza-precio" min="0" step="0.01" value="0" /></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Stock actual</label><input type="number" id="pieza-stock" min="0" step="0.01" value="0" /></div>
+        <div class="field"><label>Stock mínimo</label><input type="number" id="pieza-stock-minimo" min="0" step="0.01" value="0" /></div>
+      </div>
+      <div class="field"><label>Proveedor</label><input type="text" id="pieza-proveedor" /></div>
+      <div class="field"><label>Notas</label><textarea id="pieza-notas" rows="2"></textarea></div>
+      <footer class="modal-footer">
+        <button type="button" class="btn-danger" id="btn-eliminar-pieza" hidden>Eliminar</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn-ghost" data-close-modal="modal-pieza">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar</button>
+      </footer>
+    </form>
+  </div>
+</div>
+
+<div id="modal-vehiculo" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2 id="modal-vehiculo-title">Nuevo vehículo</h2>
+      <button class="icon-btn" data-close-modal="modal-vehiculo" type="button">&times;</button>
+    </header>
+    <form id="form-vehiculo" class="modal-body">
+      <input type="hidden" id="vehiculo-id" />
+      <input type="hidden" id="vehiculo-cliente-id" />
+      <div class="field-row">
+        <div class="field"><label>Marca</label><input type="text" id="vehiculo-marca" /></div>
+        <div class="field"><label>Modelo</label><input type="text" id="vehiculo-modelo" /></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Año</label><input type="text" id="vehiculo-anio" /></div>
+        <div class="field"><label>Placa</label><input type="text" id="vehiculo-placa" /></div>
+      </div>
+      <div class="field"><label>Kilometraje actual</label><input type="text" id="vehiculo-kilometraje" placeholder="ej. 85,000 millas" /></div>
+      <div class="field"><label>Notas</label><textarea id="vehiculo-notas" rows="2"></textarea></div>
+
+      <div id="vehiculo-historial-wrap" hidden>
+        <label class="field-label-standalone">Historial de kilometraje</label>
+        <div id="vehiculo-historial" class="detalle-list"></div>
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn-danger" id="btn-eliminar-vehiculo" hidden>Eliminar</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn-ghost" data-close-modal="modal-vehiculo">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar</button>
+      </footer>
+    </form>
+  </div>
+</div>
+
+<div id="modal-orden" class="modal-backdrop" hidden>
+  <div class="modal modal-wide">
+    <header class="modal-header">
+      <h2 id="modal-orden-title">Nueva orden de servicio</h2>
+      <button class="icon-btn" data-close-modal="modal-orden" type="button">&times;</button>
+    </header>
+    <form id="form-orden" class="modal-body">
+      <input type="hidden" id="orden-id" />
+      <div class="field-row">
+        <div class="field">
+          <label>Cliente *</label>
+          <select id="orden-cliente" required></select>
+        </div>
+        <div class="field"><label>Kilometraje de esta visita</label><input type="text" id="orden-kilometraje" /></div>
+      </div>
+      <div class="field">
+        <label>Vehículo</label>
+        <select id="orden-vehiculo"></select>
+      </div>
+      <p id="orden-vehiculo-legacy" class="orden-nota" hidden></p>
+      <div id="orden-vehiculo-nuevo" class="field-row" hidden>
+        <div class="field"><label>Marca</label><input type="text" id="orden-nuevo-vehiculo-marca" /></div>
+        <div class="field"><label>Modelo</label><input type="text" id="orden-nuevo-vehiculo-modelo" /></div>
+        <div class="field"><label>Año</label><input type="text" id="orden-nuevo-vehiculo-anio" /></div>
+        <div class="field"><label>Placa</label><input type="text" id="orden-nuevo-vehiculo-placa" /></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Fecha de recepción</label><input type="date" id="orden-fecha-recepcion" required /></div>
+        <div class="field"><label>Fecha estimada de entrega</label><input type="date" id="orden-fecha-estimada" /></div>
+      </div>
+      <p id="orden-etapa-nota" class="orden-nota"></p>
+
+      <div class="field"><label>Diagnóstico</label><textarea id="orden-diagnostico" rows="2"></textarea></div>
+      <div class="field"><label>Trabajo recomendado</label><textarea id="orden-trabajo" rows="2"></textarea></div>
+
+      <label class="field-label-standalone">Piezas usadas</label>
+      <table class="items-table">
+        <thead><tr><th>Pieza</th><th>Cant.</th><th>Precio</th><th>Subtotal</th><th></th></tr></thead>
+        <tbody id="orden-piezas-tbody"></tbody>
+      </table>
+      <button type="button" class="btn-ghost" id="btn-add-orden-pieza">+ Agregar pieza</button>
+
+      <div class="field"><label>Notas</label><textarea id="orden-notas" rows="2"></textarea></div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn-danger" id="btn-eliminar-orden" hidden>Eliminar</button>
+        <button type="button" class="btn-ghost" id="btn-imprimir-orden" hidden>Imprimir</button>
+        <button type="button" class="btn-ghost" id="btn-generar-factura" hidden>Generar factura</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn-ghost" data-close-modal="modal-orden">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar orden</button>
+      </footer>
+    </form>
+  </div>
+</div>
+
+<div id="modal-tarea" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2 id="modal-tarea-title">Nueva tarea</h2>
+      <button class="icon-btn" data-close-modal="modal-tarea" type="button">&times;</button>
+    </header>
+    <form id="form-tarea" class="modal-body">
+      <input type="hidden" id="tarea-id" />
+      <div class="field"><label>Título *</label><input type="text" id="tarea-titulo" required /></div>
+      <div class="field-row">
+        <div class="field">
+          <label>Cliente (opcional)</label>
+          <select id="tarea-cliente">
+            <option value="">— Sin cliente —</option>
+          </select>
+        </div>
+        <div class="field"><label>Fecha de vencimiento</label><input type="date" id="tarea-fecha" /></div>
+      </div>
+      <div class="field"><label>Descripción</label><textarea id="tarea-descripcion" rows="2"></textarea></div>
+      <footer class="modal-footer">
+        <button type="button" class="btn-danger" id="btn-eliminar-tarea" hidden>Eliminar</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn-ghost" data-close-modal="modal-tarea">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar tarea</button>
+      </footer>
+    </form>
+  </div>
+</div>
+
+<div id="modal-gasto" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2 id="modal-gasto-title">Nuevo gasto</h2>
+      <button class="icon-btn" data-close-modal="modal-gasto" type="button">&times;</button>
+    </header>
+    <form id="form-gasto" class="modal-body">
+      <input type="hidden" id="gasto-id" />
+      <div class="field-row">
+        <div class="field"><label>Fecha</label><input type="date" id="gasto-fecha" required /></div>
+        <div class="field">
+          <label>Categoría</label>
+          <select id="gasto-categoria">
+            <option value="Renta">Renta</option>
+            <option value="Servicios">Servicios</option>
+            <option value="Suministros">Suministros</option>
+            <option value="Sueldos">Sueldos</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Descripción</label><input type="text" id="gasto-descripcion" /></div>
+      <div class="field"><label>Monto</label><input type="number" id="gasto-monto" min="0" step="0.01" value="0" required /></div>
+      <footer class="modal-footer">
+        <button type="button" class="btn-danger" id="btn-eliminar-gasto" hidden>Eliminar</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn-ghost" data-close-modal="modal-gasto">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar gasto</button>
+      </footer>
+    </form>
+  </div>
+</div>
+
+<div id="modal-cliente-detalle" class="modal-backdrop" hidden>
+  <div class="modal modal-wide">
+    <header class="modal-header">
+      <h2 id="modal-cliente-detalle-title">Cliente</h2>
+      <button class="icon-btn" data-close-modal="modal-cliente-detalle" type="button">&times;</button>
+    </header>
+    <div class="modal-body">
+      <div id="cliente-detalle-info" class="cliente-detalle-info"></div>
+
+      <h3 class="detalle-subtitle">
+        Vehículos
+        <button type="button" class="btn-ghost" id="btn-detalle-agregar-vehiculo" style="margin-left:.75rem;">+ Agregar vehículo</button>
+      </h3>
+      <div id="cliente-detalle-vehiculos" class="detalle-list"></div>
+
+      <h3 class="detalle-subtitle">Historial</h3>
+      <div id="cliente-detalle-historial" class="detalle-list"></div>
+
+      <h3 class="detalle-subtitle">Tareas</h3>
+      <div id="cliente-detalle-tareas" class="detalle-list"></div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn-primary" id="btn-detalle-crear-factura">
+          <svg class="icon" aria-hidden="true"><use href="#icon-file-text"></use></svg>
+          Crear factura
+        </button>
+        <span class="spacer"></span>
+        <button type="button" class="btn-ghost" data-close-modal="modal-cliente-detalle">Cerrar</button>
+      </footer>
+    </div>
+  </div>
+</div>
+
+<div id="modal-global-search" class="modal-backdrop search-backdrop" hidden>
+  <div class="modal modal-wide search-modal">
+    <div class="search-input-row">
+      <svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg>
+      <input type="text" id="global-search-input" placeholder="Buscar clientes, órdenes o facturas..." autocomplete="off" />
+      <button class="icon-btn" data-close-modal="modal-global-search" type="button">&times;</button>
+    </div>
+    <div id="global-search-results" class="search-results"></div>
+  </div>
+</div>
+
+<div id="modal-shortcuts" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2>Atajos de teclado</h2>
+      <button class="icon-btn" data-close-modal="modal-shortcuts" type="button">&times;</button>
+    </header>
+    <div class="modal-body">
+      <div class="shortcut-row"><kbd>Ctrl</kbd> + <kbd>K</kbd><span>Buscar en todo el sistema</span></div>
+      <div class="shortcut-row"><kbd>/</kbd><span>Buscar en la vista actual</span></div>
+      <div class="shortcut-row"><kbd>N</kbd><span>Crear un registro nuevo en la vista actual</span></div>
+      <div class="shortcut-row"><kbd>Esc</kbd><span>Cerrar la ventana abierta</span></div>
+      <div class="shortcut-row"><kbd>?</kbd><span>Mostrar esta ayuda</span></div>
+      <footer class="modal-footer">
+        <span class="spacer"></span>
+        <button type="button" class="btn-primary" data-close-modal="modal-shortcuts">Entendido</button>
+      </footer>
+    </div>
+  </div>
+</div>
+
+<div id="modal-confirm" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2 id="confirm-title">Confirmar</h2>
+      <button class="icon-btn" data-close-modal="modal-confirm" type="button">&times;</button>
+    </header>
+    <div class="modal-body">
+      <p id="confirm-message"></p>
+      <footer class="modal-footer">
+        <span class="spacer"></span>
+        <button type="button" class="btn-ghost" id="confirm-cancel">Cancelar</button>
+        <button type="button" class="btn-danger" id="confirm-ok">Confirmar</button>
+      </footer>
+    </div>
+  </div>
+</div>
+
+<div id="toast-stack" class="toast-stack"></div>
+
+<script src="config.local.js"></script>
+<script src="runtime-info.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
