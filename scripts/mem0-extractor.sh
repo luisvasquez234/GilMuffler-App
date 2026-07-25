@@ -8,7 +8,7 @@ cd "$(dirname "$0")/.."
 
 FECHA=$(date +%F)
 NOTAS=$(cat notas.txt 2>/dev/null || echo "(sin notas.txt)")
-COMMITS=$(git log --since="2 days ago" --pretty=format:"- %ad: %s" --date=short 2>/dev/null | head -10)
+COMMITS=$(git log --since="2 days ago" --pretty=format:"- %ad: %s" --date=short -n 10 2>/dev/null)
 if [ -z "$COMMITS" ]; then
   COMMITS="(sin commits nuevos en los últimos 2 días)"
 fi
