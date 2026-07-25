@@ -26,3 +26,15 @@ de terceros AutoRepairBill. Cliente real: el propio taller donde Luis trabaja.
   implementar nada de ahí sin que Luis lo pida explícitamente.
 - Prioriza lo que destraba el uso diario del taller sobre mejoras "bonitas pero
   no urgentes" — el tiempo de Luis es limitado.
+
+## Pendiente de automatizar
+
+- **Contactar prospectos encontrados por el briefing diario**: hoy en día,
+  cuando `briefing.md` encuentra negocios sin buena web (via el cron de
+  `.github/workflows/briefing-diario.yml`), Luis copia el contacto a mano y
+  manda el mensaje generado por `/prospecto` uno por uno (WhatsApp/email).
+  Cruza dos herramientas (el briefing/GitHub y el canal de contacto real) sin
+  conexión automática entre ellas todavía. Candidato a automatizar más
+  adelante (ej. que el propio cron genere también el mensaje de contacto, o
+  se integre con WhatsApp/email directamente) — no implementar sin que Luis
+  lo pida explícitamente.
