@@ -1,0 +1,3 @@
+Notas rápidas de Luis para el negocio (Gil Muffler y diseño web).
+Escribe una idea o hecho por línea. El extractor nocturno de Mem0 las lee y olvida
+las que ya guardó — puedes dejar este archivo vacío entre corridas.
