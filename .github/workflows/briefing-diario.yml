@@ -24,12 +24,21 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           FECHA=$(date +%F)
-          echo "## Briefing $FECHA" > briefing_hoy.md
-          claude -p "Eres un investigador que ayuda a Luis a encontrar clientes potenciales para su negocio de diseño web. Luis vive en Lawrence, MA y su prueba social principal es la app de gestión que construyó para Gil's Muffler Inc, un taller de mufflers real en esa ciudad. Busca 3 negocios locales (cualquier giro: talleres, restaurantes, tiendas, servicios) en Lawrence, MA o pueblos cercanos (Methuen, Andover, Haverhill, North Andover) que no tengan página web propia o la tengan muy básica (solo ficha de Google/Facebook/Instagram, sin horarios, precios o forma de contactar claramente). Verifica cada uno de verdad antes de listarlo. Entrega la lista en este formato: - **[Nombre]** — [qué le falta] — contacto: [dato o 'no encontrado']. No inventes datos." --allowedTools "WebSearch,WebFetch" --permission-mode acceptEdits >> briefing_hoy.md
+          set +e
+          RESPUESTA=$(claude -p "Eres un investigador que ayuda a Luis a encontrar clientes potenciales para su negocio de diseño web. Luis vive en Lawrence, MA y su prueba social principal es la app de gestión que construyó para Gil's Muffler Inc, un taller de mufflers real en esa ciudad. Busca 3 negocios locales (cualquier giro: talleres, restaurantes, tiendas, servicios) en Lawrence, MA o pueblos cercanos (Methuen, Andover, Haverhill, North Andover) que no tengan página web propia o la tengan muy básica (solo ficha de Google/Facebook/Instagram, sin horarios, precios o forma de contactar claramente). Verifica cada uno de verdad antes de listarlo. Entrega la lista en este formato: - **[Nombre]** — [qué le falta] — contacto: [dato o 'no encontrado']. No inventes datos." --allowedTools "WebSearch,WebFetch" --permission-mode acceptEdits 2>&1)
+          ESTADO=$?
+          set -e
+          echo "$RESPUESTA"
+          if [ $ESTADO -ne 0 ]; then
+            echo "##[error] claude terminó con código $ESTADO"
+            exit $ESTADO
+          fi
 
-          cat briefing_hoy.md >> briefing.md
-          echo "" >> briefing.md
-          rm briefing_hoy.md
+          {
+            echo "## Briefing $FECHA"
+            echo "$RESPUESTA"
+            echo ""
+          } >> briefing.md
 
       - name: Commit y push del briefing
         run: |
