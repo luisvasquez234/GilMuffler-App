@@ -27,3 +27,43 @@ Sources:
 - [RepairHit — Chiquito's Tire Shop](https://repairhit.com/business/chiquitos-tire-shop)
 - [Superpages — Chiquito's Tire Shop (Bay State Rd)](https://www.superpages.com/lawrence-ma/bpp/chiquitos-tire-shop-505179531)
 
+## Briefing 2026-07-25
+He verificado 3 negocios reales. Aquí va la lista:
+
+- **Reposteria Miguelina** (154 Essex St, Lawrence) — Panadería/restaurante dominicano sin web propia. Lo que aparece en Google (`reposteria-miguelina.res-menu.com`, `hey-restaurants.com`, `res-menu.net`) son sitios *scraper* de terceros que copian su menú sin permiso — el negocio no los controla. Su perfil de BBB no lista ningún sitio web. No hay página con horarios oficiales, precios ni forma de pedir. — contacto: (978) 975-3378
+- **Finest Cutz** (55 Broadway, Methuen) — Barbería con ~15 años operando y cero presencia propia. Yellow Pages le atribuye el sitio `gingerskidscutz.com`, pero ese dominio ya ni siquiera resuelve (DNS muerto). Su ficha de Fresha dice explícitamente que el negocio "no está afiliado" a la plataforma, o sea que ni la reserva online es suya. Solo efectivo, sin precios publicados. — contacto: (978) 208-1755 *(ojo: los directorios dan tres números distintos — este es el que coincide en BBB, Buzzfile y Yellow Pages; también aparecen (978) 904-0500 y (978) 905-0400)*
+- **Canela Market** (111 White St, Haverhill) — Colmado/restaurante latino sin web; solo Facebook y plataformas de delivery (DoorDash, Postmates, order.online). Su "contacto" oficial es una cuenta de Hotmail. Los horarios están contradictorios entre fuentes (unas dicen 6am–10pm, otras 9am–8pm) — nadie sabe realmente a qué hora abre. — contacto: (978) 372-0108 / canelamarketllc@hotmail.com
+
+**Descartados durante la verificación** (para que no pierdas el tiempo):
+- *Pollo Centro* — tiene `pollocentro.com` real y completo.
+- *People's Barbershop* (Methuen) — tiene un Wix terminado, con precios y booking.
+- *Moreno Auto Repair* y *Antonio Auto Repair* (Lawrence) — sus dominios (`morenoautorepair.com`, `antonioautorepair.com`) están caídos: rechazan la conexión. Son buenos prospectos en teoría, pero no pude confirmar que los dominios sean realmente de ellos y no de una agencia que les cobró y desapareció, así que no los cuento como verificados.
+
+**Dos apuntes honestos sobre el método:** verifiqué "no tiene web" por ausencia en BBB, Yellow Pages, Yelp y búsqueda directa del nombre + dominio — es evidencia sólida, pero no equivale a haber visto su ficha de Google Business, que no pude consultar directamente. Y de Canela Market la actividad más reciente que confirmé es de mediados de 2025 más las plataformas de delivery activas; los otros dos sí tienen señales de 2026.
+
+Para el pitch, los tres son giros donde Gil's Muffler te sirve de prueba social directa: negocio latino, familiar, del mismo Merrimack Valley.
+
+**Sources:**
+- [BBB — Reposteria Miguelina](https://www.bbb.org/us/ma/lawrence/profile/retail-bakers/reposteria-miguelina-0021-267209)
+- [Yellow Pages — Reposteria Miguelina](https://www.yellowpages.com/lawrence-ma/mip/reposteria-miguelina-3345195)
+- [Restaurantji — Reposteria Miguelina](https://www.restaurantji.com/ma/lawrence/reposteria-miguelina-/)
+- [BBB — Finest Cutz](https://www.bbb.org/us/ma/methuen/profile/beauty-salon/finest-cutz-0021-261007)
+- [Fresha — Finest Cutz](https://www.fresha.com/lvp/finest-cutz-broadway-methuen-3oJ5av)
+- [Yellow Pages — Finest Cutz](https://www.yellowpages.com/methuen-ma/mip/finest-cutz-469129959)
+- [Birdeye — Canela Market](https://reviews.birdeye.com/canela-market-171811814552284)
+- [Facebook — Canela Market](https://www.facebook.com/Canelamarketllc/)
+- [DoorDash — Canela Market](https://www.doordash.com/en/store/canela-market-haverhill-23905151/)
+- [pollocentro.com](https://pollocentro.com/)
+- [People's Barbershop (Wix)](https://peoplesbarbershopm.wixsite.com/mysite-1)
+
+### Clientes inactivos (Gil Muffler) — 2026-07-25
+La consulta devolvió **un solo cliente**:
+
+## Cliente para contactar
+
+1. **JOSEFINA** — 978-242-4290 — *nunca ha facturado* (no tiene ninguna factura registrada en el sistema)
+
+---
+
+**Nota para Luis:** no hay ningún cliente con facturas viejas de más de 90 días — todos los que sí han facturado alguna vez volvieron dentro de los últimos 3 meses. Josefina aparece porque está registrada como cliente pero nunca se le hizo una factura, así que puede ser alguien que llamó o pasó a preguntar y no llegó a dejar el carro.
+

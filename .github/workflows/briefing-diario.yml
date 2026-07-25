@@ -40,6 +40,40 @@ jobs:
             echo ""
           } >> briefing.md
 
+      - name: Reporte de clientes inactivos (Supabase MCP)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          cat > /tmp/mcp-supabase.json <<EOF
+          {
+            "mcpServers": {
+              "supabase": {
+                "command": "npx",
+                "args": ["-y", "@supabase/mcp-server-supabase@latest", "--project-ref=tussmuklnvqwkbdcjwtq"],
+                "env": { "SUPABASE_ACCESS_TOKEN": "$SUPABASE_ACCESS_TOKEN" }
+              }
+            }
+          }
+          EOF
+          set +e
+          RESPUESTA=$(claude -p "Usa la herramienta execute_sql para correr esta consulta contra la base de datos de Gil Muffler: select c.nombre, c.telefono, max(f.fecha) as ultima_factura from clientes c left join facturas f on f.cliente_id = c.id group by c.id, c.nombre, c.telefono having max(f.fecha) < current_date - interval '90 days' or max(f.fecha) is null order by ultima_factura asc nulls first limit 10; Con el resultado, arma una lista corta en español de los clientes que no han vuelto en más de 90 días (o nunca han facturado), con nombre y teléfono, para que Luis los contacte. Si no hay ninguno, dilo claramente." --mcp-config /tmp/mcp-supabase.json --allowedTools "mcp__supabase__execute_sql" --permission-mode acceptEdits 2>&1)
+          ESTADO=$?
+          set -e
+          echo "$RESPUESTA"
+          rm -f /tmp/mcp-supabase.json
+          if [ $ESTADO -ne 0 ]; then
+            echo "##[error] claude (supabase) terminó con código $ESTADO"
+            exit $ESTADO
+          fi
+
+          FECHA=$(date +%F)
+          {
+            echo "### Clientes inactivos (Gil Muffler) — $FECHA"
+            echo "$RESPUESTA"
+            echo ""
+          } >> briefing.md
+
       - name: Commit y push del briefing
         run: |
           git config user.name "briefing-bot"
