@@ -53,3 +53,4 @@ de opciones.
 27. Modo básico sin internet, para cuando se cae la conexión en el taller
 28. Búsqueda global: un solo cuadro para buscar cliente, placa o factura, sin importar la sección
 29. Publicar `ver-factura.html` en un hosting real (no solo la red local), para que el QR funcione desde cualquier lugar, no solo el WiFi del taller
+30. Activar de verdad el bot de WhatsApp (`supabase/functions/whatsapp-bot`): el código ya está escrito y desplegado en Supabase, pero Twilio pide agregar tarjeta para configurar el Sandbox — pendiente de que Luis decida si vale la pena pagarlo o buscar otra vía (ej. email) para el canal de salida
