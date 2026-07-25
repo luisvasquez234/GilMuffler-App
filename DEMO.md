@@ -1,6 +1,6 @@
 # DEMO — Mi OpenClaw (Sesión 8, Academia Catalizadora)
 
-**Video (8 min):** _[pega aquí el link cuando lo subas]_
+**Video:** https://drive.google.com/file/d/1exiXYgqoAKcUVT67jRRh0WrtaUm1mm-1/view?usp=drive_link
 
 Guion para grabar. No hace falta memorizarlo palabra por palabra — es una guía
 para no perder el hilo. Practica una vez antes de grabar.
