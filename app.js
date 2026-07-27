@@ -1173,6 +1173,20 @@
     selectAll.indeterminate = seleccionadosVisibles > 0 && seleccionadosVisibles < totalVisibles;
   }
 
+  function enviarFacturaEmail(id) {
+    fetch(CONFIG.SUPABASE_URL + "/functions/v1/enviar-factura-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: CONFIG.SUPABASE_ANON_KEY,
+        Authorization: "Bearer " + CONFIG.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({ factura_id: id }),
+    }).catch(() => {
+      // el email es un extra silencioso; si falla no debe bloquear el flujo de cobro
+    });
+  }
+
   async function bulkMarcarPagadas() {
     if (!facturasSeleccionadas.size) return;
     const ids = Array.from(facturasSeleccionadas);
@@ -1181,6 +1195,7 @@
       showToast("No se pudieron marcar las facturas.", true);
       return;
     }
+    ids.forEach(enviarFacturaEmail);
     showToast(ids.length + " factura(s) marcadas como pagadas.");
     facturasSeleccionadas.clear();
     await refreshFacturas();
@@ -1206,6 +1221,7 @@
       showToast("No se pudo marcar la factura como pagada.", true);
       return;
     }
+    enviarFacturaEmail(id);
     showToast("Factura marcada como pagada.");
     await refreshFacturas();
   }
