@@ -605,7 +605,7 @@
   async function fetchFacturas() {
     const { data, error } = await sb
       .from("facturas")
-      .select("*, clientes(nombre, apellido, direccion)")
+      .select("*, clientes(nombre, apellido, direccion, numero)")
       .order("numero", { ascending: false });
     if (error) {
       showToast("No se pudieron cargar las facturas.", true);
@@ -661,6 +661,7 @@
     document.getElementById("vehiculo-modelo").value = vehiculo ? vehiculo.modelo || "" : "";
     document.getElementById("vehiculo-anio").value = vehiculo ? vehiculo.anio || "" : "";
     document.getElementById("vehiculo-placa").value = vehiculo ? vehiculo.placa || "" : "";
+    document.getElementById("vehiculo-vin").value = vehiculo ? vehiculo.vin || "" : "";
     document.getElementById("vehiculo-kilometraje").value = vehiculo ? vehiculo.kilometraje || "" : "";
     document.getElementById("vehiculo-notas").value = vehiculo ? vehiculo.notas || "" : "";
     document.getElementById("btn-eliminar-vehiculo").hidden = !vehiculo;
@@ -704,6 +705,7 @@
       modelo: document.getElementById("vehiculo-modelo").value.trim(),
       anio: document.getElementById("vehiculo-anio").value.trim(),
       placa: document.getElementById("vehiculo-placa").value.trim(),
+      vin: document.getElementById("vehiculo-vin").value.trim(),
       kilometraje: document.getElementById("vehiculo-kilometraje").value.trim(),
       notas: document.getElementById("vehiculo-notas").value.trim(),
     };
@@ -876,6 +878,7 @@
       .filter((f) => f.cliente_id === cliente.id && f.estado === "pagada")
       .reduce((sum, f) => sum + Number(f.total), 0);
     document.getElementById("cliente-detalle-info").innerHTML =
+      "<div><span>ID Cliente</span>" + escapeHtml(String(cliente.numero || "—")) + "</div>" +
       "<div><span>Teléfono</span>" + escapeHtml(cliente.telefono || "—") + "</div>" +
       "<div><span>Email</span>" + escapeHtml(cliente.email || "—") + "</div>" +
       "<div><span>Total gastado</span>" + money(totalGastado) + "</div>";
@@ -1394,7 +1397,9 @@
       escapeHtml(clienteNombre) +
       (cliente.direccion ? "<br><span class='label'>Dirección:</span> " + escapeHtml(cliente.direccion) : "") +
       "</div><div>" +
+      "<span class='label'>ID Cliente:</span> " + escapeHtml(String(cliente.numero || "—")) + "<br>" +
       (vehiculoLabelStr ? "<span class='label'>Vehículo:</span> " + escapeHtml(vehiculoLabelStr) + "<br>" : "") +
+      (vehiculo && vehiculo.vin ? "<span class='label'>VIN:</span> " + escapeHtml(vehiculo.vin) + "<br>" : "") +
       (vehiculo && vehiculo.placa ? "<span class='label'>Placa:</span> " + escapeHtml(vehiculo.placa) + "<br>" : "") +
       (vehiculo && vehiculo.kilometraje ? "<span class='label'>Kilometraje:</span> " + escapeHtml(vehiculo.kilometraje) : "") +
       "</div></div>" +
