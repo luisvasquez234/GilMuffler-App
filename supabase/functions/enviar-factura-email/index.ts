@@ -6,18 +6,31 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const FROM_EMAIL = "Gil's Muffler <facturas@gilmuffler.shop>";
 
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+function json(body: unknown, init: ResponseInit = {}): Response {
+  return Response.json(body, { ...init, headers: { ...CORS_HEADERS, ...(init.headers || {}) } });
+}
+
 function money(n: number | null | undefined): string {
   return "$" + Number(n || 0).toFixed(2);
 }
 
 Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: CORS_HEADERS });
+  }
   if (req.method !== "POST") {
-    return Response.json({ error: "Method not allowed" }, { status: 405 });
+    return json({ error: "Method not allowed" }, { status: 405 });
   }
 
   const { factura_id } = await req.json();
   if (!factura_id) {
-    return Response.json({ error: "Falta factura_id" }, { status: 400 });
+    return json({ error: "Falta factura_id" }, { status: 400 });
   }
 
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
@@ -29,12 +42,12 @@ Deno.serve(async (req: Request) => {
     .single();
 
   if (facturaError || !factura) {
-    return Response.json({ error: "Factura no encontrada" }, { status: 404 });
+    return json({ error: "Factura no encontrada" }, { status: 404 });
   }
 
   const cliente = Array.isArray(factura.clientes) ? factura.clientes[0] : factura.clientes;
   if (!cliente?.email) {
-    return Response.json({ skipped: true, reason: "El cliente no tiene email registrado" });
+    return json({ skipped: true, reason: "El cliente no tiene email registrado" });
   }
 
   const { data: items } = await supabase
@@ -103,8 +116,8 @@ Deno.serve(async (req: Request) => {
   if (!resendResp.ok) {
     const errText = await resendResp.text();
     console.error(`Resend error ${resendResp.status}: ${errText}`);
-    return Response.json({ error: "Fallo al enviar email", detail: errText }, { status: 500 });
+    return json({ error: "Fallo al enviar email", detail: errText }, { status: 500 });
   }
 
-  return Response.json({ sent: true });
+  return json({ sent: true });
 });
