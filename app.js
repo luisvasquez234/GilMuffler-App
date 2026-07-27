@@ -605,7 +605,7 @@
   async function fetchFacturas() {
     const { data, error } = await sb
       .from("facturas")
-      .select("*, clientes(nombre)")
+      .select("*, clientes(nombre, apellido, direccion)")
       .order("numero", { ascending: false });
     if (error) {
       showToast("No se pudieron cargar las facturas.", true);
@@ -1304,16 +1304,25 @@
     const factura = state.facturas.find((f) => f.id === id);
     if (!factura) return;
     const items = await fetchFacturaItems(id);
-    const clienteNombre = factura.clientes ? factura.clientes.nombre : "—";
+    const cliente = factura.clientes || {};
+    const clienteNombre = [cliente.nombre, cliente.apellido].filter(Boolean).join(" ") || "—";
+    const vehiculo = state.vehiculos.find((v) => v.cliente_id === factura.cliente_id);
+    const vehiculoLabelStr = vehiculo ? [vehiculo.marca, vehiculo.modelo, vehiculo.anio].filter(Boolean).join(" ") : "";
     const cfg = state.configNegocio || {};
     const nombreNegocio = cfg.nombre_negocio || "Gil Muffler";
-    const contacto = [cfg.direccion, cfg.telefono, cfg.email].filter(Boolean).join(" · ");
     const logoSrc = cfg.logo_url || LOGO_DATA_URI;
+
+    const ESTADO_ESTILO = {
+      pagada: { label: "PAGADA", color: "#1a7f5a" },
+      pendiente: { label: "PENDIENTE DE PAGO", color: "#b8860b" },
+      cancelada: { label: "CANCELADA", color: "#d6293b" },
+    };
+    const estadoInfo = ESTADO_ESTILO[factura.estado] || { label: estadoFacturaLabel(factura.estado), color: "#68707e" };
 
     const filas = items
       .map(
         (it) =>
-          "<tr><td>" + escapeHtml(it.descripcion) + "</td><td>" + it.cantidad + "</td><td>" + money(it.precio_unitario) + "</td><td>" + money(it.subtotal) + "</td></tr>"
+          "<tr><td>" + escapeHtml(it.descripcion) + "</td><td class='num'>" + it.cantidad + "</td><td class='num'>" + money(it.precio_unitario) + "</td><td class='num'>" + money(it.subtotal) + "</td></tr>"
       )
       .join("");
 
@@ -1338,23 +1347,29 @@
       String(factura.numero).padStart(4, "0") +
       "</title><style>" +
       "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:2.5rem;max-width:40rem;margin:0 auto;}" +
-      ".header{border-bottom:3px solid #d5601a;padding-bottom:1rem;margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;}" +
+      ".header{border-bottom:3px solid #d5601a;padding-bottom:1rem;margin-bottom:1.2rem;display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;}" +
       ".header-brand{display:flex;align-items:center;gap:.8rem;}" +
-      ".header-brand img{height:3rem;width:3rem;object-fit:cover;object-position:68% 55%;border-radius:8px;flex:none;}" +
-      ".header h1{font-size:1.5rem;margin:0;color:#d5601a;}" +
-      ".header .contacto{font-size:.8rem;color:#68707e;text-align:right;}" +
-      ".meta{display:flex;justify-content:space-between;margin-bottom:1.5rem;font-size:.9rem;}" +
-      ".meta .estado{display:inline-block;padding:.2rem .6rem;border-radius:999px;background:#fdefe3;color:#d5601a;font-weight:600;font-size:.78rem;}" +
-      "table{width:100%;border-collapse:collapse;margin-top:.5rem;}" +
-      "th,td{text-align:left;padding:.5rem .6rem;border-bottom:1px solid #e1e4e9;font-size:.9rem;}" +
-      "th{color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}" +
-      ".totals{margin-top:1rem;text-align:right;font-size:.95rem;}" +
-      ".totals strong{font-size:1.15rem;color:#d5601a;}" +
+      ".header-brand img{height:3.2rem;width:3.2rem;object-fit:cover;object-position:68% 55%;border-radius:8px;flex:none;}" +
+      ".header h1{font-size:1.4rem;margin:0;color:#1f2430;}" +
+      ".header .contacto{font-size:.78rem;color:#68707e;text-align:right;line-height:1.5;}" +
+      ".titulo{text-align:center;margin:1.4rem 0 .3rem;}" +
+      ".titulo .num-factura{font-size:1.15rem;font-weight:700;color:#1f2430;}" +
+      ".titulo .estado{display:block;margin-top:.3rem;font-size:1.4rem;font-weight:800;letter-spacing:.03em;}" +
+      ".meta{display:flex;justify-content:space-between;gap:2rem;margin:1.3rem 0;padding-bottom:1rem;border-bottom:1px solid #e1e4e9;font-size:.85rem;}" +
+      ".meta div{flex:1;line-height:1.7;}" +
+      ".meta .label{color:#68707e;}" +
+      "table{width:100%;border-collapse:collapse;margin-top:.5rem;border:1px solid #ccc;}" +
+      "th,td{text-align:left;padding:.5rem .6rem;border:1px solid #ccc;font-size:.85rem;}" +
+      "th{color:#1f2430;font-size:.75rem;text-transform:uppercase;letter-spacing:.03em;background:#eef0f1;}" +
+      "td.num,th.num{text-align:right;}" +
+      ".totals{margin-top:1.1rem;margin-left:auto;width:14rem;border:1px solid #ccc;font-size:.9rem;}" +
+      ".totals div{display:flex;justify-content:space-between;padding:.45rem .7rem;background:#eef0f1;border-bottom:1px solid #ccc;}" +
+      ".totals div:last-child{border-bottom:none;font-weight:700;font-size:1.05rem;color:#1f2430;}" +
       ".notas{margin-top:1.5rem;padding:.9rem 1rem;background:#fafbfc;border-radius:8px;font-size:.85rem;}" +
       ".notas strong{display:block;margin-bottom:.3rem;color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}" +
       ".pie{margin-top:2rem;text-align:center;font-style:italic;color:#68707e;font-size:.9rem;}" +
       ".extra{margin-top:.75rem;text-align:center;color:#68707e;font-size:.8rem;white-space:pre-line;}" +
-      ".qr{text-align:center;}" +
+      ".qr{text-align:center;margin-top:1.5rem;}" +
       ".qr img{width:100px;height:100px;}" +
       ".qr p{margin:.3rem 0 0;font-size:.65rem;color:#68707e;}" +
       "@media print{body{padding:0;}}" +
@@ -1364,32 +1379,41 @@
       "' alt='' /><h1>" +
       escapeHtml(nombreNegocio) +
       "</h1></div><div class='contacto'>" +
-      escapeHtml(contacto) +
+      [cfg.direccion, cfg.telefono, cfg.email].filter(Boolean).map(escapeHtml).join("<br>") +
       "</div></div>" +
-      "<div class='meta'><div><strong>Factura #" +
+      "<div class='titulo'><div class='num-factura'>Factura #" +
       String(factura.numero).padStart(4, "0") +
-      "</strong><br>" +
+      "</div><span class='estado' style='color:" +
+      estadoInfo.color +
+      "'>" +
+      estadoInfo.label +
+      "</span></div>" +
+      "<div class='meta'><div><span class='label'>Fecha:</span> " +
       escapeHtml(formatDate(factura.fecha)) +
-      "<br>Cliente: " +
+      "<br><span class='label'>Cliente:</span> " +
       escapeHtml(clienteNombre) +
-      "</div><div><span class='estado'>" +
-      escapeHtml(estadoFacturaLabel(factura.estado)) +
-      "</span></div><div class='qr'><img src='" +
-      qrDataUrl +
-      "' alt='QR' /><p>Ver factura completa</p></div></div>" +
-      "<table><thead><tr><th>Descripción</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr></thead><tbody>" +
+      (cliente.direccion ? "<br><span class='label'>Dirección:</span> " + escapeHtml(cliente.direccion) : "") +
+      "</div><div>" +
+      (vehiculoLabelStr ? "<span class='label'>Vehículo:</span> " + escapeHtml(vehiculoLabelStr) + "<br>" : "") +
+      (vehiculo && vehiculo.placa ? "<span class='label'>Placa:</span> " + escapeHtml(vehiculo.placa) + "<br>" : "") +
+      (vehiculo && vehiculo.kilometraje ? "<span class='label'>Kilometraje:</span> " + escapeHtml(vehiculo.kilometraje) : "") +
+      "</div></div>" +
+      "<table><thead><tr><th>Descripción</th><th class='num'>Cant.</th><th class='num'>Precio</th><th class='num'>Subtotal</th></tr></thead><tbody>" +
       filas +
       "</tbody></table>" +
-      "<div class='totals'><div>Subtotal: " +
+      "<div class='totals'><div><span>Subtotal</span><span>" +
       money(factura.subtotal) +
-      "</div><div>Impuesto: " +
+      "</span></div><div><span>Impuesto</span><span>" +
       money(factura.impuesto) +
-      "</div><div><strong>Total: " +
+      "</span></div><div><span>Total</span><span>" +
       money(factura.total) +
-      "</strong></div></div>" +
+      "</span></div></div>" +
       notasHtml +
-      pieHtml +
       extraHtml +
+      pieHtml +
+      "<div class='qr'><img src='" +
+      qrDataUrl +
+      "' alt='QR' /><p>Ver factura completa</p></div>" +
       "</body></html>";
 
     openPrintWindow(html);
