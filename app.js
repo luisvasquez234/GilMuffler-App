@@ -322,15 +322,24 @@
         e.stopPropagation();
         const wrap = btn.closest(".row-actions");
         const wasOpen = wrap.classList.contains("is-open");
-        document.querySelectorAll(".row-actions.is-open").forEach((w) => w.classList.remove("is-open"));
-        if (!wasOpen) wrap.classList.add("is-open");
+        document.querySelectorAll(".row-actions.is-open").forEach((w) => w.classList.remove("is-open", "opens-up"));
+        if (!wasOpen) {
+          wrap.classList.add("is-open");
+          const menu = wrap.querySelector(".row-actions-menu");
+          const tableWrap = wrap.closest(".table-wrap");
+          if (menu && tableWrap) {
+            const menuRect = menu.getBoundingClientRect();
+            const wrapRect = tableWrap.getBoundingClientRect();
+            if (menuRect.bottom > wrapRect.bottom) wrap.classList.add("opens-up");
+          }
+        }
       });
     });
 
     container.querySelectorAll("[data-row-action]").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
-        document.querySelectorAll(".row-actions.is-open").forEach((w) => w.classList.remove("is-open"));
+        document.querySelectorAll(".row-actions.is-open").forEach((w) => w.classList.remove("is-open", "opens-up"));
         const wrap = btn.closest(".row-actions");
         const handler = handlers[btn.dataset.rowAction];
         if (handler) handler(wrap.dataset.rowId, btn);
@@ -339,7 +348,7 @@
   }
 
   document.addEventListener("click", () => {
-    document.querySelectorAll(".row-actions.is-open").forEach((w) => w.classList.remove("is-open"));
+    document.querySelectorAll(".row-actions.is-open").forEach((w) => w.classList.remove("is-open", "opens-up"));
   });
 
   // ---------------- auth gate ----------------
@@ -1039,10 +1048,15 @@
     document.getElementById("modal-cliente-title").textContent = cliente ? "Editar cliente" : "Nuevo cliente";
     document.getElementById("cliente-id").value = cliente ? cliente.id : "";
     document.getElementById("cliente-nombre").value = cliente ? cliente.nombre || "" : "";
+    document.getElementById("cliente-apellido").value = cliente ? cliente.apellido || "" : "";
     document.getElementById("cliente-telefono").value = cliente ? cliente.telefono || "" : "";
     document.getElementById("cliente-email").value = cliente ? cliente.email || "" : "";
     document.getElementById("cliente-direccion").value = cliente ? cliente.direccion || "" : "";
     document.getElementById("cliente-notas").value = cliente ? cliente.notas || "" : "";
+    const vehiculoPrincipal = cliente ? state.vehiculos.find((v) => v.cliente_id === cliente.id) : null;
+    document.getElementById("cliente-vehiculo-marca").value = vehiculoPrincipal ? vehiculoPrincipal.marca || "" : "";
+    document.getElementById("cliente-vehiculo-modelo").value = vehiculoPrincipal ? vehiculoPrincipal.modelo || "" : "";
+    document.getElementById("cliente-vehiculo-anio").value = vehiculoPrincipal ? vehiculoPrincipal.anio || "" : "";
     document.getElementById("btn-eliminar-cliente").hidden = !cliente;
     openModal("modal-cliente");
   }
@@ -1050,25 +1064,49 @@
   async function saveCliente(e) {
     e.preventDefault();
     const id = document.getElementById("cliente-id").value;
+    const nombre = document.getElementById("cliente-nombre").value.trim();
+    const apellido = document.getElementById("cliente-apellido").value.trim();
+    const vehiculoMarca = document.getElementById("cliente-vehiculo-marca").value.trim();
+    const vehiculoModelo = document.getElementById("cliente-vehiculo-modelo").value.trim();
+    const vehiculoAnio = document.getElementById("cliente-vehiculo-anio").value.trim();
+
+    if (!nombre || !apellido || !vehiculoMarca || !vehiculoModelo || !vehiculoAnio) {
+      showToast("Nombre, apellido y los datos del vehículo (marca, modelo y año) son obligatorios.", true);
+      return;
+    }
+
     const payload = {
-      nombre: document.getElementById("cliente-nombre").value.trim(),
+      nombre,
+      apellido,
       telefono: document.getElementById("cliente-telefono").value.trim(),
       email: document.getElementById("cliente-email").value.trim(),
       direccion: document.getElementById("cliente-direccion").value.trim(),
       notas: document.getElementById("cliente-notas").value.trim(),
     };
 
-    let error;
+    let error, clienteId;
     if (id) {
+      clienteId = id;
       ({ error } = await sb.from("clientes").update(payload).eq("id", id));
     } else {
-      ({ error } = await sb.from("clientes").insert(payload));
+      const inserted = await sb.from("clientes").insert(payload).select().single();
+      error = inserted.error;
+      clienteId = inserted.data ? inserted.data.id : null;
     }
 
     if (error) {
       showToast("No se pudo guardar el cliente: " + error.message, true);
       return;
     }
+
+    const vehiculoPayload = { cliente_id: clienteId, marca: vehiculoMarca, modelo: vehiculoModelo, anio: vehiculoAnio };
+    const vehiculoExistente = state.vehiculos.find((v) => v.cliente_id === clienteId);
+    if (vehiculoExistente) {
+      await sb.from("vehiculos").update(vehiculoPayload).eq("id", vehiculoExistente.id);
+    } else {
+      await sb.from("vehiculos").insert(vehiculoPayload);
+    }
+    await refreshVehiculos();
 
     closeModal("modal-cliente");
     showToast("Cliente guardado.");
