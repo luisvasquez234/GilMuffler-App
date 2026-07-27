@@ -450,14 +450,23 @@
     </header>
     <form id="form-cliente" class="modal-body">
       <input type="hidden" id="cliente-id" />
-      <div class="field"><label><svg class="icon field-icon" aria-hidden="true"><use href="#icon-user"></use></svg>Nombre *</label><input type="text" id="cliente-nombre" required /></div>
+      <div class="field-row">
+        <div class="field"><label><svg class="icon field-icon" aria-hidden="true"><use href="#icon-user"></use></svg>Nombre *</label><input type="text" id="cliente-nombre" required /></div>
+        <div class="field"><label><svg class="icon field-icon" aria-hidden="true"><use href="#icon-user"></use></svg>Apellido *</label><input type="text" id="cliente-apellido" required /></div>
+      </div>
       <div class="field-row">
         <div class="field"><label><svg class="icon field-icon" aria-hidden="true"><use href="#icon-phone"></use></svg>Teléfono</label><input type="text" id="cliente-telefono" /></div>
         <div class="field"><label><svg class="icon field-icon" aria-hidden="true"><use href="#icon-mail"></use></svg>Email</label><input type="email" id="cliente-email" /></div>
       </div>
       <div class="field"><label><svg class="icon field-icon" aria-hidden="true"><use href="#icon-map-pin"></use></svg>Dirección</label><input type="text" id="cliente-direccion" /></div>
+      <div class="field-label-standalone">Vehículo</div>
+      <div class="field-row">
+        <div class="field"><label>Marca *</label><input type="text" id="cliente-vehiculo-marca" required /></div>
+        <div class="field"><label>Modelo *</label><input type="text" id="cliente-vehiculo-modelo" required /></div>
+        <div class="field"><label>Año *</label><input type="text" id="cliente-vehiculo-anio" required /></div>
+      </div>
       <div class="field"><label><svg class="icon field-icon" aria-hidden="true"><use href="#icon-edit"></use></svg>Notas</label><textarea id="cliente-notas" rows="2"></textarea></div>
-      <p class="orden-nota">Los vehículos se agregan desde la ficha del cliente, después de guardarlo.</p>
+      <p class="orden-nota">La placa y el kilometraje se agregan desde la ficha del cliente, después de guardarlo.</p>
       <footer class="modal-footer">
         <button type="button" class="btn-danger" id="btn-eliminar-cliente" hidden>Eliminar</button>
         <span class="spacer"></span>
