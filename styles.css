@@ -471,6 +471,7 @@ button{font-family:inherit;}
   padding:.3rem;
 }
 .row-actions.is-open .row-actions-menu{display:flex;}
+.row-actions.opens-up .row-actions-menu{top:auto;bottom:calc(100% + 4px);}
 .row-actions-menu button{
   background:none;
   border:none;
