@@ -56,9 +56,9 @@ PWA** (punto 24 — `manifest.json` + `sw.js`, instalable en celular).
    mediano.
 8. ~~**Presupuestos aprobables en línea**~~ — **YA HECHO** (Estimates: nueva
    tabla, link público para aprobar/rechazar, botón "Convertir a factura").
-9. **Historial de precios de piezas** — ver cuándo subió de precio un
-   proveedor, a partir del historial de `piezas`/`orden_piezas`. Tamaño:
-   chico-mediano.
+9. ~~**Historial de precios de piezas**~~ — **YA HECHO** (botón "Ver
+   historial de precios" en Inventario; se guarda una fila cada vez que
+   cambia el costo o precio de venta de una pieza).
 10. **Calculadora de garantía** — avisar si una pieza instalada sigue en
     garantía al momento de un reclamo. Tamaño: mediano. Depende de: que cada
     pieza tenga meses/millas de garantía capturados (dato nuevo a llenar).
@@ -109,9 +109,12 @@ PWA** (punto 24 — `manifest.json` + `sw.js`, instalable en celular).
 
 24. ~~**Instalar la app como PWA**~~ — **YA HECHO** (ícono en el celular,
     `manifest.json` + `sw.js`).
-25. **Modo básico sin internet** — que la app siga funcionando (aunque sea
-    para consultar, no guardar) si se cae el WiFi del taller. Tamaño: grande
-    (requiere repensar cómo se guardan los datos localmente).
+25. ~~**Modo básico sin internet**~~ — **YA HECHO** (versión de solo
+    consulta: si se cae el WiFi, la app sigue mostrando los últimos datos
+    guardados con un aviso de "sin conexión"; guardar/editar sigue
+    requiriendo internet). Si más adelante se quiere poder guardar cambios
+    sin conexión y que se sincronicen solos, eso sería un proyecto aparte,
+    más grande y con más riesgo (choques de datos entre dispositivos).
 
 ---
 
