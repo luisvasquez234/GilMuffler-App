@@ -905,6 +905,58 @@
     openModal("modal-rotacion");
   }
 
+  async function mostrarHistorialPrecios() {
+    const { data, error } = await sb
+      .from("pieza_precio_historial")
+      .select("*, piezas(nombre)")
+      .order("fecha", { ascending: false })
+      .order("created_at", { ascending: false });
+
+    const tbody = document.getElementById("historial-precios-tbody");
+    if (error || !data || !data.length) {
+      tbody.innerHTML = "<tr><td colspan='6'>Todavía no hay cambios de precio registrados. Se van guardando a medida que editas el costo o precio de venta de una pieza.</td></tr>";
+      openModal("modal-historial-precios");
+      return;
+    }
+
+    const porPieza = new Map();
+    data.forEach((row) => {
+      if (!porPieza.has(row.pieza_id)) porPieza.set(row.pieza_id, []);
+      porPieza.get(row.pieza_id).push(row);
+    });
+
+    tbody.innerHTML = data
+      .map((row) => {
+        const historialPieza = porPieza.get(row.pieza_id);
+        const anterior = historialPieza[historialPieza.indexOf(row) + 1];
+        let cambioHtml = "—";
+        if (anterior) {
+          const diff = Number(row.precio_venta) - Number(anterior.precio_venta);
+          if (diff > 0) cambioHtml = "<span class='pill pill-stock-bajo'>▲ " + money(diff) + "</span>";
+          else if (diff < 0) cambioHtml = "<span class='pill pill-stock-ok'>▼ " + money(Math.abs(diff)) + "</span>";
+          else cambioHtml = "Sin cambio";
+        }
+        return (
+          "<tr><td>" +
+          escapeHtml(row.piezas ? row.piezas.nombre : "—") +
+          "</td><td>" +
+          escapeHtml(row.proveedor || "—") +
+          "</td><td>" +
+          escapeHtml(formatDate(row.fecha)) +
+          "</td><td>" +
+          money(row.costo) +
+          "</td><td>" +
+          money(row.precio_venta) +
+          "</td><td>" +
+          cambioHtml +
+          "</td></tr>"
+        );
+      })
+      .join("");
+
+    openModal("modal-historial-precios");
+  }
+
   async function fetchTareas() {
     const { data, error } = await sb
       .from("tareas")
@@ -2580,16 +2632,31 @@
       notas: document.getElementById("pieza-notas").value.trim(),
     };
 
+    const anterior = id ? state.piezas.find((p) => p.id === id) : null;
+    const precioCambio = !anterior || Number(anterior.costo) !== payload.costo || Number(anterior.precio_venta) !== payload.precio_venta;
+
     let error;
+    let piezaId = id;
     if (id) {
       ({ error } = await sb.from("piezas").update(payload).eq("id", id));
     } else {
-      ({ error } = await sb.from("piezas").insert(payload));
+      const { data, error: insError } = await sb.from("piezas").insert(payload).select().single();
+      error = insError;
+      if (data) piezaId = data.id;
     }
 
     if (error) {
       showToast("No se pudo guardar la pieza.", true);
       return;
+    }
+
+    if (precioCambio && piezaId) {
+      await sb.from("pieza_precio_historial").insert({
+        pieza_id: piezaId,
+        costo: payload.costo,
+        precio_venta: payload.precio_venta,
+        proveedor: payload.proveedor,
+      });
     }
 
     closeModal("modal-pieza");
@@ -3802,6 +3869,7 @@
 
     document.getElementById("btn-nueva-pieza").addEventListener("click", () => openPiezaModal(null));
     document.getElementById("btn-ver-rotacion").addEventListener("click", mostrarRotacionInventario);
+    document.getElementById("btn-ver-historial-precios").addEventListener("click", mostrarHistorialPrecios);
     document.getElementById("form-pieza").addEventListener("submit", savePieza);
     document.getElementById("btn-eliminar-pieza").addEventListener("click", deletePieza);
 
