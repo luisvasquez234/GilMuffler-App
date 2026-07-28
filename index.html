@@ -545,6 +545,7 @@
         </div>
         <div style="display:flex;gap:.6rem;">
           <button class="btn-ghost" id="btn-ver-rotacion" type="button">Ver rotación de inventario</button>
+          <button class="btn-ghost" id="btn-ver-historial-precios" type="button">Ver historial de precios</button>
           <button class="btn-primary" id="btn-nueva-pieza" type="button">+ Nueva pieza</button>
         </div>
       </header>
@@ -807,6 +808,24 @@
         <table class="data-table">
           <thead><tr><th>Pieza</th><th>Cant. usada</th><th>Stock actual</th></tr></thead>
           <tbody id="rotacion-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-historial-precios" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2>Historial de precios</h2>
+      <button class="icon-btn" data-close-modal="modal-historial-precios" type="button">&times;</button>
+    </header>
+    <div class="modal-body">
+      <p class="view-sub" style="margin-top:0;">Cada vez que guardas un cambio de costo o precio de venta en una pieza, queda registrado aquí.</p>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Pieza</th><th>Proveedor</th><th>Fecha</th><th>Costo</th><th>Precio venta</th><th>Cambio</th></tr></thead>
+          <tbody id="historial-precios-tbody"></tbody>
         </table>
       </div>
     </div>
