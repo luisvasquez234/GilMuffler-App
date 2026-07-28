@@ -8,6 +8,7 @@
   const state = {
     clientes: [],
     facturas: [],
+    estimados: [],
     piezas: [],
     vehiculos: [],
     ordenes: [],
@@ -414,10 +415,11 @@
     return true;
   }
 
-  const VIEW_SEARCH_INPUT = { clientes: "clientes-search", facturas: "facturas-search", inventario: "piezas-search", ordenes: "ordenes-search" };
+  const VIEW_SEARCH_INPUT = { clientes: "clientes-search", facturas: "facturas-search", estimados: "estimados-search", inventario: "piezas-search", ordenes: "ordenes-search" };
   const VIEW_NEW_BUTTON = {
     clientes: "btn-nuevo-cliente",
     facturas: "btn-nueva-factura",
+    estimados: "btn-nuevo-estimado",
     ordenes: "btn-nueva-orden",
     inventario: "btn-nueva-pieza",
     tareas: "btn-nueva-tarea",
@@ -578,7 +580,7 @@
   }
 
   function showView(name) {
-    ["setup", "dashboard", "clientes", "ordenes", "inventario", "tareas", "facturas", "finanzas", "export", "configuracion"].forEach((v) => {
+    ["setup", "dashboard", "clientes", "ordenes", "inventario", "tareas", "facturas", "estimados", "finanzas", "export", "configuracion"].forEach((v) => {
       const el = document.getElementById("view-" + v);
       if (v === name) {
         el.hidden = false;
@@ -1846,6 +1848,318 @@
     renderFacturas(filterFacturas());
   }
 
+  // ---------------- estimados (presupuestos) ----------------
+
+  const ESTADO_ESTIMADO_LABELS = { pendiente: "Pendiente", aprobado: "Aprobado", rechazado: "Rechazado", convertido: "Convertido" };
+  function estadoEstimadoLabel(estado) {
+    return ESTADO_ESTIMADO_LABELS[estado] || capitalize(estado);
+  }
+
+  async function fetchEstimados() {
+    const { data, error } = await sb
+      .from("estimados")
+      .select("*, clientes(nombre, apellido)")
+      .order("numero", { ascending: false });
+    if (error) {
+      showToast("No se pudieron cargar los presupuestos.", true);
+      return [];
+    }
+    return data;
+  }
+
+  async function fetchEstimadoItems(estimadoId) {
+    const { data, error } = await sb.from("estimado_items").select("*").eq("estimado_id", estimadoId).order("orden", { ascending: true });
+    if (error) return [];
+    return data;
+  }
+
+  async function refreshEstimados() {
+    renderSkeletonRows("estimados-tbody", 6, 4);
+    state.estimados = await fetchEstimados();
+    renderEstimados(filterEstimados());
+  }
+
+  function filterEstimados() {
+    const q = document.getElementById("estimados-search").value.trim().toLowerCase();
+    const estado = document.getElementById("estimados-filter-estado").value;
+    return state.estimados.filter((e) => {
+      const clienteNombre = e.clientes ? [e.clientes.nombre, e.clientes.apellido].filter(Boolean).join(" ") : "";
+      if (estado && e.estado !== estado) return false;
+      if (q && !clienteNombre.toLowerCase().includes(q) && !String(e.numero).includes(q)) return false;
+      return true;
+    });
+  }
+
+  function renderEstimados(list) {
+    const tbody = document.getElementById("estimados-tbody");
+    const empty = document.getElementById("estimados-empty");
+    tbody.innerHTML = "";
+    empty.hidden = list.length !== 0;
+
+    list.forEach((e) => {
+      const tr = document.createElement("tr");
+      const clienteNombre = e.clientes ? [e.clientes.nombre, e.clientes.apellido].filter(Boolean).join(" ") : "—";
+      const actions = [
+        { key: "ver", icon: "eye", label: "Ver / editar" },
+        { key: "eliminar", icon: "trash", label: "Eliminar", danger: true },
+      ];
+      tr.innerHTML =
+        "<td>#" + String(e.numero).padStart(4, "0") + "</td>" +
+        "<td>" + avatarHtml(clienteNombre, "avatar-sm") + escapeHtml(clienteNombre) + "</td>" +
+        "<td>" + escapeHtml(formatDate(e.fecha)) + "</td>" +
+        "<td>" + money(e.total) + "</td>" +
+        '<td><span class="pill pill-' + e.estado + '">' + estadoEstimadoLabel(e.estado) + "</span></td>" +
+        "<td>" + rowActionsHtml(e.id, actions) + "</td>";
+      tbody.appendChild(tr);
+    });
+
+    wireRowActions(tbody, {
+      ver: (id) => openEstimadoModal(state.estimados.find((e) => e.id === id)),
+      eliminar: (id) => deleteEstimadoRow(id),
+    });
+  }
+
+  async function deleteEstimado() {
+    const id = document.getElementById("estimado-id").value;
+    if (!id) return;
+    if (!(await confirmDialog("¿Eliminar este presupuesto? Esta acción no se puede deshacer.", { title: "Eliminar presupuesto" }))) return;
+    const { error } = await sb.from("estimados").delete().eq("id", id);
+    if (error) {
+      showToast("No se pudo eliminar el presupuesto.", true);
+      return;
+    }
+    closeModal("modal-estimado");
+    showToast("Presupuesto eliminado.");
+    await refreshEstimados();
+  }
+
+  async function deleteEstimadoRow(id) {
+    if (!(await confirmDialog("¿Eliminar este presupuesto? Esta acción no se puede deshacer.", { title: "Eliminar presupuesto" }))) return;
+    const { error } = await sb.from("estimados").delete().eq("id", id);
+    if (error) {
+      showToast("No se pudo eliminar el presupuesto.", true);
+      return;
+    }
+    showToast("Presupuesto eliminado.");
+    await refreshEstimados();
+  }
+
+  function addEstimadoItemRow(item) {
+    const tbody = document.getElementById("estimado-items-tbody");
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      '<td><input type="text" class="item-desc" placeholder="Descripción" value="' +
+      (item ? escapeHtml(item.descripcion) : "") +
+      '" /></td>' +
+      '<td><input type="number" class="item-cant" min="0" step="0.01" value="' +
+      (item ? item.cantidad : 1) +
+      '" /></td>' +
+      '<td><input type="number" class="item-precio" min="0" step="0.01" value="' +
+      (item ? item.precio_unitario : 0) +
+      '" /></td>' +
+      '<td class="item-subtotal">$0.00</td>' +
+      '<td><button type="button" class="item-remove" title="Quitar línea">&times;</button></td>';
+    tbody.appendChild(tr);
+
+    tr.querySelectorAll(".item-cant, .item-precio").forEach((input) => {
+      input.addEventListener("input", recalcEstimadoTotals);
+    });
+    tr.querySelector(".item-remove").addEventListener("click", () => {
+      tr.remove();
+      recalcEstimadoTotals();
+    });
+
+    recalcEstimadoTotals();
+  }
+
+  function recalcEstimadoTotals() {
+    let subtotal = 0;
+    document.querySelectorAll("#estimado-items-tbody tr").forEach((tr) => {
+      const cant = parseFloat(tr.querySelector(".item-cant").value) || 0;
+      const precio = parseFloat(tr.querySelector(".item-precio").value) || 0;
+      const rowSubtotal = cant * precio;
+      tr.querySelector(".item-subtotal").textContent = money(rowSubtotal);
+      subtotal += rowSubtotal;
+    });
+
+    const pct = parseFloat(document.getElementById("estimado-impuesto-pct").value) || 0;
+    const impuestoMonto = subtotal * (pct / 100);
+    const total = subtotal + impuestoMonto;
+
+    document.getElementById("estimado-subtotal").textContent = money(subtotal);
+    document.getElementById("estimado-impuesto-monto").textContent = money(impuestoMonto);
+    document.getElementById("estimado-total").textContent = money(total);
+  }
+
+  function collectEstimadoItems() {
+    const rows = document.querySelectorAll("#estimado-items-tbody tr");
+    const items = [];
+    rows.forEach((tr, idx) => {
+      const descripcion = tr.querySelector(".item-desc").value.trim();
+      const cantidad = parseFloat(tr.querySelector(".item-cant").value) || 0;
+      const precio = parseFloat(tr.querySelector(".item-precio").value) || 0;
+      if (!descripcion) return;
+      items.push({ descripcion, cantidad, precio_unitario: precio, subtotal: cantidad * precio, orden: idx });
+    });
+    return items;
+  }
+
+  function estimadoPublicUrl(id) {
+    const origen = typeof LAN_ORIGIN !== "undefined" && LAN_ORIGIN ? LAN_ORIGIN : location.origin;
+    return origen + location.pathname.replace(/index\.html$/, "") + "ver-estimado.html?id=" + id;
+  }
+
+  async function openEstimadoModal(estimado) {
+    document.getElementById("modal-estimado-title").textContent = estimado ? "Editar presupuesto" : "Nuevo presupuesto";
+    document.getElementById("estimado-id").value = estimado ? estimado.id : "";
+    populateClientesDatalist();
+    const clienteExistente = estimado ? state.clientes.find((c) => c.id === estimado.cliente_id) : null;
+    document.getElementById("estimado-cliente").value = estimado
+      ? estimado.clientes
+        ? [estimado.clientes.nombre, estimado.clientes.apellido].filter(Boolean).join(" ")
+        : clienteExistente
+        ? [clienteExistente.nombre, clienteExistente.apellido].filter(Boolean).join(" ")
+        : ""
+      : "";
+    document.getElementById("estimado-fecha").value = estimado ? estimado.fecha : todayISO();
+    document.getElementById("estimado-estado").value = estimado ? estimado.estado : "pendiente";
+    document.getElementById("estimado-notas").value = estimado ? estimado.notas || "" : "";
+
+    const subtotalNum = estimado ? Number(estimado.subtotal) : 0;
+    const tasaDefault = state.configNegocio ? Number(state.configNegocio.tasa_impuesto_default) || 0 : 0;
+    const impuestoPct = estimado && subtotalNum > 0 ? (Number(estimado.impuesto) / subtotalNum) * 100 : estimado ? 0 : tasaDefault;
+    document.getElementById("estimado-impuesto-pct").value = impuestoPct ? impuestoPct.toFixed(2) : 0;
+
+    document.getElementById("estimado-items-tbody").innerHTML = "";
+    document.getElementById("btn-eliminar-estimado").hidden = !estimado;
+
+    const btnCopiar = document.getElementById("btn-copiar-link-estimado");
+    const btnConvertir = document.getElementById("btn-convertir-estimado");
+    btnCopiar.hidden = !estimado;
+    btnConvertir.hidden = !estimado || estimado.estado !== "aprobado";
+    btnCopiar.onclick = () => {
+      navigator.clipboard.writeText(estimadoPublicUrl(estimado.id)).then(
+        () => showToast("Link copiado."),
+        () => showToast("No se pudo copiar el link.", true)
+      );
+    };
+    btnConvertir.onclick = () => convertirEstimadoAFactura(estimado);
+
+    if (estimado) {
+      const items = await fetchEstimadoItems(estimado.id);
+      if (items.length) items.forEach(addEstimadoItemRow);
+      else addEstimadoItemRow(null);
+    } else {
+      addEstimadoItemRow(null);
+    }
+
+    recalcEstimadoTotals();
+    openModal("modal-estimado");
+  }
+
+  async function saveEstimado(e) {
+    e.preventDefault();
+    const id = document.getElementById("estimado-id").value;
+    const clienteNombre = document.getElementById("estimado-cliente").value.trim();
+    if (!clienteNombre) {
+      showToast("Escribe el nombre del cliente.", true);
+      return;
+    }
+
+    const items = collectEstimadoItems();
+    if (!items.length) {
+      showToast("Agrega al menos una línea con descripción.", true);
+      return;
+    }
+
+    const clienteId = await resolveClienteIdByName(clienteNombre);
+    if (!clienteId) {
+      showToast("No se encontró ese cliente.", true);
+      return;
+    }
+
+    const subtotal = items.reduce((sum, it) => sum + it.subtotal, 0);
+    const pct = parseFloat(document.getElementById("estimado-impuesto-pct").value) || 0;
+    const impuesto = subtotal * (pct / 100);
+    const total = subtotal + impuesto;
+
+    const payload = {
+      cliente_id: clienteId,
+      fecha: document.getElementById("estimado-fecha").value,
+      estado: document.getElementById("estimado-estado").value,
+      subtotal,
+      impuesto,
+      total,
+      notas: document.getElementById("estimado-notas").value.trim(),
+    };
+
+    let estimadoId = id;
+    if (id) {
+      const { error } = await sb.from("estimados").update(payload).eq("id", id);
+      if (error) {
+        showToast("No se pudo guardar el presupuesto.", true);
+        return;
+      }
+      await sb.from("estimado_items").delete().eq("estimado_id", id);
+    } else {
+      const { data, error } = await sb.from("estimados").insert(payload).select().single();
+      if (error) {
+        showToast("No se pudo guardar el presupuesto.", true);
+        return;
+      }
+      estimadoId = data.id;
+    }
+
+    const itemsPayload = items.map((it) => Object.assign({}, it, { estimado_id: estimadoId }));
+    const { error: itemsError } = await sb.from("estimado_items").insert(itemsPayload);
+    if (itemsError) {
+      showToast("El presupuesto se guardó, pero hubo un error con las líneas.", true);
+    } else {
+      showToast("Presupuesto guardado.");
+    }
+
+    closeModal("modal-estimado");
+    await refreshEstimados();
+  }
+
+  async function convertirEstimadoAFactura(estimado) {
+    if (!estimado || estimado.estado === "convertido") return;
+    if (!(await confirmDialog("¿Convertir este presupuesto en una factura? Se creará una factura nueva con las mismas líneas.", { title: "Convertir a factura" }))) return;
+
+    const items = await fetchEstimadoItems(estimado.id);
+    const payload = {
+      cliente_id: estimado.cliente_id,
+      fecha: todayISO(),
+      estado: "pendiente",
+      subtotal: estimado.subtotal,
+      impuesto: estimado.impuesto,
+      total: estimado.total,
+      notas: estimado.notas,
+    };
+
+    const { data: factura, error } = await sb.from("facturas").insert(payload).select().single();
+    if (error) {
+      showToast("No se pudo crear la factura.", true);
+      return;
+    }
+
+    const itemsPayload = items.map((it) => ({
+      factura_id: factura.id,
+      descripcion: it.descripcion,
+      cantidad: it.cantidad,
+      precio_unitario: it.precio_unitario,
+      subtotal: it.subtotal,
+      orden: it.orden,
+    }));
+    await sb.from("factura_items").insert(itemsPayload);
+    await sb.from("estimados").update({ estado: "convertido", factura_id: factura.id }).eq("id", estimado.id);
+
+    closeModal("modal-estimado");
+    showToast("Presupuesto convertido en factura #" + String(factura.numero).padStart(4, "0") + ".");
+    await refreshEstimados();
+    await refreshFacturas();
+  }
+
   // ---------------- render: inventario (piezas) ----------------
 
   function renderPiezas(list) {
@@ -2987,6 +3301,14 @@
     document.getElementById("facturas-filter-hasta").addEventListener("change", () => renderFacturas(filterFacturas()));
     wireSortHeaders(document.querySelector("#view-facturas thead tr"), facturasSortState, FACTURAS_SORT_LABELS, () => renderFacturas(filterFacturas()));
 
+    document.getElementById("btn-nuevo-estimado").addEventListener("click", () => openEstimadoModal(null));
+    document.getElementById("form-estimado").addEventListener("submit", saveEstimado);
+    document.getElementById("btn-eliminar-estimado").addEventListener("click", deleteEstimado);
+    document.getElementById("btn-add-estimado-item").addEventListener("click", () => addEstimadoItemRow(null));
+    document.getElementById("estimado-impuesto-pct").addEventListener("input", recalcEstimadoTotals);
+    document.getElementById("estimados-search").addEventListener("input", () => renderEstimados(filterEstimados()));
+    document.getElementById("estimados-filter-estado").addEventListener("change", () => renderEstimados(filterEstimados()));
+
     document.querySelectorAll("[data-export]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const fecha = todayISO();
@@ -3077,6 +3399,7 @@
     await refreshOrdenes();
     await refreshTareas();
     await refreshFacturas();
+    await refreshEstimados();
     await refreshGastos();
     await refreshConfigNegocio();
     renderDashboard();
