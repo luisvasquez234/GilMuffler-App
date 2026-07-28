@@ -42,7 +42,7 @@ async function main() {
 
   for (const tabla of TABLAS) {
     const filas = await fetchTabla(tabla);
-    const csv = aCsv(filas);
+    const csv = aCsv(filas) || "(sin filas)\n";
     console.log(`${tabla}: ${filas.length} filas`);
     attachments.push({
       filename: `${tabla}-${fecha}.csv`,
