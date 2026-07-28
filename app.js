@@ -578,7 +578,7 @@
   }
 
   function showView(name) {
-    ["setup", "dashboard", "clientes", "ordenes", "inventario", "tareas", "facturas", "finanzas", "configuracion"].forEach((v) => {
+    ["setup", "dashboard", "clientes", "ordenes", "inventario", "tareas", "facturas", "finanzas", "export", "configuracion"].forEach((v) => {
       const el = document.getElementById("view-" + v);
       if (v === name) {
         el.hidden = false;
@@ -994,6 +994,35 @@
     const div = document.createElement("div");
     div.textContent = String(str);
     return div.innerHTML;
+  }
+
+  function toCsv(filas) {
+    if (!filas.length) return "";
+    const columnas = Object.keys(filas[0]);
+    const escapar = (v) => {
+      if (v === null || v === undefined) return "";
+      const s = String(v);
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    const lineas = [columnas.join(",")];
+    for (const fila of filas) lineas.push(columnas.map((c) => escapar(fila[c])).join(","));
+    return lineas.join("\n");
+  }
+
+  function descargarCsv(nombreArchivo, filas) {
+    if (!filas.length) {
+      showToast("No hay datos todavía para exportar.", true);
+      return;
+    }
+    const blob = new Blob([toCsv(filas)], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = nombreArchivo;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   }
 
   function initials(name) {
@@ -2957,6 +2986,19 @@
     document.getElementById("facturas-filter-desde").addEventListener("change", () => renderFacturas(filterFacturas()));
     document.getElementById("facturas-filter-hasta").addEventListener("change", () => renderFacturas(filterFacturas()));
     wireSortHeaders(document.querySelector("#view-facturas thead tr"), facturasSortState, FACTURAS_SORT_LABELS, () => renderFacturas(filterFacturas()));
+
+    document.querySelectorAll("[data-export]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const fecha = todayISO();
+        const tabla = btn.dataset.export;
+        const filas = state[tabla].map((fila) => {
+          if (!fila.clientes) return fila;
+          const { clientes, ...resto } = fila;
+          return { ...resto, cliente: clientes.nombre || "" };
+        });
+        descargarCsv(tabla + "-" + fecha + ".csv", filas);
+      });
+    });
 
     document.getElementById("facturas-select-all").addEventListener("change", (e) => {
       document.querySelectorAll(".factura-select").forEach((chk) => {
