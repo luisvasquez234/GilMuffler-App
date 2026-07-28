@@ -45,6 +45,7 @@ Deno.serve(async (req: Request) => {
   const { error: profileError } = await admin.from("empleados").insert({
     id: created.user.id,
     nombre,
+    email,
   });
 
   if (profileError) {
