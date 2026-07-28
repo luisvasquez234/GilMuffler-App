@@ -10,6 +10,7 @@
     estimados: [],
     citas: [],
     empleados: [],
+    empleadoActualId: null,
     piezas: [],
     vehiculos: [],
     ordenes: [],
@@ -497,7 +498,7 @@
     const container = document.getElementById("global-search-results");
 
     if (!q) {
-      container.innerHTML = '<p class="search-empty">Escribe para buscar en Clientes, Órdenes y Facturas.</p>';
+      container.innerHTML = '<p class="search-empty">Escribe para buscar en Clientes, Órdenes, Facturas, Presupuestos y Reservas.</p>';
       return;
     }
 
@@ -513,8 +514,10 @@
       .filter((o) => String(o.numero).includes(q) || (o.clientes && o.clientes.nombre.toLowerCase().includes(q)) || (o.diagnostico || "").toLowerCase().includes(q))
       .slice(0, 5);
     const facturas = state.facturas.filter((f) => String(f.numero).includes(q) || (f.clientes && f.clientes.nombre.toLowerCase().includes(q))).slice(0, 5);
+    const estimados = state.estimados.filter((e) => String(e.numero).includes(q) || (e.clientes && e.clientes.nombre.toLowerCase().includes(q))).slice(0, 5);
+    const citas = state.citas.filter((c) => (c.servicio || "").toLowerCase().includes(q) || (c.clientes && c.clientes.nombre.toLowerCase().includes(q))).slice(0, 5);
 
-    if (!clientes.length && !ordenes.length && !facturas.length) {
+    if (!clientes.length && !ordenes.length && !facturas.length && !estimados.length && !citas.length) {
       container.innerHTML = '<p class="search-empty">Sin resultados para "' + escapeHtml(query) + '".</p>';
       return;
     }
@@ -572,6 +575,41 @@
         .join("");
     }
 
+    if (estimados.length) {
+      html += '<div class="search-group-title">Presupuestos</div>';
+      html += estimados
+        .map(
+          (e) =>
+            '<div class="search-result-item" data-search-tipo="estimado" data-search-id="' +
+            e.id +
+            '"><span class="search-result-title">#' +
+            String(e.numero).padStart(4, "0") +
+            " — " +
+            escapeHtml(e.clientes ? e.clientes.nombre : "—") +
+            '</span><span class="search-result-meta">' +
+            money(e.total) +
+            "</span></div>"
+        )
+        .join("");
+    }
+    if (citas.length) {
+      html += '<div class="search-group-title">Reservas</div>';
+      html += citas
+        .map(
+          (c) =>
+            '<div class="search-result-item" data-search-tipo="cita" data-search-id="' +
+            c.id +
+            '"><span class="search-result-title">' +
+            escapeHtml(c.servicio || "Cita") +
+            " — " +
+            escapeHtml(c.clientes ? c.clientes.nombre : "—") +
+            '</span><span class="search-result-meta">' +
+            escapeHtml(formatDate(c.fecha)) +
+            "</span></div>"
+        )
+        .join("");
+    }
+
     container.innerHTML = html;
 
     container.querySelectorAll("[data-search-id]").forEach((el) => {
@@ -588,6 +626,12 @@
         } else if (tipo === "factura") {
           goToView("facturas");
           openFacturaModal(state.facturas.find((f) => f.id === id));
+        } else if (tipo === "estimado") {
+          goToView("estimados");
+          openEstimadoModal(state.estimados.find((e) => e.id === id));
+        } else if (tipo === "cita") {
+          goToView("reservas");
+          openReservaModal(state.citas.find((c) => c.id === id));
         }
       });
     });
@@ -669,7 +713,7 @@
     return [v.marca, v.modelo, v.anio].filter(Boolean).join(" ") || "Vehículo sin marca/modelo";
   }
 
-  function openVehiculoModal(vehiculo, clienteId) {
+  async function openVehiculoModal(vehiculo, clienteId) {
     document.getElementById("modal-vehiculo-title").textContent = vehiculo ? "Editar vehículo" : "Nuevo vehículo";
     document.getElementById("vehiculo-id").value = vehiculo ? vehiculo.id : "";
     document.getElementById("vehiculo-cliente-id").value = vehiculo ? vehiculo.cliente_id : clienteId;
@@ -685,36 +729,62 @@
     const historialWrap = document.getElementById("vehiculo-historial-wrap");
     const historialEl = document.getElementById("vehiculo-historial");
     if (vehiculo) {
-      const ordenesVehiculo = state.ordenes
-        .filter((o) => o.vehiculo_id === vehiculo.id)
-        .slice()
-        .sort((a, b) => (a.fecha_recepcion < b.fecha_recepcion ? 1 : -1));
       historialWrap.hidden = false;
-      historialEl.innerHTML = ordenesVehiculo.length
-        ? ordenesVehiculo
+      historialEl.innerHTML = '<p class="detalle-empty">Cargando…</p>';
+      openModal("modal-vehiculo");
+
+      const ordenesVehiculo = state.ordenes.filter((o) => o.vehiculo_id === vehiculo.id && o.kilometraje);
+      const kmHistorial = await fetchKilometrajeHistorial(vehiculo.id);
+
+      const lecturas = [
+        ...ordenesVehiculo.map((o) => ({
+          fecha: o.fecha_recepcion,
+          kilometraje: o.kilometraje,
+          fuente: "Orden #" + String(o.numero).padStart(4, "0"),
+        })),
+        ...kmHistorial.map((k) => ({ fecha: k.fecha, kilometraje: k.kilometraje, fuente: "Actualización manual" })),
+      ].sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
+
+      historialEl.innerHTML = lecturas.length
+        ? lecturas
             .map(
-              (o) =>
+              (l) =>
                 '<div class="detalle-list-item"><span class="historial-fecha">' +
-                escapeHtml(formatDate(o.fecha_recepcion)) +
-                "</span><span style=\"flex:1;\">Orden #" +
-                String(o.numero).padStart(4, "0") +
+                escapeHtml(formatDate(l.fecha)) +
+                '</span><span style="flex:1;">' +
+                escapeHtml(l.fuente) +
                 "</span><span>" +
-                escapeHtml(o.kilometraje ? o.kilometraje + " mi" : "Sin dato") +
+                escapeHtml(l.kilometraje + " mi") +
                 "</span></div>"
             )
             .join("")
-        : '<p class="detalle-empty">Sin órdenes registradas todavía para este vehículo.</p>';
+        : '<p class="detalle-empty">Sin lecturas de kilometraje registradas todavía.</p>';
     } else {
       historialWrap.hidden = true;
       historialEl.innerHTML = "";
+      openModal("modal-vehiculo");
     }
+  }
 
-    openModal("modal-vehiculo");
+  async function fetchKilometrajeHistorial(vehiculoId) {
+    const { data, error } = await sb
+      .from("kilometraje_historial")
+      .select("*")
+      .eq("vehiculo_id", vehiculoId)
+      .order("fecha", { ascending: false });
+    if (error) return [];
+    return data;
+  }
+
+  async function registrarKilometraje(vehiculoId, kilometraje) {
+    if (!vehiculoId || !kilometraje) return;
+    await sb.from("kilometraje_historial").insert({ vehiculo_id: vehiculoId, kilometraje, fecha: todayISO() });
   }
 
   async function saveVehiculo(e) {
     e.preventDefault();
     const id = document.getElementById("vehiculo-id").value;
+    const vehiculoAnterior = id ? state.vehiculos.find((v) => v.id === id) : null;
     const payload = {
       cliente_id: document.getElementById("vehiculo-cliente-id").value,
       marca: document.getElementById("vehiculo-marca").value.trim(),
@@ -727,15 +797,22 @@
     };
 
     let error;
+    let vehiculoId = id;
     if (id) {
       ({ error } = await sb.from("vehiculos").update(payload).eq("id", id));
     } else {
-      ({ error } = await sb.from("vehiculos").insert(payload));
+      const inserted = await sb.from("vehiculos").insert(payload).select().single();
+      error = inserted.error;
+      vehiculoId = inserted.data ? inserted.data.id : null;
     }
 
     if (error) {
       showToast("No se pudo guardar el vehículo: " + error.message, true);
       return;
+    }
+
+    if (payload.kilometraje && (!vehiculoAnterior || vehiculoAnterior.kilometraje !== payload.kilometraje)) {
+      await registrarKilometraje(vehiculoId, payload.kilometraje);
     }
 
     closeModal("modal-vehiculo");
@@ -826,6 +903,7 @@
       const extra = vehiculosCliente.length > 1 ? " (+" + (vehiculosCliente.length - 1) + ")" : "";
       const vehiculo = vehiculosCliente.length ? vehiculoLabel(vehiculosCliente[0]) + extra : "";
       const placa = vehiculosCliente.length ? (vehiculosCliente[0].placa || "—") + extra : "—";
+      const ultimaFecha = ultimaFacturaFecha(c.id);
       const actions = [
         { key: "detalle", icon: "eye", label: "Ver detalle" },
         { key: "factura", icon: "file-text", label: "Crear factura" },
@@ -837,6 +915,7 @@
         "<td>" + escapeHtml(c.telefono || "—") + "</td>" +
         "<td>" + escapeHtml(vehiculo || "—") + "</td>" +
         "<td>" + escapeHtml(placa) + "</td>" +
+        "<td>" + (ultimaFecha ? escapeHtml(formatDate(ultimaFecha)) : "Nunca") + "</td>" +
         "<td>" + rowActionsHtml(c.id, actions) + "</td>";
       tbody.appendChild(tr);
     });
@@ -1078,8 +1157,15 @@
     return c[field] || "";
   }
 
+  function ultimaFacturaFecha(clienteId) {
+    const facturasCliente = state.facturas.filter((f) => f.cliente_id === clienteId);
+    if (!facturasCliente.length) return null;
+    return facturasCliente.reduce((max, f) => (f.fecha > max ? f.fecha : max), facturasCliente[0].fecha);
+  }
+
   function filterClientes() {
     const q = document.getElementById("clientes-search").value.trim().toLowerCase();
+    const soloInactivos = document.getElementById("clientes-filter-inactivos").checked;
     let list = !q
       ? state.clientes
       : state.clientes.filter((c) => {
@@ -1089,6 +1175,15 @@
             state.vehiculos.some((v) => v.cliente_id === c.id && (v.placa || "").toLowerCase().includes(q))
           );
         });
+    if (soloInactivos) {
+      const limite = new Date();
+      limite.setDate(limite.getDate() - 90);
+      const limiteISO = limite.toISOString().slice(0, 10);
+      list = list.filter((c) => {
+        const ultima = ultimaFacturaFecha(c.id);
+        return !ultima || ultima < limiteISO;
+      });
+    }
     return sortByField(list, clientesSortState, clienteSortValue);
   }
 
@@ -1696,6 +1791,10 @@
     } else {
       nota.hidden = true;
     }
+    const notaCreador = document.getElementById("factura-creado-por-nota");
+    const nombreCreador = factura && factura.creado_por ? nombreEmpleado(factura.creado_por) : null;
+    notaCreador.hidden = !nombreCreador;
+    if (nombreCreador) notaCreador.textContent = "Creada por: " + nombreCreador;
     populateClientesDatalist();
     const clienteExistente = factura ? state.clientes.find((c) => c.id === factura.cliente_id) : null;
     document.getElementById("factura-cliente").value = factura ? (factura.clientes ? factura.clientes.nombre : clienteExistente ? clienteExistente.nombre : "") : "";
@@ -1811,6 +1910,7 @@
       }
       await sb.from("factura_items").delete().eq("factura_id", id);
     } else {
+      payload.creado_por = state.empleadoActualId;
       const { data, error } = await sb.from("facturas").insert(payload).select().single();
       if (error) {
         showToast("No se pudo guardar la factura.", true);
@@ -2149,6 +2249,7 @@
       impuesto: estimado.impuesto,
       total: estimado.total,
       notas: estimado.notas,
+      creado_por: state.empleadoActualId,
     };
 
     const { data: factura, error } = await sb.from("facturas").insert(payload).select().single();
@@ -2679,6 +2780,10 @@
   async function openOrdenModal(orden) {
     document.getElementById("modal-orden-title").textContent = orden ? "Editar orden de servicio" : "Nueva orden de servicio";
     document.getElementById("orden-id").value = orden ? orden.id : "";
+    const notaCreadorOrden = document.getElementById("orden-creado-por-nota");
+    const nombreCreadorOrden = orden && orden.creado_por ? nombreEmpleado(orden.creado_por) : null;
+    notaCreadorOrden.hidden = !nombreCreadorOrden;
+    if (nombreCreadorOrden) notaCreadorOrden.textContent = "Creada por: " + nombreCreadorOrden;
     populateOrdenClienteSelect();
     document.getElementById("orden-cliente").value = orden ? orden.cliente_id : "";
     document.getElementById("orden-kilometraje").value = orden ? orden.kilometraje || "" : "";
@@ -2800,6 +2905,7 @@
       }
     } else {
       payload.etapa = "diagnostico";
+      payload.creado_por = state.empleadoActualId;
       const { data, error } = await sb.from("ordenes_servicio").insert(payload).select().single();
       if (error) {
         showToast("No se pudo guardar la orden.", true);
@@ -2824,10 +2930,14 @@
     }
 
     if (vehiculoId && kilometrajeVisita) {
+      const vehiculoPrevio = state.vehiculos.find((veh) => veh.id === vehiculoId);
+      const kilometrajeAnterior = vehiculoPrevio ? vehiculoPrevio.kilometraje : null;
       const { error: errorKm } = await sb.from("vehiculos").update({ kilometraje: kilometrajeVisita }).eq("id", vehiculoId);
       if (!errorKm) {
-        const v = state.vehiculos.find((veh) => veh.id === vehiculoId);
-        if (v) v.kilometraje = kilometrajeVisita;
+        if (vehiculoPrevio) vehiculoPrevio.kilometraje = kilometrajeVisita;
+        if (kilometrajeAnterior !== kilometrajeVisita) {
+          await registrarKilometraje(vehiculoId, kilometrajeVisita);
+        }
       }
     }
 
@@ -3478,6 +3588,7 @@
     document.getElementById("form-cliente").addEventListener("submit", saveCliente);
     document.getElementById("btn-eliminar-cliente").addEventListener("click", deleteCliente);
     document.getElementById("clientes-search").addEventListener("input", () => renderClientes(filterClientes()));
+    document.getElementById("clientes-filter-inactivos").addEventListener("change", () => renderClientes(filterClientes()));
     wireSortHeaders(document.querySelector("#view-clientes thead tr"), clientesSortState, CLIENTES_SORT_LABELS, () => renderClientes(filterClientes()));
 
     document.getElementById("btn-nueva-factura").addEventListener("click", () => openFacturaModal(null));
@@ -3598,6 +3709,12 @@
     renderEmpleados();
     const { data } = await sb.auth.getUser();
     document.getElementById("cuenta-email-actual").textContent = data.user ? data.user.email : "—";
+    state.empleadoActualId = data.user ? data.user.id : null;
+  }
+
+  function nombreEmpleado(id) {
+    const emp = state.empleados.find((e) => e.id === id);
+    return emp ? emp.nombre : null;
   }
 
   function renderEmpleados() {
