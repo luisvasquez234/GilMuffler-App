@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Estado de tu orden</title>
+<style>
+  body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:1.5rem;max-width:36rem;margin:0 auto;background:#f6f7f9;}
+  .card{background:#fff;border-radius:12px;padding:1.75rem;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+  .header{border-bottom:3px solid #d5601a;padding-bottom:1rem;margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;flex-wrap:wrap;}
+  .header-brand{display:flex;align-items:center;gap:.8rem;}
+  .header-brand img{height:3rem;width:3rem;object-fit:cover;object-position:68% 55%;border-radius:8px;flex:none;}
+  .header h1{font-size:1.4rem;margin:0;color:#d5601a;}
+  .meta{font-size:.9rem;color:#68707e;margin-bottom:1.75rem;}
+  .meta strong{color:#1f2430;}
+  .pasos{display:flex;flex-direction:column;gap:0;margin-bottom:1.5rem;}
+  .paso{display:flex;align-items:center;gap:.9rem;padding:.5rem 0;}
+  .paso-punto{width:1.6rem;height:1.6rem;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;border:2px solid #d0d4da;color:#98a1b0;background:#fff;}
+  .paso-linea{width:2px;flex:none;background:#e1e4e9;margin-left:.8rem;height:1.2rem;}
+  .paso.is-hecho .paso-punto{background:#1a7f5a;border-color:#1a7f5a;color:#fff;}
+  .paso.is-hecho .paso-linea{background:#1a7f5a;}
+  .paso.is-actual .paso-punto{background:#d5601a;border-color:#d5601a;color:#fff;}
+  .paso-label{font-size:.95rem;color:#98a1b0;}
+  .paso.is-hecho .paso-label,.paso.is-actual .paso-label{color:#1f2430;font-weight:600;}
+  .cancelada{text-align:center;color:#d6293b;font-weight:700;padding:1rem;background:#fbe7e9;border-radius:8px;margin-bottom:1.5rem;}
+  .notas{margin-top:1.5rem;padding:.9rem 1rem;background:#fafbfc;border-radius:8px;font-size:.85rem;}
+  .notas strong{display:block;margin-bottom:.3rem;color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}
+  .estado-msg{text-align:center;color:#68707e;padding:3rem 1rem;}
+</style>
+</head>
+<body>
+  <div class="card" id="contenido">
+    <p class="estado-msg">Cargando…</p>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    function escapeHtml(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+    function formatDate(iso) {
+      if (!iso || iso.length < 10) return iso || "";
+      const [anio, mes, dia] = iso.slice(0, 10).split("-");
+      return mes + "/" + dia + "/" + anio;
+    }
+
+    const PASOS = [
+      { key: "diagnostico", label: "Diagnóstico" },
+      { key: "presupuesto", label: "Presupuesto enviado" },
+      { key: "aprobado", label: "Aprobado" },
+      { key: "en_reparacion", label: "En reparación" },
+      { key: "completado", label: "Listo para recoger" },
+    ];
+
+    async function cargar() {
+      const contenido = document.getElementById("contenido");
+      const id = new URLSearchParams(location.search).get("id");
+      if (!id) {
+        contenido.innerHTML = '<p class="estado-msg">Falta el número de orden en el enlace.</p>';
+        return;
+      }
+
+      const sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+
+      const [{ data: orden, error: errO }, { data: cfg }] = await Promise.all([
+        sb.from("ordenes_servicio").select("*, clientes(nombre, apellido)").eq("id", id).maybeSingle(),
+        sb.from("configuracion_negocio").select("*").eq("id", 1).maybeSingle(),
+      ]);
+
+      if (errO || !orden) {
+        contenido.innerHTML = '<p class="estado-msg">No se encontró esta orden.</p>';
+        return;
+      }
+
+      const c = cfg || {};
+      const nombreNegocio = c.nombre_negocio || "Gil Muffler";
+      const logoSrc = c.logo_url || "logo-muffler.webp";
+      const clienteNombre = orden.clientes ? [orden.clientes.nombre, orden.clientes.apellido].filter(Boolean).join(" ") : "—";
+      const vehiculo = [orden.vehiculo_marca, orden.vehiculo_modelo, orden.vehiculo_anio].filter(Boolean).join(" ");
+
+      let pasosHtml = "";
+      if (orden.etapa === "cancelado") {
+        pasosHtml = "<div class='cancelada'>Esta orden fue cancelada.</div>";
+      } else {
+        const etapaEfectiva = orden.etapa === "facturado" ? "completado" : orden.etapa;
+        const idxActual = PASOS.findIndex((p) => p.key === etapaEfectiva);
+        pasosHtml =
+          "<div class='pasos'>" +
+          PASOS.map((p, i) => {
+            const estado = i < idxActual ? "is-hecho" : i === idxActual ? "is-actual" : "";
+            const icono = i < idxActual ? "✓" : i + 1;
+            return (
+              "<div class='paso " +
+              estado +
+              "'><span class='paso-punto'>" +
+              icono +
+              "</span><span class='paso-label'>" +
+              p.label +
+              "</span></div>"
+            );
+          }).join("") +
+          "</div>";
+      }
+
+      const notasHtml = orden.diagnostico
+        ? "<div class='notas'><strong>Diagnóstico</strong><p>" + escapeHtml(orden.diagnostico).replace(/\n/g, "<br>") + "</p></div>"
+        : "";
+
+      contenido.innerHTML =
+        "<div class='header'><div class='header-brand'><img src='" +
+        logoSrc +
+        "' alt='' /><h1>" +
+        escapeHtml(nombreNegocio) +
+        "</h1></div></div>" +
+        "<div class='meta'>Orden #" +
+        String(orden.numero).padStart(4, "0") +
+        " · <strong>" +
+        escapeHtml(clienteNombre) +
+        "</strong>" +
+        (vehiculo ? " · " + escapeHtml(vehiculo) : "") +
+        "<br>Recibido: " +
+        escapeHtml(formatDate(orden.fecha_recepcion)) +
+        (orden.fecha_estimada ? " · Estimado: " + escapeHtml(formatDate(orden.fecha_estimada)) : "") +
+        "</div>" +
+        pasosHtml +
+        notasHtml;
+    }
+
+    cargar();
+  </script>
+</body>
+</html>
