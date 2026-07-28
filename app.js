@@ -71,6 +71,88 @@
     return formato === "DD/MM/YYYY" ? dia + "/" + mes + "/" + anio : mes + "/" + dia + "/" + anio;
   }
 
+  // ---------------- modo sin conexión (consulta de datos guardados) ----------------
+
+  const CACHE_OFFLINE_KEY = "gilmuffler_cache_offline";
+
+  function cargarCacheOffline() {
+    try {
+      return JSON.parse(localStorage.getItem(CACHE_OFFLINE_KEY) || "{}");
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function cargarCacheEntidad(entidad) {
+    return cargarCacheOffline()[entidad];
+  }
+
+  function guardarCacheEntidad(entidad, data) {
+    try {
+      const cache = cargarCacheOffline();
+      cache[entidad] = data;
+      cache.guardadoEn = new Date().toISOString();
+      localStorage.setItem(CACHE_OFFLINE_KEY, JSON.stringify(cache));
+    } catch (e) {
+      // localStorage lleno o no disponible: seguimos sin cache, no rompe la app
+    }
+  }
+
+  async function fetchConCache(entidad, ejecutarConsulta, valorPorDefecto, mensajeError) {
+    if (!navigator.onLine) {
+      const cache = cargarCacheEntidad(entidad);
+      return cache !== undefined ? cache : valorPorDefecto;
+    }
+    const { data, error } = await ejecutarConsulta();
+    if (error) {
+      if (mensajeError) showToast(mensajeError, true);
+      const cache = cargarCacheEntidad(entidad);
+      return cache !== undefined ? cache : valorPorDefecto;
+    }
+    guardarCacheEntidad(entidad, data);
+    return data;
+  }
+
+  function wrapOfflineGuard(client) {
+    const originalFrom = client.from.bind(client);
+    client.from = function (table) {
+      const queryBuilder = originalFrom(table);
+      ["select", "insert", "update", "upsert", "delete"].forEach((metodo) => {
+        const original = queryBuilder[metodo].bind(queryBuilder);
+        queryBuilder[metodo] = function (...args) {
+          const filterBuilder = original(...args);
+          if (filterBuilder && typeof filterBuilder.then === "function") {
+            const originalThen = filterBuilder.then.bind(filterBuilder);
+            filterBuilder.then = function (onFulfilled, onRejected) {
+              if (!navigator.onLine) {
+                return Promise.resolve({ data: null, error: { message: "Sin conexión a internet." } }).then(onFulfilled, onRejected);
+              }
+              return originalThen(onFulfilled, onRejected);
+            };
+          }
+          return filterBuilder;
+        };
+      });
+      return queryBuilder;
+    };
+    return client;
+  }
+
+  function actualizarBannerOffline() {
+    const banner = document.getElementById("offline-banner");
+    const texto = document.getElementById("offline-banner-texto");
+    if (!banner || !texto) return;
+    const sinConexion = !navigator.onLine;
+    banner.hidden = !sinConexion;
+    document.body.classList.toggle("tiene-banner-offline", sinConexion);
+    if (sinConexion) {
+      const guardadoEn = cargarCacheOffline().guardadoEn;
+      texto.textContent = guardadoEn
+        ? "Sin conexión — viendo datos guardados el " + new Date(guardadoEn).toLocaleString() + ". Los cambios no se pueden guardar hasta que vuelva el internet."
+        : "Sin conexión y todavía no hay datos guardados en este dispositivo. Conéctate a internet al menos una vez para poder consultar información sin WiFi.";
+    }
+  }
+
   function showToast(message, isError) {
     addToast(message, isError ? "error" : "success");
   }
@@ -367,13 +449,19 @@
     }
 
     sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+    wrapOfflineGuard(sb);
+
+    actualizarBannerOffline();
+    window.addEventListener("online", actualizarBannerOffline);
+    window.addEventListener("offline", actualizarBannerOffline);
 
     sb.from("configuracion_negocio")
       .select("nombre_negocio")
       .eq("id", 1)
       .maybeSingle()
       .then(({ data }) => {
-        aplicarNombreNegocioGlobal((data && data.nombre_negocio) || "Gil's Muffler Inc");
+        const cache = cargarCacheEntidad("configNegocio");
+        aplicarNombreNegocioGlobal((data && data.nombre_negocio) || (cache && cache.nombre_negocio) || "Gil's Muffler Inc");
       });
 
     sb.auth.getSession().then(({ data }) => {
@@ -661,24 +749,21 @@
   // ---------------- data layer ----------------
 
   async function fetchClientes() {
-    const { data, error } = await sb.from("clientes").select("*").order("nombre", { ascending: true });
-    if (error) {
-      showToast("No se pudieron cargar los clientes.", true);
-      return [];
-    }
-    return data;
+    return fetchConCache(
+      "clientes",
+      () => sb.from("clientes").select("*").order("nombre", { ascending: true }),
+      [],
+      "No se pudieron cargar los clientes."
+    );
   }
 
   async function fetchFacturas() {
-    const { data, error } = await sb
-      .from("facturas")
-      .select("*, clientes(nombre, apellido, direccion, numero)")
-      .order("numero", { ascending: false });
-    if (error) {
-      showToast("No se pudieron cargar las facturas.", true);
-      return [];
-    }
-    return data;
+    return fetchConCache(
+      "facturas",
+      () => sb.from("facturas").select("*, clientes(nombre, apellido, direccion, numero)").order("numero", { ascending: false }),
+      [],
+      "No se pudieron cargar las facturas."
+    );
   }
 
   async function fetchFacturaItems(facturaId) {
@@ -695,21 +780,21 @@
   }
 
   async function fetchPiezas() {
-    const { data, error } = await sb.from("piezas").select("*").order("nombre", { ascending: true });
-    if (error) {
-      showToast("No se pudieron cargar las piezas.", true);
-      return [];
-    }
-    return data;
+    return fetchConCache(
+      "piezas",
+      () => sb.from("piezas").select("*").order("nombre", { ascending: true }),
+      [],
+      "No se pudieron cargar las piezas."
+    );
   }
 
   async function fetchVehiculos() {
-    const { data, error } = await sb.from("vehiculos").select("*").order("created_at", { ascending: true });
-    if (error) {
-      showToast("No se pudieron cargar los vehículos.", true);
-      return [];
-    }
-    return data;
+    return fetchConCache(
+      "vehiculos",
+      () => sb.from("vehiculos").select("*").order("created_at", { ascending: true }),
+      [],
+      "No se pudieron cargar los vehículos."
+    );
   }
 
   async function refreshVehiculos() {
@@ -853,15 +938,12 @@
   }
 
   async function fetchOrdenes() {
-    const { data, error } = await sb
-      .from("ordenes_servicio")
-      .select("*, clientes(nombre)")
-      .order("numero", { ascending: false });
-    if (error) {
-      showToast("No se pudieron cargar las órdenes de servicio.", true);
-      return [];
-    }
-    return data;
+    return fetchConCache(
+      "ordenes",
+      () => sb.from("ordenes_servicio").select("*, clientes(nombre)").order("numero", { ascending: false }),
+      [],
+      "No se pudieron cargar las órdenes de servicio."
+    );
   }
 
   async function fetchOrdenPiezas(ordenId) {
@@ -958,15 +1040,12 @@
   }
 
   async function fetchTareas() {
-    const { data, error } = await sb
-      .from("tareas")
-      .select("*, clientes(nombre)")
-      .order("fecha_vencimiento", { ascending: true });
-    if (error) {
-      showToast("No se pudieron cargar las tareas.", true);
-      return [];
-    }
-    return data;
+    return fetchConCache(
+      "tareas",
+      () => sb.from("tareas").select("*, clientes(nombre)").order("fecha_vencimiento", { ascending: true }),
+      [],
+      "No se pudieron cargar las tareas."
+    );
   }
 
   async function adjustPiezaStock(piezaId, delta) {
@@ -2072,15 +2151,12 @@
   }
 
   async function fetchEstimados() {
-    const { data, error } = await sb
-      .from("estimados")
-      .select("*, clientes(nombre, apellido)")
-      .order("numero", { ascending: false });
-    if (error) {
-      showToast("No se pudieron cargar los presupuestos.", true);
-      return [];
-    }
-    return data;
+    return fetchConCache(
+      "estimados",
+      () => sb.from("estimados").select("*, clientes(nombre, apellido)").order("numero", { ascending: false }),
+      [],
+      "No se pudieron cargar los presupuestos."
+    );
   }
 
   async function fetchEstimadoItems(estimadoId) {
@@ -2382,16 +2458,12 @@
   const ESTADO_RESERVA_LABELS = { agendada: "Agendada", confirmada: "Confirmada", completada: "Completada", cancelada: "Cancelada" };
 
   async function fetchCitas() {
-    const { data, error } = await sb
-      .from("citas")
-      .select("*, clientes(nombre, apellido)")
-      .order("fecha", { ascending: true })
-      .order("hora", { ascending: true });
-    if (error) {
-      showToast("No se pudieron cargar las reservas.", true);
-      return [];
-    }
-    return data;
+    return fetchConCache(
+      "citas",
+      () => sb.from("citas").select("*, clientes(nombre, apellido)").order("fecha", { ascending: true }).order("hora", { ascending: true }),
+      [],
+      "No se pudieron cargar las reservas."
+    );
   }
 
   async function refreshCitas() {
@@ -3315,12 +3387,12 @@
   const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
   async function fetchGastos() {
-    const { data, error } = await sb.from("gastos").select("*").order("fecha", { ascending: false });
-    if (error) {
-      showToast("No se pudieron cargar los gastos.", true);
-      return [];
-    }
-    return data;
+    return fetchConCache(
+      "gastos",
+      () => sb.from("gastos").select("*").order("fecha", { ascending: false }),
+      [],
+      "No se pudieron cargar los gastos."
+    );
   }
 
   async function refreshGastos() {
@@ -3482,12 +3554,12 @@
   // ---------------- configuración del negocio ----------------
 
   async function fetchConfigNegocio() {
-    const { data, error } = await sb.from("configuracion_negocio").select("*").eq("id", 1).maybeSingle();
-    if (error) {
-      showToast("No se pudo cargar la configuración.", true);
-      return null;
-    }
-    return data;
+    return fetchConCache(
+      "configNegocio",
+      () => sb.from("configuracion_negocio").select("*").eq("id", 1).maybeSingle(),
+      null,
+      "No se pudo cargar la configuración."
+    );
   }
 
   function aplicarNombreNegocioGlobal(nombreNegocio) {
@@ -3918,17 +3990,24 @@
   // ---------------- my account (empleados) ----------------
 
   async function fetchEmpleados() {
-    const { data, error } = await sb.from("empleados").select("*").order("created_at", { ascending: true });
-    if (error) return [];
-    return data;
+    return fetchConCache("empleados", () => sb.from("empleados").select("*").order("created_at", { ascending: true }), []);
   }
 
   async function refreshEmpleados() {
     state.empleados = await fetchEmpleados();
     renderEmpleados();
+    if (!navigator.onLine) {
+      const cache = cargarCacheOffline();
+      document.getElementById("cuenta-email-actual").textContent = cache.cuentaEmailActual || "—";
+      state.empleadoActualId = cache.empleadoActualId || null;
+      return;
+    }
     const { data } = await sb.auth.getUser();
-    document.getElementById("cuenta-email-actual").textContent = data.user ? data.user.email : "—";
+    const email = data.user ? data.user.email : null;
+    document.getElementById("cuenta-email-actual").textContent = email || "—";
     state.empleadoActualId = data.user ? data.user.id : null;
+    guardarCacheEntidad("cuentaEmailActual", email);
+    guardarCacheEntidad("empleadoActualId", state.empleadoActualId);
   }
 
   function nombreEmpleado(id) {
@@ -3997,6 +4076,7 @@
     await refreshConfigNegocio();
     await refreshEmpleados();
     renderDashboard();
+    actualizarBannerOffline();
   }
 
   if ("serviceWorker" in navigator) {
