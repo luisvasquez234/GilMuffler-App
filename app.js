@@ -368,6 +368,14 @@
 
     sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 
+    sb.from("configuracion_negocio")
+      .select("nombre_negocio")
+      .eq("id", 1)
+      .maybeSingle()
+      .then(({ data }) => {
+        aplicarNombreNegocioGlobal((data && data.nombre_negocio) || "Gil's Muffler Inc");
+      });
+
     sb.auth.getSession().then(({ data }) => {
       if (data.session) {
         gate.hidden = true;
@@ -1485,6 +1493,9 @@
     const cfg = state.configNegocio || {};
     const nombreNegocio = cfg.nombre_negocio || "Gil Muffler";
     const logoSrc = cfg.logo_url || LOGO_DATA_URI;
+    const colorAcento = cfg.color_acento || "#d5601a";
+    const facturaTitulo = cfg.factura_titulo || "Factura";
+    const mostrarQr = cfg.mostrar_qr !== false;
 
     const ESTADO_ESTILO = {
       pagada: { label: "PAGADA", color: "#1a7f5a" },
@@ -1509,19 +1520,27 @@
       ? "<p class='extra'>" + escapeHtml(cfg.texto_adicional).replace(/\n/g, "<br>") + "</p>"
       : "";
 
-    const origenFactura = typeof LAN_ORIGIN !== "undefined" && LAN_ORIGIN ? LAN_ORIGIN : location.origin;
-    const facturaUrl = origenFactura + location.pathname.replace(/index\.html$/, "") + "ver-factura.html?id=" + factura.id;
-    const qr = qrcode(0, "M");
-    qr.addData(facturaUrl);
-    qr.make();
-    const qrDataUrl = qr.createDataURL(4, 4);
+    let qrBlockHtml = "";
+    if (mostrarQr) {
+      const origenFactura = typeof LAN_ORIGIN !== "undefined" && LAN_ORIGIN ? LAN_ORIGIN : location.origin;
+      const facturaUrl = origenFactura + location.pathname.replace(/index\.html$/, "") + "ver-factura.html?id=" + factura.id;
+      const qr = qrcode(0, "M");
+      qr.addData(facturaUrl);
+      qr.make();
+      const qrDataUrl = qr.createDataURL(4, 4);
+      qrBlockHtml = "<div class='qr'><img src='" + qrDataUrl + "' alt='QR' /><p>Ver factura completa</p></div>";
+    }
 
     const html =
-      "<!doctype html><html><head><meta charset='utf-8'><title>Factura #" +
+      "<!doctype html><html><head><meta charset='utf-8'><title>" +
+      escapeHtml(facturaTitulo) +
+      " #" +
       String(factura.numero).padStart(4, "0") +
       "</title><style>" +
       "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:2.5rem;max-width:40rem;margin:0 auto;}" +
-      ".header{border-bottom:3px solid #d5601a;padding-bottom:1rem;margin-bottom:1.2rem;display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;}" +
+      ".header{border-bottom:3px solid " +
+      colorAcento +
+      ";padding-bottom:1rem;margin-bottom:1.2rem;display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;}" +
       ".header-brand{display:flex;align-items:center;gap:.8rem;}" +
       ".header-brand img{height:3.2rem;width:3.2rem;object-fit:cover;object-position:68% 55%;border-radius:8px;flex:none;}" +
       ".header h1{font-size:1.4rem;margin:0;color:#1f2430;}" +
@@ -1555,7 +1574,9 @@
       "</h1></div><div class='contacto'>" +
       [cfg.direccion, cfg.telefono, cfg.email].filter(Boolean).map(escapeHtml).join("<br>") +
       "</div></div>" +
-      "<div class='titulo'><div class='num-factura'>Factura #" +
+      "<div class='titulo'><div class='num-factura'>" +
+      escapeHtml(facturaTitulo) +
+      " #" +
       String(factura.numero).padStart(4, "0") +
       "</div><span class='estado' style='color:" +
       estadoInfo.color +
@@ -1587,9 +1608,7 @@
       notasHtml +
       extraHtml +
       pieHtml +
-      "<div class='qr'><img src='" +
-      qrDataUrl +
-      "' alt='QR' /><p>Ver factura completa</p></div>" +
+      qrBlockHtml +
       "</body></html>";
 
     openPrintWindow(html);
@@ -3404,6 +3423,18 @@
     return data;
   }
 
+  function aplicarNombreNegocioGlobal(nombreNegocio) {
+    document.title = nombreNegocio + " — Panel interno";
+    const dashboardTitulo = document.getElementById("dashboard-titulo");
+    if (dashboardTitulo) dashboardTitulo.textContent = nombreNegocio;
+    const navLabel = document.getElementById("nav-dashboard-label");
+    if (navLabel) navLabel.textContent = nombreNegocio;
+    const loginBrand = document.getElementById("login-brand-nombre");
+    if (loginBrand) loginBrand.textContent = nombreNegocio;
+    const sidebarBrand = document.getElementById("sidebar-brand-nombre");
+    if (sidebarBrand) sidebarBrand.textContent = nombreNegocio;
+  }
+
   async function refreshConfigNegocio() {
     state.configNegocio = await fetchConfigNegocio();
     const c = state.configNegocio || {};
@@ -3416,9 +3447,10 @@
     document.getElementById("config-texto-adicional").value = c.texto_adicional || "";
     document.getElementById("config-tasa-impuesto-default").value = c.tasa_impuesto_default || 0;
     document.getElementById("config-formato-fecha").value = c.formato_fecha || "MM/DD/YYYY";
-    const nombreNegocio = c.nombre_negocio || "Gil's Muffler Inc";
-    document.getElementById("dashboard-titulo").textContent = nombreNegocio;
-    document.getElementById("nav-dashboard-label").textContent = nombreNegocio;
+    document.getElementById("config-color-acento").value = c.color_acento || "#d5601a";
+    document.getElementById("config-factura-titulo").value = c.factura_titulo || "Factura";
+    document.getElementById("config-mostrar-qr").checked = c.mostrar_qr !== false;
+    aplicarNombreNegocioGlobal(c.nombre_negocio || "Gil's Muffler Inc");
     updateConfigPreview();
   }
 
@@ -3434,10 +3466,12 @@
     const pie = document.getElementById("config-mensaje-pie").value.trim() || "¡Gracias por su preferencia!";
     const logoUrl = document.getElementById("config-logo-url").value.trim();
     const extra = document.getElementById("config-texto-adicional").value.trim();
+    const colorAcento = document.getElementById("config-color-acento").value || "#d5601a";
 
     document.getElementById("preview-nombre").textContent = nombre;
     document.getElementById("preview-contacto").textContent = contacto || "—";
     document.getElementById("preview-pie").textContent = pie;
+    document.querySelector(".config-preview-card").style.setProperty("--preview-accent", colorAcento);
 
     const previewLogo = document.getElementById("preview-logo");
     if (logoUrl) {
@@ -3465,6 +3499,9 @@
       texto_adicional: document.getElementById("config-texto-adicional").value.trim(),
       tasa_impuesto_default: parseFloat(document.getElementById("config-tasa-impuesto-default").value) || 0,
       formato_fecha: document.getElementById("config-formato-fecha").value,
+      color_acento: document.getElementById("config-color-acento").value || "#d5601a",
+      factura_titulo: document.getElementById("config-factura-titulo").value.trim() || "Factura",
+      mostrar_qr: document.getElementById("config-mostrar-qr").checked,
       updated_at: new Date().toISOString(),
     };
 
@@ -3796,7 +3833,7 @@
     });
 
     document.getElementById("form-configuracion").addEventListener("submit", saveConfiguracion);
-    ["config-nombre", "config-direccion", "config-telefono", "config-email", "config-mensaje-pie", "config-logo-url", "config-texto-adicional"].forEach((id) => {
+    ["config-nombre", "config-direccion", "config-telefono", "config-email", "config-mensaje-pie", "config-logo-url", "config-texto-adicional", "config-color-acento"].forEach((id) => {
       document.getElementById(id).addEventListener("input", updateConfigPreview);
     });
 
