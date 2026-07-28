@@ -1,0 +1,11 @@
+{
+  "name": "Gil's Muffler — Panel",
+  "short_name": "Gil Muffler",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f5f7",
+  "theme_color": "#d5601a",
+  "icons": [
+    { "src": "logo-muffler.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
