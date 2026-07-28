@@ -113,7 +113,7 @@
 
 <div id="login-gate" class="login-gate">
   <form id="login-form" class="login-card">
-    <h1>Gil Muffler</h1>
+    <h1 id="login-brand-nombre">Gil Muffler</h1>
     <p class="login-sub">Panel interno — acceso de empleados</p>
     <input type="email" id="login-email" placeholder="Email" autocomplete="username" required />
     <input type="password" id="login-password" placeholder="Contraseña" autocomplete="current-password" required />
@@ -127,7 +127,7 @@
     <div class="brand">
       <div class="brand-row">
         <span class="brand-mark-photo"><img src="logo-muffler.webp" alt="" /></span>
-        <span class="brand-name">GIL MUFFLER</span>
+        <span class="brand-name" id="sidebar-brand-nombre">GIL MUFFLER</span>
       </div>
       <span class="brand-sub">Panel interno</span>
     </div>
@@ -458,6 +458,21 @@
             </div>
             <div class="field"><label>Mensaje de pie de página (sale en cada factura)</label><textarea id="config-mensaje-pie" rows="2" placeholder="¡Gracias por su preferencia!"></textarea></div>
             <div class="field"><label>Texto adicional (términos, garantía, lo que quieras agregar)</label><textarea id="config-texto-adicional" rows="3" placeholder="Ej. Garantía de 90 días en piezas instaladas."></textarea></div>
+            <label class="field-label-standalone">Impresión de la factura</label>
+            <div class="field-row">
+              <div class="field" style="max-width:9rem;">
+                <label>Color de acento</label>
+                <input type="color" id="config-color-acento" value="#d5601a" />
+              </div>
+              <div class="field">
+                <label>Título del documento</label>
+                <input type="text" id="config-factura-titulo" placeholder="Factura" />
+              </div>
+            </div>
+            <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;margin-top:.2rem;">
+              <input type="checkbox" id="config-mostrar-qr" checked />
+              Incluir código QR (enlace a la factura en línea) al pie de la factura impresa
+            </label>
             <footer class="modal-footer" style="padding-top:.5rem;">
               <span class="spacer"></span>
               <button type="submit" class="btn-primary">Guardar</button>
