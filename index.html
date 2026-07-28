@@ -86,6 +86,10 @@
   <symbol id="icon-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
   </symbol>
+  <symbol id="icon-clipboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+    <rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h6"/>
+  </symbol>
   <symbol id="icon-more" viewBox="0 0 24 24" fill="currentColor" stroke="none">
     <circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>
   </symbol>
@@ -135,6 +139,7 @@
       <button class="nav-item" data-view="inventario"><svg class="icon" aria-hidden="true"><use href="#icon-box"></use></svg>Inventario</button>
       <button class="nav-item" data-view="tareas"><svg class="icon" aria-hidden="true"><use href="#icon-check-square"></use></svg>Tareas</button>
       <button class="nav-item" data-view="facturas"><svg class="icon" aria-hidden="true"><use href="#icon-file-text"></use></svg>Facturas</button>
+      <button class="nav-item" data-view="estimados"><svg class="icon" aria-hidden="true"><use href="#icon-clipboard"></use></svg>Estimates</button>
       <button class="nav-item" data-view="finanzas"><svg class="icon" aria-hidden="true"><use href="#icon-dollar"></use></svg>Finanzas</button>
       <button class="nav-item" data-view="export"><svg class="icon" aria-hidden="true"><use href="#icon-download"></use></svg>Export</button>
       <button class="nav-item" data-view="configuracion"><svg class="icon" aria-hidden="true"><use href="#icon-settings"></use></svg>Configuración</button>
@@ -330,6 +335,33 @@
       </div>
     </section>
 
+    <section id="view-estimados" class="view" hidden>
+      <header class="view-header">
+        <div>
+          <h1>Estimates</h1>
+          <p class="view-sub">Presupuestos que el cliente puede aprobar o rechazar</p>
+        </div>
+        <button class="btn-primary" id="btn-nuevo-estimado" type="button">+ Nuevo presupuesto</button>
+      </header>
+      <div class="toolbar">
+        <input type="search" id="estimados-search" placeholder="Buscar por cliente o número..." />
+        <select id="estimados-filter-estado">
+          <option value="">Todos los estados</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="aprobado">Aprobado</option>
+          <option value="rechazado">Rechazado</option>
+          <option value="convertido">Convertido a factura</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>N.º</th><th>Cliente</th><th>Fecha</th><th>Total</th><th>Estado</th><th></th></tr></thead>
+          <tbody id="estimados-tbody"></tbody>
+        </table>
+        <p id="estimados-empty" class="empty-state" hidden>Todavía no hay presupuestos registrados.</p>
+      </div>
+    </section>
+
     <section id="view-export" class="view" hidden>
       <header class="view-header">
         <div>
@@ -511,6 +543,62 @@
         <span class="spacer"></span>
         <button type="button" class="btn-ghost" data-close-modal="modal-cliente">Cancelar</button>
         <button type="submit" class="btn-primary">Guardar</button>
+      </footer>
+    </form>
+  </div>
+</div>
+
+<div id="modal-estimado" class="modal-backdrop" hidden>
+  <div class="modal modal-wide">
+    <header class="modal-header">
+      <h2 id="modal-estimado-title">Nuevo presupuesto</h2>
+      <button class="icon-btn" data-close-modal="modal-estimado" type="button">&times;</button>
+    </header>
+    <form id="form-estimado" class="modal-body">
+      <input type="hidden" id="estimado-id" />
+      <div class="field-row">
+        <div class="field">
+          <label>Cliente *</label>
+          <input type="text" id="estimado-cliente" list="clientes-datalist" placeholder="Escribe el nombre del cliente..." required autocomplete="off" />
+        </div>
+        <div class="field"><label>Fecha</label><input type="date" id="estimado-fecha" required /></div>
+        <div class="field">
+          <label>Estado</label>
+          <select id="estimado-estado">
+            <option value="pendiente">Pendiente</option>
+            <option value="aprobado">Aprobado</option>
+            <option value="rechazado">Rechazado</option>
+            <option value="convertido">Convertido a factura</option>
+          </select>
+        </div>
+      </div>
+
+      <table class="items-table">
+        <thead><tr><th>Descripción</th><th>Cant.</th><th>Precio</th><th>Subtotal</th><th></th></tr></thead>
+        <tbody id="estimado-items-tbody"></tbody>
+      </table>
+      <button type="button" class="btn-ghost" id="btn-add-estimado-item">+ Agregar línea</button>
+
+      <div class="totals">
+        <div class="field-row">
+          <div class="field"><label>Impuesto (%)</label><input type="number" id="estimado-impuesto-pct" value="0" min="0" step="0.01" /></div>
+          <div class="totals-numbers">
+            <div><span>Subtotal</span><strong id="estimado-subtotal">$0.00</strong></div>
+            <div><span>Impuesto</span><strong id="estimado-impuesto-monto">$0.00</strong></div>
+            <div class="total-final"><span>Total</span><strong id="estimado-total">$0.00</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field"><label>Notas</label><textarea id="estimado-notas" rows="2"></textarea></div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn-danger" id="btn-eliminar-estimado" hidden>Eliminar</button>
+        <button type="button" class="btn-ghost" id="btn-copiar-link-estimado" hidden>Copiar link para el cliente</button>
+        <button type="button" class="btn-primary" id="btn-convertir-estimado" hidden>Convertir a factura</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn-ghost" data-close-modal="modal-estimado">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar presupuesto</button>
       </footer>
     </form>
   </div>
