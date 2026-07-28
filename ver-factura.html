@@ -75,7 +75,7 @@
       const c = cfg || {};
       const nombreNegocio = c.nombre_negocio || "Gil Muffler";
       const contacto = [c.direccion, c.telefono, c.email].filter(Boolean).join(" · ");
-      const logoSrc = c.logo_url || "logo-muffler.svg";
+      const logoSrc = c.logo_url || "logo-muffler.webp";
       const clienteNombre = factura.clientes ? factura.clientes.nombre : "—";
 
       const filas = (items || [])
