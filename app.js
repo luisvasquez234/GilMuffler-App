@@ -81,11 +81,16 @@
   let conexionReal = true;
 
   async function verificarConexionReal() {
-    if (!CONFIG.SUPABASE_URL) return conexionReal;
+    if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_ANON_KEY) return conexionReal;
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      await fetch(CONFIG.SUPABASE_URL + "/rest/v1/", { method: "HEAD", mode: "no-cors", cache: "no-store", signal: controller.signal });
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+      await fetch(CONFIG.SUPABASE_URL + "/rest/v1/", {
+        method: "GET",
+        headers: { apikey: CONFIG.SUPABASE_ANON_KEY },
+        cache: "no-store",
+        signal: controller.signal,
+      });
       clearTimeout(timeoutId);
       conexionReal = true;
     } catch (e) {
