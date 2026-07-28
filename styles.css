@@ -388,6 +388,26 @@ button{font-family:inherit;}
 .btn-ghost:hover{background:var(--bg);}
 .btn-danger{background:var(--danger-soft);color:var(--danger);}
 .btn-danger:hover{filter:brightness(0.94);}
+
+.export-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:1rem;
+}
+.export-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow-sm);
+  padding:1.25rem;
+  display:flex;
+  flex-direction:column;
+  gap:.4rem;
+}
+.export-card .icon{width:1.4rem;height:1.4rem;color:var(--accent);}
+.export-card h2{font-size:1rem;margin:.2rem 0 0;}
+.export-card p{font-size:.82rem;color:var(--text-dim);margin:0 0 .5rem;flex:1;}
+.export-card .btn-primary{align-self:flex-start;}
 .icon-btn{
   background:none;border:none;font-size:1.3rem;line-height:1;
   color:var(--text-dim);cursor:pointer;padding:.1rem .4rem;
