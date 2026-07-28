@@ -540,6 +540,9 @@ button{font-family:inherit;}
 .pill-pendiente{background:var(--warning-soft);color:var(--warning);}
 .pill-pagada{background:var(--success-soft);color:var(--success);}
 .pill-cancelada{background:var(--danger-soft);color:var(--danger);}
+.pill-aprobado{background:var(--success-soft);color:var(--success);}
+.pill-rechazado{background:var(--danger-soft);color:var(--danger);}
+.pill-convertido{background:var(--surface-alt);color:var(--text-dim);}
 
 /* ---------- modals ---------- */
 .modal-backdrop[hidden]{display:none;}
