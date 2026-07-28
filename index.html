@@ -135,6 +135,7 @@
     <nav class="nav">
       <button class="nav-item is-active" data-view="dashboard"><svg class="icon" aria-hidden="true"><use href="#icon-home"></use></svg>Dashboard</button>
       <button class="nav-item" data-view="clientes"><svg class="icon" aria-hidden="true"><use href="#icon-user"></use></svg>Clientes</button>
+      <button class="nav-item" data-view="reservas"><svg class="icon" aria-hidden="true"><use href="#icon-calendar"></use></svg>Bookings</button>
       <button class="nav-item" data-view="ordenes"><svg class="icon" aria-hidden="true"><use href="#icon-wrench"></use></svg>Órdenes de servicio</button>
       <button class="nav-item" data-view="inventario"><svg class="icon" aria-hidden="true"><use href="#icon-box"></use></svg>Inventario</button>
       <button class="nav-item" data-view="tareas"><svg class="icon" aria-hidden="true"><use href="#icon-check-square"></use></svg>Tareas</button>
@@ -333,6 +334,17 @@
         </table>
         <p id="gastos-empty" class="empty-state" hidden>Todavía no hay gastos registrados.</p>
       </div>
+    </section>
+
+    <section id="view-reservas" class="view" hidden>
+      <header class="view-header">
+        <div>
+          <h1>Bookings</h1>
+          <p class="view-sub">Agenda de citas próximas</p>
+        </div>
+        <button class="btn-primary" id="btn-nueva-reserva" type="button">+ Nueva reserva</button>
+      </header>
+      <div id="reservas-groups"></div>
     </section>
 
     <section id="view-estimados" class="view" hidden>
@@ -543,6 +555,48 @@
         <span class="spacer"></span>
         <button type="button" class="btn-ghost" data-close-modal="modal-cliente">Cancelar</button>
         <button type="submit" class="btn-primary">Guardar</button>
+      </footer>
+    </form>
+  </div>
+</div>
+
+<div id="modal-reserva" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2 id="modal-reserva-title">Nueva reserva</h2>
+      <button class="icon-btn" data-close-modal="modal-reserva" type="button">&times;</button>
+    </header>
+    <form id="form-reserva" class="modal-body">
+      <input type="hidden" id="reserva-id" />
+      <div class="field">
+        <label>Cliente</label>
+        <input type="text" id="reserva-cliente" list="clientes-datalist" placeholder="Escribe el nombre del cliente..." autocomplete="off" />
+      </div>
+      <div class="field">
+        <label>Vehículo</label>
+        <select id="reserva-vehiculo"><option value="">Sin vehículo</option></select>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Fecha *</label><input type="date" id="reserva-fecha" required /></div>
+        <div class="field"><label>Hora</label><input type="time" id="reserva-hora" /></div>
+      </div>
+      <div class="field"><label>Servicio</label><input type="text" id="reserva-servicio" placeholder="ej. Cambio de mofle" /></div>
+      <div class="field">
+        <label>Estado</label>
+        <select id="reserva-estado">
+          <option value="agendada">Agendada</option>
+          <option value="confirmada">Confirmada</option>
+          <option value="completada">Completada</option>
+          <option value="cancelada">Cancelada</option>
+        </select>
+      </div>
+      <div class="field"><label>Notas</label><textarea id="reserva-notas" rows="2"></textarea></div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn-danger" id="btn-eliminar-reserva" hidden>Eliminar</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn-ghost" data-close-modal="modal-reserva">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar reserva</button>
       </footer>
     </form>
   </div>
