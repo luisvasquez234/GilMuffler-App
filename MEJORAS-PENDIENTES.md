@@ -8,7 +8,14 @@ tarjeta, etc.) antes de poder hacerse.
 
 **Hecho ya** (para no repetir): email automático de factura al marcar como
 pagada (Resend, dominio verificado); apellido y vehículo obligatorios al
-crear cliente; menú de "3 puntos" ya no se corta en la última fila.
+crear cliente; menú de "3 puntos" ya no se corta en la última fila;
+**Export** (CSV de clientes/vehículos/facturas/órdenes desde el navegador);
+**Estimates/presupuestos aprobables en línea** (punto 8, con link público
+para aprobar/rechazar y "convertir a factura"); **Bookings/reservas** (agenda
+de citas por Hoy/Esta semana/Más adelante, cubre el espíritu del punto 14);
+**login individual por empleado** (punto 20 — My Account, con Supabase Auth
+real y RLS endurecido en las tablas internas del taller; facturas/estimados
+siguen siendo de acceso público a propósito, por los links para clientes).
 
 ## Comunicación con clientes
 
@@ -38,9 +45,8 @@ crear cliente; menú de "3 puntos" ya no se corta en la última fila.
 7. **Firma digital al recoger el vehículo** — captura de firma en pantalla
    (touch/mouse) como comprobante de entrega, guardada con la orden. Tamaño:
    mediano.
-8. **Presupuestos aprobables en línea** — el cliente ve un estimado y le da
-   "Aprobar" antes de que el taller empiece el trabajo. Tamaño: grande (nueva
-   tabla + flujo de estados).
+8. ~~**Presupuestos aprobables en línea**~~ — **YA HECHO** (Estimates: nueva
+   tabla, link público para aprobar/rechazar, botón "Convertir a factura").
 9. **Historial de precios de piezas** — ver cuándo subió de precio un
    proveedor, a partir del historial de `piezas`/`orden_piezas`. Tamaño:
    chico-mediano.
@@ -57,8 +63,10 @@ crear cliente; menú de "3 puntos" ya no se corta en la última fila.
     trabajo hecho, usando Supabase Storage. Tamaño: mediano.
 13. **Checklist de inspección por orden** — frenos, luces, llantas, fluidos,
     como un formulario rápido dentro de la orden. Tamaño: mediano.
-14. **Vista de calendario semanal** — ver las entregas estimadas de la semana
-    en un calendario en vez de solo lista. Tamaño: mediano.
+14. ~~**Vista de calendario semanal**~~ — **YA HECHO** como agenda de
+    reservas (Bookings: Hoy / Esta semana / Más adelante). Si más adelante se
+    quiere un calendario tipo cuadrícula de verdad, eso sería un proyecto
+    aparte más grande.
 15. **Búsqueda global** — un solo cuadro que busca cliente, placa o número de
     factura sin importar en qué sección estés. Tamaño: mediano (afecta varias
     pantallas).
@@ -70,25 +78,24 @@ crear cliente; menú de "3 puntos" ya no se corta en la última fila.
     de forma consistente).
 17. **Reporte de rotación de inventario** — qué piezas se venden rápido vs.
     cuáles llevan meses en el estante. Tamaño: chico-mediano.
-18. **Exportar reporte de impuestos** (trimestral/anual) para el contador —
-    botón que genera un Excel/CSV con las facturas del periodo. Tamaño:
-    chico-mediano.
+18. ~~**Exportar datos a CSV**~~ — **YA HECHO** (sección Export: clientes,
+    vehículos, facturas, órdenes). Falta, si se quiere después, un reporte de
+    impuestos ya calculado por periodo (no solo el CSV crudo de facturas).
 19. **Alertas de stock bajo por email** — hoy la alerta solo se ve dentro de
     la app; esto la manda por correo (reutiliza Resend, ya configurado).
     Tamaño: chico.
 
 ## Usuarios y seguridad
 
-20. **Login individual por empleado** — en vez de una sola contraseña
-    compartida, cada quien entra con su usuario. Tamaño: grande (cambia el
-    modelo de autenticación de toda la app). Más urgente ahora que el sitio
-    es público en internet, no solo la red del taller.
-21. **Registrar qué empleado hizo cada orden/factura** — depende de #20 (login
-    individual) para tener sentido real.
-22. **Calculadora de comisiones por empleado** — depende de #20 y #21.
-23. **Respaldo automático de datos** — cron que exporta clientes/facturas/
-    órdenes a Excel o PDF cada semana, por si algo sale mal en Supabase.
-    Tamaño: chico-mediano (ya existe la infraestructura de crons del proyecto).
+20. ~~**Login individual por empleado**~~ — **YA HECHO** (My Account:
+    Supabase Auth real con email+contraseña por empleado, tabla `empleados`,
+    y las tablas internas del taller ya exigen sesión iniciada — antes
+    cualquiera con la anon key podía leer/escribir todo).
+21. **Registrar qué empleado hizo cada orden/factura** — ya se puede hacer
+    ahora que existe #20 (agregar columna `creado_por` a órdenes/facturas).
+22. **Calculadora de comisiones por empleado** — depende de #20 (hecho) y #21.
+23. ~~**Respaldo automático de datos**~~ — **YA HECHO** (cron semanal por
+    email, ver `.github/workflows/respaldo-semanal.yml`).
 
 ## Técnico / infraestructura
 
