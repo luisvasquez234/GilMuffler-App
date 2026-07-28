@@ -866,6 +866,38 @@
     return data;
   }
 
+  async function mostrarRotacionInventario() {
+    const { data, error } = await sb.from("orden_piezas").select("pieza_id, cantidad");
+    const usoPorPieza = new Map();
+    if (!error && data) {
+      data.forEach((op) => {
+        usoPorPieza.set(op.pieza_id, (usoPorPieza.get(op.pieza_id) || 0) + Number(op.cantidad));
+      });
+    }
+
+    const filas = state.piezas
+      .map((p) => ({ pieza: p, usado: usoPorPieza.get(p.id) || 0 }))
+      .sort((a, b) => b.usado - a.usado);
+
+    const tbody = document.getElementById("rotacion-tbody");
+    tbody.innerHTML = filas.length
+      ? filas
+          .map(
+            (f) =>
+              "<tr><td>" +
+              escapeHtml(f.pieza.nombre) +
+              "</td><td>" +
+              (f.usado || "Sin movimiento") +
+              "</td><td>" +
+              f.pieza.stock +
+              "</td></tr>"
+          )
+          .join("")
+      : "<tr><td colspan='3'>No hay piezas registradas todavía.</td></tr>";
+
+    openModal("modal-rotacion");
+  }
+
   async function fetchTareas() {
     const { data, error } = await sb
       .from("tareas")
@@ -2784,6 +2816,16 @@
     const nombreCreadorOrden = orden && orden.creado_por ? nombreEmpleado(orden.creado_por) : null;
     notaCreadorOrden.hidden = !nombreCreadorOrden;
     if (nombreCreadorOrden) notaCreadorOrden.textContent = "Creada por: " + nombreCreadorOrden;
+    const btnCopiarOrden = document.getElementById("btn-copiar-link-orden");
+    btnCopiarOrden.hidden = !orden;
+    btnCopiarOrden.onclick = () => {
+      const origen = typeof LAN_ORIGIN !== "undefined" && LAN_ORIGIN ? LAN_ORIGIN : location.origin;
+      const url = origen + location.pathname.replace(/index\.html$/, "") + "ver-orden.html?id=" + orden.id;
+      navigator.clipboard.writeText(url).then(
+        () => showToast("Link copiado."),
+        () => showToast("No se pudo copiar el link.", true)
+      );
+    };
     populateOrdenClienteSelect();
     document.getElementById("orden-cliente").value = orden ? orden.cliente_id : "";
     document.getElementById("orden-kilometraje").value = orden ? orden.kilometraje || "" : "";
@@ -2814,6 +2856,10 @@
     document.getElementById("orden-fecha-estimada").value = orden ? orden.fecha_estimada || "" : "";
     document.getElementById("orden-diagnostico").value = orden ? orden.diagnostico || "" : "";
     document.getElementById("orden-trabajo").value = orden ? orden.trabajo_recomendado || "" : "";
+    document.getElementById("orden-check-frenos").checked = orden ? !!orden.check_frenos : false;
+    document.getElementById("orden-check-luces").checked = orden ? !!orden.check_luces : false;
+    document.getElementById("orden-check-llantas").checked = orden ? !!orden.check_llantas : false;
+    document.getElementById("orden-check-fluidos").checked = orden ? !!orden.check_fluidos : false;
     document.getElementById("orden-notas").value = orden ? orden.notas || "" : "";
     document.getElementById("btn-eliminar-orden").hidden = !orden;
     document.getElementById("btn-imprimir-orden").hidden = !orden;
@@ -2893,6 +2939,10 @@
       diagnostico: document.getElementById("orden-diagnostico").value.trim(),
       trabajo_recomendado: document.getElementById("orden-trabajo").value.trim(),
       notas: document.getElementById("orden-notas").value.trim(),
+      check_frenos: document.getElementById("orden-check-frenos").checked,
+      check_luces: document.getElementById("orden-check-luces").checked,
+      check_llantas: document.getElementById("orden-check-llantas").checked,
+      check_fluidos: document.getElementById("orden-check-fluidos").checked,
     };
 
     let ordenId = id;
@@ -3651,6 +3701,7 @@
     });
 
     document.getElementById("btn-nueva-pieza").addEventListener("click", () => openPiezaModal(null));
+    document.getElementById("btn-ver-rotacion").addEventListener("click", mostrarRotacionInventario);
     document.getElementById("form-pieza").addEventListener("submit", savePieza);
     document.getElementById("btn-eliminar-pieza").addEventListener("click", deletePieza);
 
@@ -3777,6 +3828,14 @@
     await refreshConfigNegocio();
     await refreshEmpleados();
     renderDashboard();
+  }
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {
+        // si falla el registro, la app sigue funcionando normal en línea
+      });
+    });
   }
 
   initTheme();
