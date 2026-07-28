@@ -19,6 +19,14 @@
   --shadow-sm:0 1px 2px rgba(20,24,32,.05), 0 2px 6px rgba(20,24,32,.05);
   --shadow-md:0 1px 2px rgba(20,24,32,.06), 0 8px 24px rgba(20,24,32,.06);
   --shadow:var(--shadow-md);
+  --series-1:#2a78d6;
+  --series-2:#eb6834;
+  --series-3:#1baf7a;
+  --series-4:#eda100;
+  --series-5:#e87ba4;
+  --series-6:#008300;
+  --series-7:#4a3aa7;
+  --series-8:#e34948;
   font-size:16px;
 }
 
@@ -41,6 +49,14 @@
   --surface-alt:#22262e;
   --shadow-sm:0 1px 2px rgba(0,0,0,.3), 0 2px 6px rgba(0,0,0,.25);
   --shadow-md:0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.4);
+  --series-1:#3987e5;
+  --series-2:#d95926;
+  --series-3:#199e70;
+  --series-4:#c98500;
+  --series-5:#d55181;
+  --series-6:#008300;
+  --series-7:#9085e9;
+  --series-8:#e66767;
 }
 
 @media (prefers-color-scheme: dark){
@@ -63,6 +79,14 @@
     --surface-alt:#22262e;
     --shadow-sm:0 1px 2px rgba(0,0,0,.3), 0 2px 6px rgba(0,0,0,.25);
     --shadow-md:0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.4);
+    --series-1:#3987e5;
+    --series-2:#d95926;
+    --series-3:#199e70;
+    --series-4:#c98500;
+    --series-5:#d55181;
+    --series-6:#008300;
+    --series-7:#9085e9;
+    --series-8:#e66767;
   }
 }
 
@@ -97,7 +121,11 @@ button{font-family:inherit;}
   display:flex;
   align-items:center;
   justify-content:center;
-  background:linear-gradient(160deg,#1c2431,#151a24);
+  background:
+    radial-gradient(circle at 12% 18%, rgba(235,104,52,.4), transparent 42%),
+    radial-gradient(circle at 88% 14%, rgba(74,58,167,.35), transparent 45%),
+    radial-gradient(circle at 50% 100%, rgba(27,175,122,.3), transparent 55%),
+    linear-gradient(160deg,#1c2431,#151a24);
   padding:1.5rem;
   z-index:100;
 }
@@ -111,6 +139,15 @@ button{font-family:inherit;}
   display:flex;
   flex-direction:column;
   gap:.4rem;
+  position:relative;
+  overflow:hidden;
+}
+.login-card::before{
+  content:"";
+  position:absolute;
+  top:0;left:0;right:0;
+  height:5px;
+  background:linear-gradient(90deg,#2a78d6,#eb6834,#1baf7a,#eda100,#e87ba4,#4a3aa7);
 }
 .login-card h1{font-size:1.4rem;letter-spacing:.02em;}
 .login-sub{color:var(--text-dim);font-size:.875rem;margin-bottom:1.25rem;}
@@ -231,9 +268,24 @@ button{font-family:inherit;}
   font-size:.92rem;
   cursor:pointer;
 }
-.nav-item .icon{opacity:.85;}
+.nav-item .icon{opacity:1;color:var(--item-color, currentColor);}
 .nav-item:hover{background:rgba(255,255,255,.06);color:#fff;}
-.nav-item.is-active{background:var(--accent);color:#fff;}
+.nav-item.is-active{background:var(--item-color, var(--accent));color:#fff;}
+.nav-item.is-active .icon{color:#fff;}
+
+/* la barra lateral es siempre oscura (no cambia con el tema claro/oscuro de
+   la app), así que cada sección usa directamente su tono "modo oscuro" del
+   set categórico validado, en vez de la variable --series-N que sí cambia
+   con el tema. */
+.nav-item[data-view="clientes"]{--item-color:#3987e5;}
+.nav-item[data-view="reservas"]{--item-color:#199e70;}
+.nav-item[data-view="ordenes"]{--item-color:#9085e9;}
+.nav-item[data-view="inventario"]{--item-color:#c98500;}
+.nav-item[data-view="tareas"]{--item-color:#e66767;}
+.nav-item[data-view="facturas"]{--item-color:#008300;}
+.nav-item[data-view="estimados"]{--item-color:#d55181;}
+.nav-item[data-view="finanzas"]{--item-color:#3987e5;}
+.nav-item[data-view="export"]{--item-color:#199e70;}
 
 .sidebar-footer{border-top:1px solid rgba(255,255,255,.1);padding-top:1rem;display:flex;flex-direction:column;gap:.15rem;}
 .link-btn{
@@ -512,7 +564,12 @@ button{font-family:inherit;}
 .empty-state{padding:2.5rem;text-align:center;color:var(--text-dim);font-size:.9rem;}
 
 .empty-state-rich{display:flex;flex-direction:column;align-items:center;gap:.85rem;padding:3rem 1.5rem;text-align:center;}
-.empty-state-icon{width:2.4rem;height:2.4rem;color:var(--text-faint);}
+.empty-state-icon-wrap{
+  width:3.4rem;height:3.4rem;border-radius:50%;
+  background:var(--accent-soft);
+  display:flex;align-items:center;justify-content:center;
+}
+.empty-state-icon{width:1.7rem;height:1.7rem;color:var(--accent);}
 .empty-state-rich p{color:var(--text-dim);font-size:.9rem;max-width:24rem;margin:0;}
 
 .skeleton-bar{
@@ -669,6 +726,7 @@ button{font-family:inherit;}
 .kpi-card{
   background:var(--surface);
   border:1px solid var(--border);
+  border-left:3px solid var(--kpi-color, var(--border));
   border-radius:var(--radius);
   box-shadow:var(--shadow-sm);
   padding:1.1rem 1.2rem;
@@ -677,10 +735,15 @@ button{font-family:inherit;}
   gap:.25rem;
 }
 .kpi-card.is-clickable{cursor:pointer;transition:transform .12s ease, box-shadow .12s ease;}
-.kpi-card.is-clickable:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--accent);}
-.kpi-card.is-clickable:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+.kpi-card.is-clickable:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--border);border-left-color:var(--kpi-color, var(--accent));}
+.kpi-card.is-clickable:focus-visible{outline:2px solid var(--kpi-color, var(--accent));outline-offset:2px;}
 .kpi-label{font-size:.78rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;}
 .kpi-value{font-size:1.6rem;font-variant-numeric:tabular-nums;}
+#kpi-card-ingresos{--kpi-color:var(--series-1);}
+#kpi-card-facturas-pendientes{--kpi-color:var(--series-6);}
+#kpi-card-ordenes-activas{--kpi-color:var(--series-7);}
+#kpi-card-tareas-vencidas{--kpi-color:var(--series-8);}
+#kpi-card-stock-bajo{--kpi-color:var(--series-4);}
 .kpi-sub{font-size:.8rem;color:var(--text-faint);font-variant-numeric:tabular-nums;}
 
 .etapa-counts{display:flex;flex-wrap:wrap;gap:.6rem;}
