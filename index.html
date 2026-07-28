@@ -83,6 +83,9 @@
   <symbol id="icon-printer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
   </symbol>
+  <symbol id="icon-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+  </symbol>
   <symbol id="icon-more" viewBox="0 0 24 24" fill="currentColor" stroke="none">
     <circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>
   </symbol>
@@ -133,6 +136,7 @@
       <button class="nav-item" data-view="tareas"><svg class="icon" aria-hidden="true"><use href="#icon-check-square"></use></svg>Tareas</button>
       <button class="nav-item" data-view="facturas"><svg class="icon" aria-hidden="true"><use href="#icon-file-text"></use></svg>Facturas</button>
       <button class="nav-item" data-view="finanzas"><svg class="icon" aria-hidden="true"><use href="#icon-dollar"></use></svg>Finanzas</button>
+      <button class="nav-item" data-view="export"><svg class="icon" aria-hidden="true"><use href="#icon-download"></use></svg>Export</button>
       <button class="nav-item" data-view="configuracion"><svg class="icon" aria-hidden="true"><use href="#icon-settings"></use></svg>Configuración</button>
     </nav>
     <div class="sidebar-footer">
@@ -323,6 +327,41 @@
           <tbody id="gastos-tbody"></tbody>
         </table>
         <p id="gastos-empty" class="empty-state" hidden>Todavía no hay gastos registrados.</p>
+      </div>
+    </section>
+
+    <section id="view-export" class="view" hidden>
+      <header class="view-header">
+        <div>
+          <h1>Export</h1>
+          <p class="view-sub">Descarga tus datos en CSV (se abren en Excel/Google Sheets)</p>
+        </div>
+      </header>
+      <div class="export-grid">
+        <div class="export-card">
+          <svg class="icon" aria-hidden="true"><use href="#icon-user"></use></svg>
+          <h2>Clientes</h2>
+          <p>Nombre, apellido, teléfono, email, dirección.</p>
+          <button class="btn-primary" type="button" data-export="clientes">Descargar CSV</button>
+        </div>
+        <div class="export-card">
+          <svg class="icon" aria-hidden="true"><use href="#icon-car"></use></svg>
+          <h2>Vehículos</h2>
+          <p>Marca, modelo, año, placa, VIN, kilometraje.</p>
+          <button class="btn-primary" type="button" data-export="vehiculos">Descargar CSV</button>
+        </div>
+        <div class="export-card">
+          <svg class="icon" aria-hidden="true"><use href="#icon-file-text"></use></svg>
+          <h2>Facturas</h2>
+          <p>Número, fecha, estado, subtotal, impuesto, total.</p>
+          <button class="btn-primary" type="button" data-export="facturas">Descargar CSV</button>
+        </div>
+        <div class="export-card">
+          <svg class="icon" aria-hidden="true"><use href="#icon-wrench"></use></svg>
+          <h2>Órdenes de servicio</h2>
+          <p>Etapa, vehículo, diagnóstico, fechas.</p>
+          <button class="btn-primary" type="button" data-export="ordenes">Descargar CSV</button>
+        </div>
       </div>
     </section>
 
