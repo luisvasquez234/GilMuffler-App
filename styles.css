@@ -197,6 +197,7 @@ button{font-family:inherit;}
   border-bottom:1px solid var(--border);
 }
 .offline-banner .icon{width:1rem;height:1rem;flex:none;}
+.offline-banner[hidden]{display:none;}
 body.tiene-banner-offline .app{padding-top:2.7rem;}
 
 .sidebar{
