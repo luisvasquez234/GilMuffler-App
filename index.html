@@ -112,9 +112,10 @@
   <form id="login-form" class="login-card">
     <h1>Gil Muffler</h1>
     <p class="login-sub">Panel interno — acceso de empleados</p>
+    <input type="email" id="login-email" placeholder="Email" autocomplete="username" required />
     <input type="password" id="login-password" placeholder="Contraseña" autocomplete="current-password" required />
     <button type="submit">Entrar</button>
-    <p id="login-error" class="login-error" hidden>Contraseña incorrecta.</p>
+    <p id="login-error" class="login-error" hidden>Email o contraseña incorrectos.</p>
   </form>
 </div>
 
@@ -144,6 +145,7 @@
       <button class="nav-item" data-view="finanzas"><svg class="icon" aria-hidden="true"><use href="#icon-dollar"></use></svg>Finanzas</button>
       <button class="nav-item" data-view="export"><svg class="icon" aria-hidden="true"><use href="#icon-download"></use></svg>Export</button>
       <button class="nav-item" data-view="configuracion"><svg class="icon" aria-hidden="true"><use href="#icon-settings"></use></svg>Configuración</button>
+      <button class="nav-item" data-view="cuenta"><svg class="icon" aria-hidden="true"><use href="#icon-user"></use></svg>My Account</button>
     </nav>
     <div class="sidebar-footer">
       <button id="theme-toggle" class="link-btn" type="button">
@@ -471,6 +473,26 @@
       </div>
     </section>
 
+    <section id="view-cuenta" class="view" hidden>
+      <header class="view-header">
+        <div>
+          <h1>My Account</h1>
+          <p class="view-sub">Tu sesión y los empleados con acceso al panel</p>
+        </div>
+        <button class="btn-primary" id="btn-nuevo-empleado" type="button">+ Agregar empleado</button>
+      </header>
+      <div class="export-card" style="max-width:22rem;margin-bottom:1.5rem;">
+        <h2>Sesión actual</h2>
+        <p id="cuenta-email-actual">—</p>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Nombre</th><th>Email</th><th>Estado</th></tr></thead>
+          <tbody id="empleados-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
     <section id="view-ordenes" class="view" hidden>
       <header class="view-header">
         <div>
@@ -555,6 +577,26 @@
         <span class="spacer"></span>
         <button type="button" class="btn-ghost" data-close-modal="modal-cliente">Cancelar</button>
         <button type="submit" class="btn-primary">Guardar</button>
+      </footer>
+    </form>
+  </div>
+</div>
+
+<div id="modal-empleado" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2>Agregar empleado</h2>
+      <button class="icon-btn" data-close-modal="modal-empleado" type="button">&times;</button>
+    </header>
+    <form id="form-empleado" class="modal-body">
+      <div class="field"><label>Nombre *</label><input type="text" id="empleado-nombre" required /></div>
+      <div class="field"><label>Email *</label><input type="email" id="empleado-email" required autocomplete="off" /></div>
+      <div class="field"><label>Contraseña *</label><input type="password" id="empleado-password" required minlength="6" autocomplete="new-password" /></div>
+      <p class="orden-nota">El empleado va a usar este email y contraseña para entrar al panel.</p>
+      <footer class="modal-footer">
+        <span class="spacer"></span>
+        <button type="button" class="btn-ghost" data-close-modal="modal-empleado">Cancelar</button>
+        <button type="submit" class="btn-primary">Crear acceso</button>
       </footer>
     </form>
   </div>
