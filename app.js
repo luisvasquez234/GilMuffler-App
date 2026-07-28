@@ -75,6 +75,26 @@
 
   const CACHE_OFFLINE_KEY = "gilmuffler_cache_offline";
 
+  // navigator.onLine no es confiable (sobre todo en PWA de iPhone: puede decir
+  // "sin conexión" aunque sí haya WiFi), así que en vez de confiarle nos fijamos
+  // si de verdad se puede llegar a Supabase.
+  let conexionReal = true;
+
+  async function verificarConexionReal() {
+    if (!CONFIG.SUPABASE_URL) return conexionReal;
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      await fetch(CONFIG.SUPABASE_URL + "/rest/v1/", { method: "HEAD", mode: "no-cors", cache: "no-store", signal: controller.signal });
+      clearTimeout(timeoutId);
+      conexionReal = true;
+    } catch (e) {
+      conexionReal = false;
+    }
+    actualizarBannerOffline();
+    return conexionReal;
+  }
+
   function cargarCacheOffline() {
     try {
       return JSON.parse(localStorage.getItem(CACHE_OFFLINE_KEY) || "{}");
@@ -99,7 +119,7 @@
   }
 
   async function fetchConCache(entidad, ejecutarConsulta, valorPorDefecto, mensajeError) {
-    if (!navigator.onLine) {
+    if (!conexionReal) {
       const cache = cargarCacheEntidad(entidad);
       return cache !== undefined ? cache : valorPorDefecto;
     }
@@ -124,7 +144,7 @@
           if (filterBuilder && typeof filterBuilder.then === "function") {
             const originalThen = filterBuilder.then.bind(filterBuilder);
             filterBuilder.then = function (onFulfilled, onRejected) {
-              if (!navigator.onLine) {
+              if (!conexionReal) {
                 return Promise.resolve({ data: null, error: { message: "Sin conexión a internet." } }).then(onFulfilled, onRejected);
               }
               return originalThen(onFulfilled, onRejected);
@@ -142,7 +162,7 @@
     const banner = document.getElementById("offline-banner");
     const texto = document.getElementById("offline-banner-texto");
     if (!banner || !texto) return;
-    const sinConexion = !navigator.onLine;
+    const sinConexion = !conexionReal;
     banner.hidden = !sinConexion;
     document.body.classList.toggle("tiene-banner-offline", sinConexion);
     if (sinConexion) {
@@ -451,9 +471,10 @@
     sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
     wrapOfflineGuard(sb);
 
-    actualizarBannerOffline();
-    window.addEventListener("online", actualizarBannerOffline);
-    window.addEventListener("offline", actualizarBannerOffline);
+    verificarConexionReal();
+    setInterval(verificarConexionReal, 30000);
+    window.addEventListener("online", verificarConexionReal);
+    window.addEventListener("offline", verificarConexionReal);
 
     sb.from("configuracion_negocio")
       .select("nombre_negocio")
@@ -3996,7 +4017,7 @@
   async function refreshEmpleados() {
     state.empleados = await fetchEmpleados();
     renderEmpleados();
-    if (!navigator.onLine) {
+    if (!conexionReal) {
       const cache = cargarCacheOffline();
       document.getElementById("cuenta-email-actual").textContent = cache.cuentaEmailActual || "—";
       state.empleadoActualId = cache.empleadoActualId || null;
@@ -4076,7 +4097,7 @@
     await refreshConfigNegocio();
     await refreshEmpleados();
     renderDashboard();
-    actualizarBannerOffline();
+    verificarConexionReal();
   }
 
   if ("serviceWorker" in navigator) {
