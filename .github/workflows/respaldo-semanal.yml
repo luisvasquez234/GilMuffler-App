@@ -1,0 +1,23 @@
+name: Respaldo semanal de datos
+
+on:
+  schedule:
+    # Lunes 7am hora de Lawrence, MA (Eastern). No ajusta solo por horario de
+    # verano/invierno — revisar si se nota desfasado.
+    - cron: '0 11 * * 1'
+  workflow_dispatch: {}
+
+jobs:
+  respaldo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Exportar tablas y enviar email
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: node scripts/respaldo-semanal.mjs
