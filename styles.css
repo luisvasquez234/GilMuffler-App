@@ -180,6 +180,25 @@ button{font-family:inherit;}
   min-height:100vh;
 }
 
+.offline-banner{
+  position:fixed;
+  top:0;left:0;right:0;
+  z-index:500;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.5rem;
+  padding:.6rem 1rem;
+  background:var(--warning-soft);
+  color:var(--warning);
+  font-size:.85rem;
+  font-weight:600;
+  text-align:center;
+  border-bottom:1px solid var(--border);
+}
+.offline-banner .icon{width:1rem;height:1rem;flex:none;}
+body.tiene-banner-offline .app{padding-top:2.7rem;}
+
 .sidebar{
   background:
     repeating-linear-gradient(135deg, rgba(255,255,255,.025) 0 2px, transparent 2px 26px),
