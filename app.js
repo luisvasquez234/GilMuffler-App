@@ -9,6 +9,7 @@
     clientes: [],
     facturas: [],
     estimados: [],
+    citas: [],
     piezas: [],
     vehiculos: [],
     ordenes: [],
@@ -420,6 +421,7 @@
     clientes: "btn-nuevo-cliente",
     facturas: "btn-nueva-factura",
     estimados: "btn-nuevo-estimado",
+    reservas: "btn-nueva-reserva",
     ordenes: "btn-nueva-orden",
     inventario: "btn-nueva-pieza",
     tareas: "btn-nueva-tarea",
@@ -580,7 +582,7 @@
   }
 
   function showView(name) {
-    ["setup", "dashboard", "clientes", "ordenes", "inventario", "tareas", "facturas", "estimados", "finanzas", "export", "configuracion"].forEach((v) => {
+    ["setup", "dashboard", "clientes", "reservas", "ordenes", "inventario", "tareas", "facturas", "estimados", "finanzas", "export", "configuracion"].forEach((v) => {
       const el = document.getElementById("view-" + v);
       if (v === name) {
         el.hidden = false;
@@ -2160,6 +2162,183 @@
     await refreshFacturas();
   }
 
+  // ---------------- reservas (bookings) ----------------
+
+  const ESTADO_RESERVA_LABELS = { agendada: "Agendada", confirmada: "Confirmada", completada: "Completada", cancelada: "Cancelada" };
+
+  async function fetchCitas() {
+    const { data, error } = await sb
+      .from("citas")
+      .select("*, clientes(nombre, apellido)")
+      .order("fecha", { ascending: true })
+      .order("hora", { ascending: true });
+    if (error) {
+      showToast("No se pudieron cargar las reservas.", true);
+      return [];
+    }
+    return data;
+  }
+
+  async function refreshCitas() {
+    state.citas = await fetchCitas();
+    renderReservas();
+  }
+
+  function renderReservas() {
+    const container = document.getElementById("reservas-groups");
+    container.innerHTML = "";
+    const hoy = todayISO();
+    const enUnaSemana = new Date();
+    enUnaSemana.setDate(enUnaSemana.getDate() + 7);
+    const limiteSemana = enUnaSemana.toISOString().slice(0, 10);
+
+    const activas = state.citas.filter((c) => c.estado !== "cancelada" && c.estado !== "completada");
+    const grupos = [
+      { title: "Hoy", items: activas.filter((c) => c.fecha === hoy) },
+      { title: "Esta semana", items: activas.filter((c) => c.fecha > hoy && c.fecha <= limiteSemana) },
+      { title: "Más adelante", items: activas.filter((c) => c.fecha > limiteSemana) },
+      { title: "Atrasadas", items: activas.filter((c) => c.fecha < hoy) },
+      { title: "Completadas / canceladas", items: state.citas.filter((c) => c.estado === "cancelada" || c.estado === "completada") },
+    ];
+
+    grupos.forEach((grupo) => {
+      if (!grupo.items.length) return;
+      const section = document.createElement("div");
+      section.innerHTML =
+        '<p class="tarea-group-title">' +
+        grupo.title +
+        " (" +
+        grupo.items.length +
+        ")</p>" +
+        grupo.items
+          .map((c) => {
+            const clienteNombre = c.clientes ? [c.clientes.nombre, c.clientes.apellido].filter(Boolean).join(" ") : "";
+            const horaTxt = c.hora ? c.hora.slice(0, 5) : "";
+            return (
+              '<div class="tarea-row" data-cita-id="' +
+              c.id +
+              '">' +
+              '<div class="tarea-row-body">' +
+              '<div class="tarea-row-title">' +
+              escapeHtml(c.servicio || "Cita") +
+              (clienteNombre ? " — " + escapeHtml(clienteNombre) : "") +
+              "</div>" +
+              '<div class="tarea-row-meta">' +
+              escapeHtml(formatDate(c.fecha)) +
+              (horaTxt ? " · " + horaTxt : "") +
+              " · " +
+              ESTADO_RESERVA_LABELS[c.estado] +
+              "</div>" +
+              "</div>" +
+              "</div>"
+            );
+          })
+          .join("");
+      container.appendChild(section);
+    });
+
+    if (!state.citas.length) {
+      container.innerHTML = emptyStateHtml("calendar", "Todavía no hay reservas agendadas.", "+ Crear la primera reserva", "empty-cta-reserva");
+      document.getElementById("empty-cta-reserva").addEventListener("click", () => openReservaModal(null));
+    }
+
+    container.querySelectorAll(".tarea-row").forEach((row) => {
+      row.addEventListener("click", () => {
+        const cita = state.citas.find((c) => c.id === row.dataset.citaId);
+        openReservaModal(cita);
+      });
+    });
+  }
+
+  function populateReservaVehiculoSelect(clienteId, selectedVehiculoId) {
+    const select = document.getElementById("reserva-vehiculo");
+    select.innerHTML = '<option value="">Sin vehículo</option>';
+    state.vehiculos
+      .filter((v) => v.cliente_id === clienteId)
+      .forEach((v) => {
+        const opt = document.createElement("option");
+        opt.value = v.id;
+        opt.textContent = vehiculoLabel(v) + (v.placa ? " — " + v.placa : "");
+        select.appendChild(opt);
+      });
+    if (selectedVehiculoId && select.querySelector('option[value="' + selectedVehiculoId + '"]')) {
+      select.value = selectedVehiculoId;
+    }
+  }
+
+  function openReservaModal(cita) {
+    document.getElementById("modal-reserva-title").textContent = cita ? "Editar reserva" : "Nueva reserva";
+    document.getElementById("reserva-id").value = cita ? cita.id : "";
+    populateClientesDatalist();
+    const clienteExistente = cita ? state.clientes.find((c) => c.id === cita.cliente_id) : null;
+    document.getElementById("reserva-cliente").value = cita
+      ? cita.clientes
+        ? [cita.clientes.nombre, cita.clientes.apellido].filter(Boolean).join(" ")
+        : clienteExistente
+        ? [clienteExistente.nombre, clienteExistente.apellido].filter(Boolean).join(" ")
+        : ""
+      : "";
+    populateReservaVehiculoSelect(cita ? cita.cliente_id : null, cita ? cita.vehiculo_id : null);
+    document.getElementById("reserva-fecha").value = cita ? cita.fecha : todayISO();
+    document.getElementById("reserva-hora").value = cita ? cita.hora || "" : "";
+    document.getElementById("reserva-servicio").value = cita ? cita.servicio || "" : "";
+    document.getElementById("reserva-estado").value = cita ? cita.estado : "agendada";
+    document.getElementById("reserva-notas").value = cita ? cita.notas || "" : "";
+    document.getElementById("btn-eliminar-reserva").hidden = !cita;
+    openModal("modal-reserva");
+  }
+
+  async function saveReserva(e) {
+    e.preventDefault();
+    const id = document.getElementById("reserva-id").value;
+    const clienteNombre = document.getElementById("reserva-cliente").value.trim();
+    const clienteId = clienteNombre ? findClienteByName(clienteNombre)?.id || null : null;
+    if (clienteNombre && !clienteId) {
+      showToast("No se encontró ese cliente.", true);
+      return;
+    }
+
+    const payload = {
+      cliente_id: clienteId,
+      vehiculo_id: document.getElementById("reserva-vehiculo").value || null,
+      fecha: document.getElementById("reserva-fecha").value,
+      hora: document.getElementById("reserva-hora").value || null,
+      servicio: document.getElementById("reserva-servicio").value.trim(),
+      estado: document.getElementById("reserva-estado").value,
+      notas: document.getElementById("reserva-notas").value.trim(),
+    };
+
+    let error;
+    if (id) {
+      ({ error } = await sb.from("citas").update(payload).eq("id", id));
+    } else {
+      ({ error } = await sb.from("citas").insert(payload));
+    }
+
+    if (error) {
+      showToast("No se pudo guardar la reserva.", true);
+      return;
+    }
+
+    closeModal("modal-reserva");
+    showToast("Reserva guardada.");
+    await refreshCitas();
+  }
+
+  async function deleteReserva() {
+    const id = document.getElementById("reserva-id").value;
+    if (!id) return;
+    if (!(await confirmDialog("¿Eliminar esta reserva? Esta acción no se puede deshacer.", { title: "Eliminar reserva" }))) return;
+    const { error } = await sb.from("citas").delete().eq("id", id);
+    if (error) {
+      showToast("No se pudo eliminar la reserva.", true);
+      return;
+    }
+    closeModal("modal-reserva");
+    showToast("Reserva eliminada.");
+    await refreshCitas();
+  }
+
   // ---------------- render: inventario (piezas) ----------------
 
   function renderPiezas(list) {
@@ -3309,6 +3488,14 @@
     document.getElementById("estimados-search").addEventListener("input", () => renderEstimados(filterEstimados()));
     document.getElementById("estimados-filter-estado").addEventListener("change", () => renderEstimados(filterEstimados()));
 
+    document.getElementById("btn-nueva-reserva").addEventListener("click", () => openReservaModal(null));
+    document.getElementById("form-reserva").addEventListener("submit", saveReserva);
+    document.getElementById("btn-eliminar-reserva").addEventListener("click", deleteReserva);
+    document.getElementById("reserva-cliente").addEventListener("change", (e) => {
+      const cliente = findClienteByName(e.target.value);
+      populateReservaVehiculoSelect(cliente ? cliente.id : null, null);
+    });
+
     document.querySelectorAll("[data-export]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const fecha = todayISO();
@@ -3400,6 +3587,7 @@
     await refreshTareas();
     await refreshFacturas();
     await refreshEstimados();
+    await refreshCitas();
     await refreshGastos();
     await refreshConfigNegocio();
     renderDashboard();
