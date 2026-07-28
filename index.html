@@ -240,6 +240,10 @@
       </header>
       <div class="toolbar">
         <input type="search" id="clientes-search" placeholder="Buscar por nombre, teléfono o placa..." />
+        <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:var(--text-dim);white-space:nowrap;">
+          <input type="checkbox" id="clientes-filter-inactivos" />
+          Solo inactivos (90+ días sin factura)
+        </label>
       </div>
       <div class="table-wrap">
         <table class="data-table">
@@ -248,6 +252,7 @@
             <th data-sort-key="telefono" class="is-sortable">Teléfono</th>
             <th data-sort-key="vehiculo" class="is-sortable">Vehículo</th>
             <th data-sort-key="vehiculo_placa" class="is-sortable">Placa</th>
+            <th>Última factura</th>
             <th></th>
           </tr></thead>
           <tbody id="clientes-tbody"></tbody>
@@ -710,6 +715,7 @@
       <input type="hidden" id="factura-id" />
       <input type="hidden" id="factura-orden-id" />
       <p id="factura-orden-nota" class="orden-nota" hidden></p>
+      <p id="factura-creado-por-nota" class="orden-nota" hidden></p>
       <div class="field-row">
         <div class="field">
           <label>Cliente *</label>
@@ -840,6 +846,7 @@
     </header>
     <form id="form-orden" class="modal-body">
       <input type="hidden" id="orden-id" />
+      <p id="orden-creado-por-nota" class="orden-nota" hidden></p>
       <div class="field-row">
         <div class="field">
           <label>Cliente *</label>
