@@ -20,4 +20,6 @@ jobs:
       - name: Exportar tablas y enviar email
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          GILMUFFLER_CRON_EMAIL: ${{ secrets.GILMUFFLER_CRON_EMAIL }}
+          GILMUFFLER_CRON_PASSWORD: ${{ secrets.GILMUFFLER_CRON_PASSWORD }}
         run: node scripts/respaldo-semanal.mjs
