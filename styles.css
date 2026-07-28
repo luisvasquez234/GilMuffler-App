@@ -441,6 +441,56 @@ button{font-family:inherit;}
 .btn-danger{background:var(--danger-soft);color:var(--danger);}
 .btn-danger:hover{filter:brightness(0.94);}
 
+.quick-access-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(9.5rem,1fr));
+  gap:.85rem;
+  margin-bottom:1.75rem;
+}
+.quick-tile{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:.6rem;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow-sm);
+  padding:1rem;
+  cursor:pointer;
+  transition:transform .12s ease, box-shadow .12s ease;
+  text-align:left;
+  font-family:inherit;
+}
+.quick-tile:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.quick-tile:focus-visible{outline:2px solid var(--item-color, var(--accent));outline-offset:2px;}
+.quick-tile-icon{
+  width:2.2rem;height:2.2rem;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--item-color, var(--accent));
+  color:#fff;
+}
+.quick-tile-icon .icon{width:1.15rem;height:1.15rem;}
+.quick-tile-label{font-size:.85rem;font-weight:600;color:var(--text);}
+.quick-tile[data-view="clientes"]{--item-color:var(--series-1);}
+.quick-tile[data-view="reservas"]{--item-color:var(--series-3);}
+.quick-tile[data-view="ordenes"]{--item-color:var(--series-7);}
+.quick-tile[data-view="inventario"]{--item-color:var(--series-4);}
+.quick-tile[data-view="tareas"]{--item-color:var(--series-8);}
+.quick-tile[data-view="facturas"]{--item-color:var(--series-6);}
+.quick-tile[data-view="estimados"]{--item-color:var(--series-5);}
+.quick-tile[data-view="finanzas"]{--item-color:var(--series-1);}
+.quick-tile[data-view="export"]{--item-color:var(--series-3);}
+
+.config-tabs{display:flex;gap:.3rem;border-bottom:1px solid var(--border);margin-bottom:1.5rem;}
+.config-tab{
+  background:none;border:none;border-bottom:2px solid transparent;
+  padding:.7rem 1rem;font-size:.9rem;font-weight:600;color:var(--text-dim);cursor:pointer;
+}
+.config-tab:hover{color:var(--text);}
+.config-tab.is-active{color:var(--accent);border-bottom-color:var(--accent);}
+.config-tab-panel[hidden]{display:none;}
+
 .export-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
