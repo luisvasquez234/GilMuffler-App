@@ -3483,11 +3483,11 @@
   const QUICK_ACCESS = [
     { view: "clientes", icon: "user", label: "Clientes" },
     { view: "reservas", icon: "calendar", label: "Bookings" },
-    { view: "ordenes", icon: "wrench", label: "Órdenes de servicio" },
-    { view: "inventario", icon: "box", label: "Inventario" },
-    { view: "tareas", icon: "check-square", label: "Tareas" },
-    { view: "facturas", icon: "file-text", label: "Facturas" },
-    { view: "estimados", icon: "clipboard", label: "Estimates" },
+    { view: "ordenes", icon: "wrench", label: "Órdenes de servicio", badge: "neutral" },
+    { view: "inventario", icon: "box", label: "Inventario", badge: "danger" },
+    { view: "tareas", icon: "check-square", label: "Tareas", badge: "danger" },
+    { view: "facturas", icon: "file-text", label: "Facturas", badge: "warning" },
+    { view: "estimados", icon: "clipboard", label: "Estimates", badge: "neutral" },
     { view: "finanzas", icon: "dollar", label: "Finanzas" },
     { view: "export", icon: "download", label: "Export" },
     { view: "configuracion", icon: "settings", label: "Configuración" },
@@ -3503,10 +3503,32 @@
         q.icon +
         '"></use></svg></span><span class="quick-tile-label">' +
         q.label +
-        "</span></button>"
+        "</span>" +
+        (q.badge ? '<span class="quick-tile-badge" hidden data-badge="' + q.view + '"></span>' : "") +
+        "</button>"
     ).join("");
     container.querySelectorAll(".quick-tile").forEach((tile) => {
       tile.addEventListener("click", () => goToView(tile.dataset.view));
+    });
+  }
+
+  function updateQuickAccessBadges() {
+    const hoy = todayISO();
+    const counts = {
+      ordenes: state.ordenes.filter((o) => o.etapa !== "facturado" && o.etapa !== "cancelado").length,
+      inventario: state.piezas.filter((p) => Number(p.stock) <= Number(p.stock_minimo)).length,
+      tareas: state.tareas.filter((t) => !t.completada && t.fecha_vencimiento && t.fecha_vencimiento < hoy).length,
+      facturas: state.facturas.filter((f) => f.estado === "pendiente").length,
+      estimados: state.estimados.filter((e) => e.estado === "pendiente").length,
+    };
+    QUICK_ACCESS.forEach((q) => {
+      if (!q.badge) return;
+      const el = document.querySelector('[data-badge="' + q.view + '"]');
+      if (!el) return;
+      const n = counts[q.view] || 0;
+      el.className = "quick-tile-badge is-" + q.badge;
+      el.textContent = String(n);
+      el.hidden = n === 0;
     });
   }
 
@@ -3549,6 +3571,7 @@
     document.getElementById("pago-panel-pagadas-count").textContent = String(pagadas.length);
 
     renderDashboardChart();
+    updateQuickAccessBadges();
   }
 
   function renderDashboardChart() {
