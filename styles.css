@@ -1006,7 +1006,7 @@ button{font-family:inherit;}
   color:#1f2430;
   border-radius:var(--radius);
   box-shadow:var(--shadow-md);
-  border-top:4px solid var(--accent);
+  border-top:4px solid var(--preview-accent, var(--accent));
   padding:1.25rem 1.4rem;
 }
 .config-preview-header{
@@ -1018,7 +1018,7 @@ button{font-family:inherit;}
   padding-bottom:.7rem;
   margin-bottom:.9rem;
 }
-.config-preview-header strong{font-size:1.05rem;color:var(--accent);}
+.config-preview-header strong{font-size:1.05rem;color:var(--preview-accent, var(--accent));}
 .config-preview-header span{font-size:.68rem;color:#68707e;text-align:right;line-height:1.3;}
 .config-preview-brand{display:flex;align-items:center;gap:.6rem;}
 .config-preview-logo{width:2.4rem;height:2.4rem;border-radius:6px;object-fit:cover;object-position:68% 55%;flex:none;}
