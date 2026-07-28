@@ -265,9 +265,9 @@
   function emptyStateHtml(icon_, mensaje, ctaLabel, ctaId) {
     return (
       '<div class="empty-state-rich">' +
-      '<svg class="icon empty-state-icon" aria-hidden="true"><use href="#icon-' +
+      '<span class="empty-state-icon-wrap"><svg class="icon empty-state-icon" aria-hidden="true"><use href="#icon-' +
       icon_ +
-      '"></use></svg>' +
+      '"></use></svg></span>' +
       "<p>" +
       mensaje +
       "</p>" +
@@ -1163,8 +1163,8 @@
     let hash = 0;
     const s = name || "";
     for (let i = 0; i < s.length; i++) hash = s.charCodeAt(i) + ((hash << 5) - hash);
-    const hue = Math.abs(hash) % 360;
-    return "hsl(" + hue + ", 50%, 42%)";
+    const slot = (Math.abs(hash) % 8) + 1;
+    return "var(--series-" + slot + ")";
   }
 
   function avatarHtml(name, extraClass) {
