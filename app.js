@@ -434,7 +434,6 @@
     facturas: "btn-nueva-factura",
     estimados: "btn-nuevo-estimado",
     reservas: "btn-nueva-reserva",
-    cuenta: "btn-nuevo-empleado",
     ordenes: "btn-nueva-orden",
     inventario: "btn-nueva-pieza",
     tareas: "btn-nueva-tarea",
@@ -638,7 +637,7 @@
   }
 
   function showView(name) {
-    ["setup", "dashboard", "clientes", "reservas", "ordenes", "inventario", "tareas", "facturas", "estimados", "finanzas", "export", "configuracion", "cuenta"].forEach((v) => {
+    ["setup", "dashboard", "clientes", "reservas", "ordenes", "inventario", "tareas", "facturas", "estimados", "finanzas", "export", "configuracion"].forEach((v) => {
       const el = document.getElementById("view-" + v);
       if (v === name) {
         el.hidden = false;
@@ -3417,6 +3416,9 @@
     document.getElementById("config-texto-adicional").value = c.texto_adicional || "";
     document.getElementById("config-tasa-impuesto-default").value = c.tasa_impuesto_default || 0;
     document.getElementById("config-formato-fecha").value = c.formato_fecha || "MM/DD/YYYY";
+    const nombreNegocio = c.nombre_negocio || "Gil's Muffler Inc";
+    document.getElementById("dashboard-titulo").textContent = nombreNegocio;
+    document.getElementById("nav-dashboard-label").textContent = nombreNegocio;
     updateConfigPreview();
   }
 
@@ -3477,6 +3479,36 @@
   }
 
   // ---------------- dashboard ----------------
+
+  const QUICK_ACCESS = [
+    { view: "clientes", icon: "user", label: "Clientes" },
+    { view: "reservas", icon: "calendar", label: "Bookings" },
+    { view: "ordenes", icon: "wrench", label: "Órdenes de servicio" },
+    { view: "inventario", icon: "box", label: "Inventario" },
+    { view: "tareas", icon: "check-square", label: "Tareas" },
+    { view: "facturas", icon: "file-text", label: "Facturas" },
+    { view: "estimados", icon: "clipboard", label: "Estimates" },
+    { view: "finanzas", icon: "dollar", label: "Finanzas" },
+    { view: "export", icon: "download", label: "Export" },
+    { view: "configuracion", icon: "settings", label: "Configuración" },
+  ];
+
+  function renderQuickAccess() {
+    const container = document.getElementById("dashboard-quick-access");
+    container.innerHTML = QUICK_ACCESS.map(
+      (q) =>
+        '<button type="button" class="quick-tile" data-view="' +
+        q.view +
+        '"><span class="quick-tile-icon"><svg class="icon" aria-hidden="true"><use href="#icon-' +
+        q.icon +
+        '"></use></svg></span><span class="quick-tile-label">' +
+        q.label +
+        "</span></button>"
+    ).join("");
+    container.querySelectorAll(".quick-tile").forEach((tile) => {
+      tile.addEventListener("click", () => goToView(tile.dataset.view));
+    });
+  }
 
   function renderDashboard() {
     const hoy = todayISO();
@@ -3613,6 +3645,14 @@
   // ---------------- wiring ----------------
 
   function initEvents() {
+    document.querySelectorAll(".config-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".config-tab").forEach((t) => t.classList.toggle("is-active", t === tab));
+        document.getElementById("config-tab-negocio").hidden = tab.dataset.configTab !== "negocio";
+        document.getElementById("config-tab-cuenta").hidden = tab.dataset.configTab !== "cuenta";
+      });
+    });
+
     document.getElementById("btn-shortcuts-help").addEventListener("click", () => openModal("modal-shortcuts"));
     document.getElementById("global-search-input").addEventListener("input", (e) => renderGlobalSearchResults(e.target.value));
     document.getElementById("btn-open-search").addEventListener("click", openGlobalSearch);
@@ -3816,6 +3856,7 @@
   async function boot() {
     initEvents();
     initKeyboardShortcuts();
+    renderQuickAccess();
     await refreshClientes();
     await refreshPiezas();
     await refreshVehiculos();
