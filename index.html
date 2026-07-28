@@ -137,7 +137,7 @@
       <span class="search-trigger-kbd">Ctrl K</span>
     </button>
     <nav class="nav">
-      <button class="nav-item is-active" data-view="dashboard"><svg class="icon" aria-hidden="true"><use href="#icon-home"></use></svg>Dashboard</button>
+      <button class="nav-item is-active" data-view="dashboard"><svg class="icon" aria-hidden="true"><use href="#icon-home"></use></svg><span id="nav-dashboard-label">Gil's Muffler Inc</span></button>
       <button class="nav-item" data-view="clientes"><svg class="icon" aria-hidden="true"><use href="#icon-user"></use></svg>Clientes</button>
       <button class="nav-item" data-view="reservas"><svg class="icon" aria-hidden="true"><use href="#icon-calendar"></use></svg>Bookings</button>
       <button class="nav-item" data-view="ordenes"><svg class="icon" aria-hidden="true"><use href="#icon-wrench"></use></svg>Órdenes de servicio</button>
@@ -148,7 +148,6 @@
       <button class="nav-item" data-view="finanzas"><svg class="icon" aria-hidden="true"><use href="#icon-dollar"></use></svg>Finanzas</button>
       <button class="nav-item" data-view="export"><svg class="icon" aria-hidden="true"><use href="#icon-download"></use></svg>Export</button>
       <button class="nav-item" data-view="configuracion"><svg class="icon" aria-hidden="true"><use href="#icon-settings"></use></svg>Configuración</button>
-      <button class="nav-item" data-view="cuenta"><svg class="icon" aria-hidden="true"><use href="#icon-user"></use></svg>My Account</button>
     </nav>
     <div class="sidebar-footer">
       <button id="theme-toggle" class="link-btn" type="button">
@@ -178,10 +177,11 @@
     <section id="view-dashboard" class="view">
       <header class="view-header">
         <div>
-          <h1>Dashboard</h1>
+          <h1 id="dashboard-titulo">Gil's Muffler Inc</h1>
           <p class="view-sub">Resumen general del taller</p>
         </div>
       </header>
+      <div class="quick-access-grid" id="dashboard-quick-access"></div>
       <div class="kpi-grid">
         <div class="kpi-card is-clickable" id="kpi-card-ingresos" data-goto="finanzas" role="button" tabindex="0">
           <span class="kpi-label">Ingresos este mes</span>
@@ -427,6 +427,12 @@
         </div>
       </header>
 
+      <div class="config-tabs">
+        <button type="button" class="config-tab is-active" data-config-tab="negocio">Negocio</button>
+        <button type="button" class="config-tab" data-config-tab="cuenta">My Account</button>
+      </div>
+
+      <div id="config-tab-negocio" class="config-tab-panel">
       <div class="config-layout">
         <div class="table-wrap" style="padding:1.75rem;">
           <form id="form-configuracion" class="modal-body">
@@ -479,25 +485,26 @@
           </div>
         </div>
       </div>
-    </section>
-
-    <section id="view-cuenta" class="view" hidden>
-      <header class="view-header">
-        <div>
-          <h1>My Account</h1>
-          <p class="view-sub">Tu sesión y los empleados con acceso al panel</p>
-        </div>
-        <button class="btn-primary" id="btn-nuevo-empleado" type="button">+ Agregar empleado</button>
-      </header>
-      <div class="export-card" style="max-width:22rem;margin-bottom:1.5rem;">
-        <h2>Sesión actual</h2>
-        <p id="cuenta-email-actual">—</p>
       </div>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>Nombre</th><th>Email</th><th>Estado</th></tr></thead>
-          <tbody id="empleados-tbody"></tbody>
-        </table>
+
+      <div id="config-tab-cuenta" class="config-tab-panel" hidden>
+        <header class="view-header" style="margin-bottom:1.25rem;">
+          <div>
+            <h2 style="font-size:1.1rem;margin:0;">My Account</h2>
+            <p class="view-sub">Tu sesión y los empleados con acceso al panel</p>
+          </div>
+          <button class="btn-primary" id="btn-nuevo-empleado" type="button">+ Agregar empleado</button>
+        </header>
+        <div class="export-card" style="max-width:22rem;margin-bottom:1.5rem;">
+          <h2>Sesión actual</h2>
+          <p id="cuenta-email-actual">—</p>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Nombre</th><th>Email</th><th>Estado</th></tr></thead>
+            <tbody id="empleados-tbody"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
