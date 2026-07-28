@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Presupuesto</title>
+<style>
+  body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:1.5rem;max-width:40rem;margin:0 auto;background:#f6f7f9;}
+  .card{background:#fff;border-radius:12px;padding:1.75rem;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+  .header{border-bottom:3px solid #d5601a;padding-bottom:1rem;margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;flex-wrap:wrap;}
+  .header-brand{display:flex;align-items:center;gap:.8rem;}
+  .header-brand img{height:3rem;width:3rem;object-fit:cover;object-position:68% 55%;border-radius:8px;flex:none;}
+  .header h1{font-size:1.4rem;margin:0;color:#d5601a;}
+  .header .contacto{font-size:.8rem;color:#68707e;text-align:right;}
+  .meta{display:flex;justify-content:space-between;margin-bottom:1.5rem;font-size:.9rem;flex-wrap:wrap;gap:.5rem;}
+  .meta .estado{display:inline-block;padding:.2rem .6rem;border-radius:999px;background:#fdefe3;color:#d5601a;font-weight:600;font-size:.78rem;}
+  table{width:100%;border-collapse:collapse;margin-top:.5rem;}
+  th,td{text-align:left;padding:.5rem .6rem;border-bottom:1px solid #e1e4e9;font-size:.9rem;}
+  th{color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}
+  .totals{margin-top:1rem;text-align:right;font-size:.95rem;}
+  .totals strong{font-size:1.15rem;color:#d5601a;}
+  .notas{margin-top:1.5rem;padding:.9rem 1rem;background:#fafbfc;border-radius:8px;font-size:.85rem;}
+  .notas strong{display:block;margin-bottom:.3rem;color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}
+  .acciones{display:flex;gap:.75rem;margin-top:1.75rem;}
+  .acciones button{flex:1;padding:.8rem 1rem;border-radius:8px;border:none;font-size:1rem;font-weight:600;cursor:pointer;}
+  .btn-aprobar{background:#1a7f5a;color:#fff;}
+  .btn-rechazar{background:#fff;color:#d6293b;border:1px solid #d6293b !important;}
+  .respuesta-msg{text-align:center;margin-top:1.5rem;font-weight:600;padding:.9rem;border-radius:8px;}
+  .respuesta-msg.aprobado{background:#e6f4ee;color:#1a7f5a;}
+  .respuesta-msg.rechazado{background:#fbe7e9;color:#d6293b;}
+  .estado-msg{text-align:center;color:#68707e;padding:3rem 1rem;}
+</style>
+</head>
+<body>
+  <div class="card" id="contenido">
+    <p class="estado-msg">Cargando presupuesto…</p>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    function escapeHtml(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+    function money(n) {
+      return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(n) || 0);
+    }
+    function formatDate(iso, formato) {
+      if (!iso || iso.length < 10) return iso || "";
+      const [anio, mes, dia] = iso.slice(0, 10).split("-");
+      return formato === "DD/MM/YYYY" ? dia + "/" + mes + "/" + anio : mes + "/" + dia + "/" + anio;
+    }
+    const ESTADO_LABELS = { pendiente: "Pendiente", aprobado: "Aprobado", rechazado: "Rechazado", convertido: "Convertido en factura" };
+
+    let sb, estimadoId;
+
+    async function cargar() {
+      const contenido = document.getElementById("contenido");
+      estimadoId = new URLSearchParams(location.search).get("id");
+      if (!estimadoId) {
+        contenido.innerHTML = '<p class="estado-msg">Falta el número de presupuesto en el enlace.</p>';
+        return;
+      }
+
+      sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+
+      const [{ data: estimado, error: errE }, { data: cfg }] = await Promise.all([
+        sb.from("estimados").select("*, clientes(nombre, apellido)").eq("id", estimadoId).maybeSingle(),
+        sb.from("configuracion_negocio").select("*").eq("id", 1).maybeSingle(),
+      ]);
+
+      if (errE || !estimado) {
+        contenido.innerHTML = '<p class="estado-msg">No se encontró este presupuesto.</p>';
+        return;
+      }
+
+      const { data: items } = await sb.from("estimado_items").select("*").eq("estimado_id", estimadoId).order("orden", { ascending: true });
+
+      const c = cfg || {};
+      const nombreNegocio = c.nombre_negocio || "Gil Muffler";
+      const contacto = [c.direccion, c.telefono, c.email].filter(Boolean).join(" · ");
+      const logoSrc = c.logo_url || "logo-muffler.webp";
+      const clienteNombre = estimado.clientes ? [estimado.clientes.nombre, estimado.clientes.apellido].filter(Boolean).join(" ") : "—";
+
+      const filas = (items || [])
+        .map(
+          (it) =>
+            "<tr><td>" + escapeHtml(it.descripcion) + "</td><td>" + it.cantidad + "</td><td>" + money(it.precio_unitario) + "</td><td>" + money(it.subtotal) + "</td></tr>"
+        )
+        .join("");
+
+      const notasHtml = estimado.notas ? "<div class='notas'><strong>Notas</strong><p>" + escapeHtml(estimado.notas).replace(/\n/g, "<br>") + "</p></div>" : "";
+
+      let accionesHtml = "";
+      if (estimado.estado === "pendiente") {
+        accionesHtml =
+          "<div class='acciones'>" +
+          "<button class='btn-rechazar' id='btn-rechazar'>Rechazar</button>" +
+          "<button class='btn-aprobar' id='btn-aprobar'>Aprobar</button>" +
+          "</div>";
+      } else if (estimado.estado === "aprobado" || estimado.estado === "rechazado") {
+        accionesHtml = "<div class='respuesta-msg " + estimado.estado + "'>" + (estimado.estado === "aprobado" ? "Ya aprobaste este presupuesto." : "Rechazaste este presupuesto.") + "</div>";
+      }
+
+      contenido.innerHTML =
+        "<div class='header'><div class='header-brand'><img src='" +
+        logoSrc +
+        "' alt='' /><h1>" +
+        escapeHtml(nombreNegocio) +
+        "</h1></div><div class='contacto'>" +
+        escapeHtml(contacto) +
+        "</div></div>" +
+        "<div class='meta'><div><strong>Presupuesto #" +
+        String(estimado.numero).padStart(4, "0") +
+        "</strong><br>" +
+        escapeHtml(formatDate(estimado.fecha, c.formato_fecha)) +
+        "<br>Cliente: " +
+        escapeHtml(clienteNombre) +
+        "</div><div><span class='estado'>" +
+        escapeHtml(ESTADO_LABELS[estimado.estado] || estimado.estado) +
+        "</span></div></div>" +
+        "<table><thead><tr><th>Descripción</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr></thead><tbody>" +
+        filas +
+        "</tbody></table>" +
+        "<div class='totals'><div>Subtotal: " +
+        money(estimado.subtotal) +
+        "</div><div>Impuesto: " +
+        money(estimado.impuesto) +
+        "</div><div><strong>Total: " +
+        money(estimado.total) +
+        "</strong></div></div>" +
+        notasHtml +
+        accionesHtml;
+
+      const btnAprobar = document.getElementById("btn-aprobar");
+      const btnRechazar = document.getElementById("btn-rechazar");
+      if (btnAprobar) btnAprobar.addEventListener("click", () => responder("aprobado"));
+      if (btnRechazar) btnRechazar.addEventListener("click", () => responder("rechazado"));
+    }
+
+    async function responder(estado) {
+      const { error } = await sb.from("estimados").update({ estado }).eq("id", estimadoId);
+      if (error) {
+        alert("No se pudo enviar tu respuesta, intenta de nuevo.");
+        return;
+      }
+      cargar();
+    }
+
+    cargar();
+  </script>
+</body>
+</html>
