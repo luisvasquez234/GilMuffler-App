@@ -16,12 +16,17 @@ de citas por Hoy/Esta semana/Más adelante, cubre el espíritu del punto 14);
 **login individual por empleado** (punto 20 — My Account, con Supabase Auth
 real y RLS endurecido en las tablas internas del taller; facturas/estimados
 siguen siendo de acceso público a propósito, por los links para clientes);
-**alertas de stock bajo por email** (cron diario); **historial de
-kilometraje** con fecha; **reporte de clientes inactivos** (checkbox en
-Clientes); **búsqueda global** ampliada a Estimates y Bookings; **registrar
-quién creó cada orden/factura**; **PWA instalable**; **página pública de
-estado de orden** (`ver-orden.html`); **checklist de inspección** (frenos,
-luces, llantas, fluidos); **reporte de rotación de inventario**.
+**página pública de estado de orden** (punto 4 — `ver-orden.html`);
+**reporte de clientes inactivos** (punto 5 — filtro "Solo inactivos" en
+Clientes); **historial de kilometraje** (punto 11 — tabla
+`kilometraje_historial`, se guarda cada lectura con fecha); **checklist de
+inspección** (punto 13 — frenos/luces/llantas/fluidos dentro de la orden);
+**búsqueda global** (punto 15 — botón "Buscar..." / Ctrl K en el menú);
+**reporte de rotación de inventario** (punto 17 — botón "Ver rotación de
+inventario"); **alertas de stock bajo por email** (punto 19 — cron diario,
+ver `.github/workflows/`); **registrar qué empleado hizo cada orden/factura**
+(punto 21 — columna `creado_por`, ya se muestra en la app); **instalar como
+PWA** (punto 24 — `manifest.json` + `sw.js`, instalable en celular).
 
 ## Comunicación con clientes
 
@@ -37,9 +42,9 @@ luces, llantas, fluidos); **reporte de rotación de inventario**.
    de factura (ya existe) agrega un botón "Déjanos una reseña". Tamaño: chico.
    Depende de: el link de reseña de Google Business del taller.
 4. ~~**Página pública de estado de orden**~~ — **YA HECHO** (`ver-orden.html`,
-   con los pasos diagnóstico → reparando → listo, sin login).
-5. ~~**Reporte de clientes inactivos**~~ — **YA HECHO** (checkbox "Solo
-   inactivos" en Clientes, con columna de última factura).
+   diagnóstico → reparando → listo, sin login).
+5. ~~**Reporte de clientes inactivos**~~ — **YA HECHO** (filtro "Solo
+   inactivos (90+ días sin factura)" en la vista de Clientes).
 
 ## Facturación y pagos
 
@@ -61,17 +66,17 @@ luces, llantas, fluidos); **reporte de rotación de inventario**.
 ## Vehículos y órdenes de servicio
 
 11. ~~**Historial completo de kilometraje**~~ — **YA HECHO** (tabla
-    `kilometraje_historial`, se ve en la ficha del vehículo).
+    `kilometraje_historial`, cada lectura queda guardada con su fecha).
 12. **Fotos antes/después en la orden** — subir 2-3 fotos como evidencia del
     trabajo hecho, usando Supabase Storage. Tamaño: mediano.
 13. ~~**Checklist de inspección por orden**~~ — **YA HECHO** (frenos, luces,
-    llantas, fluidos, en el modal de la orden).
+    llantas, fluidos dentro de la orden de servicio).
 14. ~~**Vista de calendario semanal**~~ — **YA HECHO** como agenda de
     reservas (Bookings: Hoy / Esta semana / Más adelante). Si más adelante se
     quiere un calendario tipo cuadrícula de verdad, eso sería un proyecto
     aparte más grande.
-15. ~~**Búsqueda global**~~ — **YA HECHO** (ya existía para Clientes/
-    Órdenes/Facturas, se amplió a Estimates y Bookings).
+15. ~~**Búsqueda global**~~ — **YA HECHO** (botón "Buscar..." / Ctrl K en el
+    menú lateral, busca cliente, placa, factura, etc.).
 
 ## Reportes y finanzas
 
@@ -79,12 +84,12 @@ luces, llantas, fluidos); **reporte de rotación de inventario**.
     más margen. Tamaño: mediano (requiere separar costo vs. precio de venta
     de forma consistente).
 17. ~~**Reporte de rotación de inventario**~~ — **YA HECHO** (botón "Ver
-    rotación de inventario" en Inventario, piezas usadas de más a menos).
+    rotación de inventario" en la vista de Inventario).
 18. ~~**Exportar datos a CSV**~~ — **YA HECHO** (sección Export: clientes,
     vehículos, facturas, órdenes). Falta, si se quiere después, un reporte de
     impuestos ya calculado por periodo (no solo el CSV crudo de facturas).
-19. ~~**Alertas de stock bajo por email**~~ — **YA HECHO** (cron diario entre
-    semana, ver `.github/workflows/alerta-stock.yml`).
+19. ~~**Alertas de stock bajo por email**~~ — **YA HECHO** (cron diario por
+    correo, ver `.github/workflows/`).
 
 ## Usuarios y seguridad
 
@@ -93,18 +98,17 @@ luces, llantas, fluidos); **reporte de rotación de inventario**.
     y las tablas internas del taller ya exigen sesión iniciada — antes
     cualquiera con la anon key podía leer/escribir todo).
 21. ~~**Registrar qué empleado hizo cada orden/factura**~~ — **YA HECHO**
-    (columna `creado_por`, se muestra "Creada por: X" en el modal).
-22. **Calculadora de comisiones por empleado** — depende de #20 y #21 (ambos
-    hechos), falta solo la lógica de cálculo (¿% fijo? ¿por tipo de servicio?
-    — decisión de negocio antes de construirla).
+    (columna `creado_por` en órdenes y facturas, se muestra en la app).
+22. **Calculadora de comisiones por empleado** — depende de #20 y #21
+    (ambos ya hechos), falta solo definir la regla de negocio (% o monto fijo
+    por servicio) y construir el cálculo. Tamaño: mediano.
 23. ~~**Respaldo automático de datos**~~ — **YA HECHO** (cron semanal por
     email, ver `.github/workflows/respaldo-semanal.yml`).
 
 ## Técnico / infraestructura
 
-24. ~~**Instalar la app como PWA**~~ — **YA HECHO** (`manifest.json` +
-    service worker; en el celular usa "Agregar a pantalla de inicio" desde
-    el navegador).
+24. ~~**Instalar la app como PWA**~~ — **YA HECHO** (ícono en el celular,
+    `manifest.json` + `sw.js`).
 25. **Modo básico sin internet** — que la app siga funcionando (aunque sea
     para consultar, no guardar) si se cae el WiFi del taller. Tamaño: grande
     (requiere repensar cómo se guardan los datos localmente).
