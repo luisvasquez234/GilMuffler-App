@@ -1001,7 +1001,6 @@ body.tiene-banner-offline .app{padding-top:2.7rem;}
 .kanban-empty{padding:1rem;color:var(--text-faint);font-size:.8rem;}
 
 /* ---------- tareas ---------- */
-.tareas-groups{display:flex;flex-direction:column;gap:1.75rem;}
 .tarea-group-title{font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-dim);margin-bottom:.6rem;}
 .tarea-row{
   display:flex;
