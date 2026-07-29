@@ -166,13 +166,12 @@ PWA** (punto 24 — `manifest.json` + `sw.js`, instalable en celular).
 
 ## Ficha del cliente (historial) — ideas para simplificarla
 
-1. **Pestañas en vez de todo junto** — Vehículos / Historial / Tareas como
-   pestañas (igual que ya se hizo en Configuración) en vez de secciones
-   apiladas una debajo de otra.
+1. ~~**Pestañas en vez de todo junto**~~ — **YA HECHO** (Vehículos /
+   Historial / Tareas como pestañas, igual que en Configuración).
 2. **Resumen arriba de todo** — 3-4 números grandes (total facturado, última
    visita, vehículos, tareas pendientes) antes de la lista larga.
-3. **Buscar dentro del historial** de ese cliente, para cuando ya tiene
-   muchas facturas u órdenes acumuladas.
+3. ~~**Buscar dentro del historial**~~ — **YA HECHO** (cuadro de búsqueda
+   arriba de la pestaña Historial).
 4. **Botón directo de "Llamar" / "WhatsApp"** con el teléfono del cliente,
    sin copiar el número a mano.
 5. **Acceso rápido con QR** — un código que se pueda escanear desde el
