@@ -17,6 +17,8 @@
     tareas: [],
     gastos: [],
     configNegocio: null,
+    mecanicos: [],
+    registroDiarioId: null,
   };
 
   let finanzasAnio = null;
@@ -759,7 +761,7 @@
   }
 
   function showView(name) {
-    ["setup", "dashboard", "clientes", "reservas", "ordenes", "inventario", "tareas", "facturas", "estimados", "finanzas", "export", "configuracion"].forEach((v) => {
+    ["setup", "dashboard", "clientes", "reservas", "ordenes", "inventario", "tareas", "facturas", "estimados", "finanzas", "registro-diario", "export", "configuracion"].forEach((v) => {
       const el = document.getElementById("view-" + v);
       if (v === name) {
         el.hidden = false;
@@ -3577,6 +3579,291 @@
     await refreshGastos();
   }
 
+  // ---------------- mecánicos (registro diario) ----------------
+
+  async function fetchMecanicos() {
+    return fetchConCache("mecanicos", () => sb.from("mecanicos").select("*").order("created_at", { ascending: true }), []);
+  }
+
+  async function refreshMecanicos() {
+    state.mecanicos = await fetchMecanicos();
+    renderMecanicosConfig();
+  }
+
+  function renderMecanicosConfig() {
+    const tbody = document.getElementById("mecanicos-tbody");
+    if (!tbody) return;
+    tbody.innerHTML = state.mecanicos
+      .map(
+        (m) =>
+          "<tr><td>" +
+          escapeHtml(m.nombre) +
+          "</td><td>" +
+          (m.activo ? "Activo" : "Inactivo") +
+          '</td><td style="display:flex;gap:.4rem;">' +
+          '<button type="button" class="row-link" data-toggle-mecanico="' +
+          m.id +
+          '">' +
+          (m.activo ? "Desactivar" : "Activar") +
+          '</button><button type="button" class="row-link" data-eliminar-mecanico="' +
+          m.id +
+          '">Eliminar</button></td></tr>'
+      )
+      .join("");
+
+    tbody.querySelectorAll("[data-toggle-mecanico]").forEach((btn) => {
+      btn.addEventListener("click", () => toggleMecanicoActivo(btn.dataset.toggleMecanico));
+    });
+    tbody.querySelectorAll("[data-eliminar-mecanico]").forEach((btn) => {
+      btn.addEventListener("click", () => eliminarMecanico(btn.dataset.eliminarMecanico));
+    });
+  }
+
+  async function agregarMecanico(e) {
+    e.preventDefault();
+    const input = document.getElementById("nuevo-mecanico-nombre");
+    const nombre = input.value.trim();
+    if (!nombre) return;
+    const { error } = await sb.from("mecanicos").insert({ nombre });
+    if (error) {
+      showToast("No se pudo agregar el mecánico.", true);
+      return;
+    }
+    input.value = "";
+    showToast("Mecánico agregado.");
+    await refreshMecanicos();
+  }
+
+  async function toggleMecanicoActivo(id) {
+    const mecanico = state.mecanicos.find((m) => m.id === id);
+    if (!mecanico) return;
+    const { error } = await sb.from("mecanicos").update({ activo: !mecanico.activo }).eq("id", id);
+    if (error) {
+      showToast("No se pudo actualizar el mecánico.", true);
+      return;
+    }
+    await refreshMecanicos();
+  }
+
+  async function eliminarMecanico(id) {
+    if (!(await confirmDialog("¿Eliminar este mecánico? Esta acción no se puede deshacer.", { title: "Eliminar mecánico" }))) return;
+    const { error } = await sb.from("mecanicos").delete().eq("id", id);
+    if (error) {
+      if (error.code === "23503") {
+        showToast("No se puede eliminar: tiene filas guardadas en el registro diario. Puedes desactivarlo en vez de eliminarlo.", true);
+      } else {
+        showToast("No se pudo eliminar el mecánico.", true);
+      }
+      return;
+    }
+    showToast("Mecánico eliminado.");
+    await refreshMecanicos();
+  }
+
+  // ---------------- registro diario ----------------
+
+  async function fetchRegistroDiario(fecha) {
+    const { data, error } = await sb.from("registro_diario").select("*").eq("fecha", fecha).maybeSingle();
+    if (error) {
+      showToast("No se pudo cargar el registro del día.", true);
+      return null;
+    }
+    return data;
+  }
+
+  async function fetchRegistroDiarioItems(registroId) {
+    if (!registroId) return [];
+    const { data, error } = await sb.from("registro_diario_items").select("*").eq("registro_id", registroId).order("orden", { ascending: true });
+    if (error) {
+      showToast("No se pudieron cargar las filas del registro.", true);
+      return [];
+    }
+    return data;
+  }
+
+  async function cargarRegistroDiario(fecha) {
+    const registro = await fetchRegistroDiario(fecha);
+    state.registroDiarioId = registro ? registro.id : null;
+    const items = registro ? await fetchRegistroDiarioItems(registro.id) : [];
+    renderRegistroDiario(registro, items);
+  }
+
+  function renderRegistroDiario(registro, items) {
+    document.getElementById("registro-credit-card").value = registro ? registro.credit_card_total : 0;
+    document.getElementById("registro-cash").value = registro ? registro.cash_total : 0;
+    document.getElementById("registro-check").value = registro ? registro.check_total : 0;
+
+    const container = document.getElementById("registro-mecanicos-container");
+    const mecanicosActivos = state.mecanicos.filter((m) => m.activo);
+
+    if (!mecanicosActivos.length) {
+      container.innerHTML = "<p class='empty-state'>Todavía no hay mecánicos activos. Agrega uno en Configuración &rarr; Mecánicos.</p>";
+      recalcularRegistroDiario();
+      return;
+    }
+
+    container.innerHTML = mecanicosActivos
+      .map(
+        (m) =>
+          '<div class="table-wrap registro-mecanico-card" data-mecanico-id="' +
+          m.id +
+          '" style="padding:1.25rem 1.5rem;margin-bottom:1.25rem;">' +
+          '<header class="view-header" style="margin-bottom:.75rem;">' +
+          '<h2 style="font-size:1rem;margin:0;">' +
+          escapeHtml(m.nombre) +
+          '</h2><span class="view-sub" style="margin:0;">Labor: <strong class="reg-sub-labor">$0.00</strong> &middot; Piezas: <strong class="reg-sub-piezas">$0.00</strong></span>' +
+          "</header>" +
+          '<div class="table-wrap"><table class="data-table">' +
+          "<thead><tr><th>Carro</th><th>Descripción</th><th>Labor</th><th>Piezas</th><th>Otro</th><th>Dinero de salida</th><th></th></tr></thead>" +
+          '<tbody class="registro-items-tbody"></tbody>' +
+          "</table></div>" +
+          '<button type="button" class="btn-ghost registro-add-fila" style="margin-top:.6rem;">+ Agregar fila</button>' +
+          "</div>"
+      )
+      .join("");
+
+    container.querySelectorAll(".registro-add-fila").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const card = btn.closest(".registro-mecanico-card");
+        addRegistroItemRow(card.querySelector(".registro-items-tbody"), null);
+        recalcularRegistroDiario();
+      });
+    });
+
+    mecanicosActivos.forEach((m) => {
+      const card = container.querySelector('.registro-mecanico-card[data-mecanico-id="' + m.id + '"]');
+      const tbody = card.querySelector(".registro-items-tbody");
+      items.filter((it) => it.mecanico_id === m.id).forEach((it) => addRegistroItemRow(tbody, it));
+    });
+
+    recalcularRegistroDiario();
+  }
+
+  function addRegistroItemRow(tbody, item) {
+    const tr = document.createElement("tr");
+    tr.dataset.itemId = item ? item.id : "";
+    tr.innerHTML =
+      '<td><input type="text" class="reg-carro" value="' +
+      (item ? escapeHtml(item.carro || "") : "") +
+      '" /></td>' +
+      '<td><input type="text" class="reg-desc" value="' +
+      (item ? escapeHtml(item.descripcion || "") : "") +
+      '" /></td>' +
+      '<td><input type="number" class="reg-labor" step="0.01" min="0" value="' +
+      (item ? item.labor : 0) +
+      '" /></td>' +
+      '<td><input type="number" class="reg-piezas" step="0.01" min="0" value="' +
+      (item ? item.piezas : 0) +
+      '" /></td>' +
+      '<td><input type="number" class="reg-otro" step="0.01" min="0" value="' +
+      (item ? item.otro : 0) +
+      '" /></td>' +
+      '<td><input type="number" class="reg-dinero-salida" step="0.01" min="0" value="' +
+      (item ? item.dinero_salida : 0) +
+      '" /></td>' +
+      '<td><button type="button" class="item-remove" title="Quitar fila">&times;</button></td>';
+    tbody.appendChild(tr);
+
+    tr.querySelectorAll(".reg-labor, .reg-piezas, .reg-otro, .reg-dinero-salida").forEach((input) => {
+      input.addEventListener("input", recalcularRegistroDiario);
+    });
+    tr.querySelector(".item-remove").addEventListener("click", () => {
+      tr.remove();
+      recalcularRegistroDiario();
+    });
+  }
+
+  function recalcularRegistroDiario() {
+    document.querySelectorAll(".registro-mecanico-card").forEach((card) => {
+      let laborM = 0;
+      let piezasM = 0;
+      card.querySelectorAll(".registro-items-tbody tr").forEach((tr) => {
+        laborM += parseFloat(tr.querySelector(".reg-labor").value) || 0;
+        piezasM += parseFloat(tr.querySelector(".reg-piezas").value) || 0;
+      });
+      card.querySelector(".reg-sub-labor").textContent = money(laborM);
+      card.querySelector(".reg-sub-piezas").textContent = money(piezasM);
+    });
+
+    const cc = parseFloat(document.getElementById("registro-credit-card").value) || 0;
+    const cash = parseFloat(document.getElementById("registro-cash").value) || 0;
+    const check = parseFloat(document.getElementById("registro-check").value) || 0;
+    document.getElementById("registro-total-dia").textContent = money(cc + cash + check);
+  }
+
+  async function guardarRegistroDiario() {
+    const fecha = document.getElementById("registro-fecha").value;
+    if (!fecha) {
+      showToast("Elige una fecha.", true);
+      return;
+    }
+
+    const payload = {
+      fecha,
+      credit_card_total: parseFloat(document.getElementById("registro-credit-card").value) || 0,
+      cash_total: parseFloat(document.getElementById("registro-cash").value) || 0,
+      check_total: parseFloat(document.getElementById("registro-check").value) || 0,
+    };
+
+    let registroId = state.registroDiarioId;
+    let error;
+    if (registroId) {
+      ({ error } = await sb.from("registro_diario").update(payload).eq("id", registroId));
+    } else {
+      const { data, error: insError } = await sb.from("registro_diario").insert(payload).select().single();
+      error = insError;
+      if (data) registroId = data.id;
+    }
+
+    if (error) {
+      showToast("No se pudo guardar el registro del día.", true);
+      return;
+    }
+
+    const filas = [];
+    document.querySelectorAll(".registro-mecanico-card").forEach((card) => {
+      const mecanicoId = card.dataset.mecanicoId;
+      let orden = 0;
+      card.querySelectorAll(".registro-items-tbody tr").forEach((tr) => {
+        const carro = tr.querySelector(".reg-carro").value.trim();
+        const descripcion = tr.querySelector(".reg-desc").value.trim();
+        const labor = parseFloat(tr.querySelector(".reg-labor").value) || 0;
+        const piezas = parseFloat(tr.querySelector(".reg-piezas").value) || 0;
+        const otro = parseFloat(tr.querySelector(".reg-otro").value) || 0;
+        const dineroSalida = parseFloat(tr.querySelector(".reg-dinero-salida").value) || 0;
+        if (!carro && !descripcion && !labor && !piezas && !otro && !dineroSalida) return;
+        filas.push({
+          registro_id: registroId,
+          mecanico_id: mecanicoId,
+          carro,
+          descripcion,
+          labor,
+          piezas,
+          otro,
+          dinero_salida: dineroSalida,
+          orden: orden++,
+        });
+      });
+    });
+
+    const { error: delError } = await sb.from("registro_diario_items").delete().eq("registro_id", registroId);
+    if (delError) {
+      showToast("No se pudo guardar el registro del día.", true);
+      return;
+    }
+    if (filas.length) {
+      const { error: insItemsError } = await sb.from("registro_diario_items").insert(filas);
+      if (insItemsError) {
+        showToast("No se pudo guardar el registro del día.", true);
+        return;
+      }
+    }
+
+    state.registroDiarioId = registroId;
+    showToast("Registro del día guardado.");
+    await cargarRegistroDiario(fecha);
+  }
+
   // ---------------- configuración del negocio ----------------
 
   async function fetchConfigNegocio() {
@@ -3691,6 +3978,7 @@
     { view: "facturas", icon: "file-text", label: "Facturas", badge: "warning" },
     { view: "estimados", icon: "clipboard", label: "Estimates", badge: "neutral" },
     { view: "finanzas", icon: "dollar", label: "Finanzas" },
+    { view: "registro-diario", icon: "hash", label: "Registro diario" },
     { view: "export", icon: "download", label: "Export" },
     { view: "configuracion", icon: "settings", label: "Configuración" },
   ];
@@ -3874,6 +4162,7 @@
       tab.addEventListener("click", () => {
         document.querySelectorAll(".config-tab").forEach((t) => t.classList.toggle("is-active", t === tab));
         document.getElementById("config-tab-negocio").hidden = tab.dataset.configTab !== "negocio";
+        document.getElementById("config-tab-mecanicos").hidden = tab.dataset.configTab !== "mecanicos";
         document.getElementById("config-tab-cuenta").hidden = tab.dataset.configTab !== "cuenta";
       });
     });
@@ -3998,6 +4287,30 @@
       renderFinanzas();
     });
 
+    document.getElementById("form-nuevo-mecanico").addEventListener("submit", agregarMecanico);
+
+    document.getElementById("btn-guardar-registro-diario").addEventListener("click", guardarRegistroDiario);
+    ["registro-credit-card", "registro-cash", "registro-check"].forEach((id) => {
+      document.getElementById(id).addEventListener("input", recalcularRegistroDiario);
+    });
+    document.getElementById("registro-fecha").addEventListener("change", (e) => {
+      cargarRegistroDiario(e.target.value);
+    });
+    document.getElementById("btn-registro-dia-anterior").addEventListener("click", () => {
+      const input = document.getElementById("registro-fecha");
+      const d = new Date(input.value + "T00:00:00");
+      d.setDate(d.getDate() - 1);
+      input.value = d.toISOString().slice(0, 10);
+      cargarRegistroDiario(input.value);
+    });
+    document.getElementById("btn-registro-dia-siguiente").addEventListener("click", () => {
+      const input = document.getElementById("registro-fecha");
+      const d = new Date(input.value + "T00:00:00");
+      d.setDate(d.getDate() + 1);
+      input.value = d.toISOString().slice(0, 10);
+      cargarRegistroDiario(input.value);
+    });
+
     document.getElementById("form-configuracion").addEventListener("submit", saveConfiguracion);
     ["config-nombre", "config-direccion", "config-telefono", "config-email", "config-mensaje-pie", "config-logo-url", "config-texto-adicional", "config-color-acento"].forEach((id) => {
       document.getElementById(id).addEventListener("input", updateConfigPreview);
@@ -4101,6 +4414,9 @@
     await refreshGastos();
     await refreshConfigNegocio();
     await refreshEmpleados();
+    await refreshMecanicos();
+    document.getElementById("registro-fecha").value = todayISO();
+    await cargarRegistroDiario(todayISO());
     renderDashboard();
     verificarConexionReal();
   }
