@@ -1119,7 +1119,7 @@
     });
 
     wireRowActions(tbody, {
-      detalle: (id) => openClienteDetalle(state.clientes.find((c) => c.id === id)),
+      detalle: (id) => window.open(location.pathname + "?cliente=" + id, "_blank"),
       factura: (id) => crearFacturaParaCliente(state.clientes.find((c) => c.id === id)),
       editar: (id) => openClienteModal(state.clientes.find((c) => c.id === id)),
       eliminar: (id, btn) => deleteClienteRow(id, btn),
@@ -1398,6 +1398,8 @@
     document.getElementById("cliente-vehiculo-marca").value = vehiculoPrincipal ? vehiculoPrincipal.marca || "" : "";
     document.getElementById("cliente-vehiculo-modelo").value = vehiculoPrincipal ? vehiculoPrincipal.modelo || "" : "";
     document.getElementById("cliente-vehiculo-anio").value = vehiculoPrincipal ? vehiculoPrincipal.anio || "" : "";
+    document.getElementById("cliente-vehiculo-placa").value = vehiculoPrincipal ? vehiculoPrincipal.placa || "" : "";
+    document.getElementById("cliente-vehiculo-kilometraje").value = vehiculoPrincipal ? vehiculoPrincipal.kilometraje || "" : "";
     document.getElementById("btn-eliminar-cliente").hidden = !cliente;
     openModal("modal-cliente");
   }
@@ -1440,7 +1442,14 @@
       return;
     }
 
-    const vehiculoPayload = { cliente_id: clienteId, marca: vehiculoMarca, modelo: vehiculoModelo, anio: vehiculoAnio };
+    const vehiculoPayload = {
+      cliente_id: clienteId,
+      marca: vehiculoMarca,
+      modelo: vehiculoModelo,
+      anio: vehiculoAnio,
+      placa: document.getElementById("cliente-vehiculo-placa").value.trim(),
+      kilometraje: document.getElementById("cliente-vehiculo-kilometraje").value.trim(),
+    };
     const vehiculoExistente = state.vehiculos.find((v) => v.cliente_id === clienteId);
     if (vehiculoExistente) {
       await sb.from("vehiculos").update(vehiculoPayload).eq("id", vehiculoExistente.id);
@@ -1655,6 +1664,7 @@
     const colorAcento = cfg.color_acento || "#d5601a";
     const facturaTitulo = cfg.factura_titulo || "Factura";
     const mostrarQr = cfg.mostrar_qr !== false;
+    const mecanico = factura.mecanico_id ? state.mecanicos.find((m) => m.id === factura.mecanico_id) : null;
 
     const ESTADO_ESTILO = {
       pagada: { label: "PAGADA", color: "#1a7f5a" },
@@ -1696,7 +1706,7 @@
       " #" +
       String(factura.numero).padStart(4, "0") +
       "</title><style>" +
-      "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:2.5rem;max-width:40rem;margin:0 auto;}" +
+      "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:2.5rem 2.5rem 7rem;max-width:40rem;margin:0 auto;}" +
       ".header{border-bottom:3px solid " +
       colorAcento +
       ";padding-bottom:1rem;margin-bottom:1.2rem;display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;}" +
@@ -1716,14 +1726,14 @@
       "td.num,th.num{text-align:right;}" +
       ".totals{margin-top:1.1rem;margin-left:auto;width:14rem;border:1px solid #ccc;font-size:.9rem;}" +
       ".totals div{display:flex;justify-content:space-between;padding:.45rem .7rem;background:#eef0f1;border-bottom:1px solid #ccc;}" +
-      ".totals div:last-child{border-bottom:none;font-weight:700;font-size:1.05rem;color:#1f2430;}" +
+      ".totals div:last-child{border-bottom:none;font-weight:800;font-size:1.15rem;color:#fff;background:#0b0e14;padding-top:.6rem;padding-bottom:.6rem;}" +
       ".notas{margin-top:1.5rem;padding:.9rem 1rem;background:#fafbfc;border:1px solid #ccc;border-radius:6px;font-size:.85rem;}" +
       ".notas strong{display:block;margin-bottom:.3rem;color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}" +
       ".pie{margin-top:2rem;text-align:center;font-style:italic;color:#68707e;font-size:.9rem;}" +
       ".extra{margin-top:.75rem;text-align:center;color:#68707e;font-size:.8rem;white-space:pre-line;}" +
-      ".qr{text-align:center;margin-top:1.5rem;}" +
-      ".qr img{width:100px;height:100px;}" +
-      ".qr p{margin:.3rem 0 0;font-size:.65rem;color:#68707e;}" +
+      ".qr{position:fixed;bottom:1.2rem;right:1.2rem;text-align:center;margin:0;}" +
+      ".qr img{width:90px;height:90px;}" +
+      ".qr p{margin:.25rem 0 0;font-size:.62rem;color:#68707e;}" +
       "@media print{body{padding:0;}}" +
       "</style></head><body>" +
       "<div class='header'><div class='header-brand'><img src='" +
@@ -1752,7 +1762,8 @@
       (vehiculoLabelStr ? "<span class='label'>Vehículo:</span> " + escapeHtml(vehiculoLabelStr) + "<br>" : "") +
       (vehiculo && vehiculo.vin ? "<span class='label'>VIN:</span> " + escapeHtml(vehiculo.vin) + "<br>" : "") +
       (vehiculo && vehiculo.placa ? "<span class='label'>Placa:</span> " + escapeHtml(vehiculo.placa) + "<br>" : "") +
-      (vehiculo && vehiculo.kilometraje ? "<span class='label'>Kilometraje:</span> " + escapeHtml(vehiculo.kilometraje) : "") +
+      (vehiculo && vehiculo.kilometraje ? "<span class='label'>Kilometraje:</span> " + escapeHtml(vehiculo.kilometraje) + "<br>" : "") +
+      (mecanico ? "<span class='label'>Mecánico:</span> " + escapeHtml(mecanico.nombre) : "") +
       "</div></div>" +
       "<table><thead><tr><th>Descripción</th><th class='num'>Cant.</th><th class='num'>Precio</th><th class='num'>Subtotal</th></tr></thead><tbody>" +
       filas +
@@ -2004,6 +2015,16 @@
     const nombreCreador = factura && factura.creado_por ? nombreEmpleado(factura.creado_por) : null;
     notaCreador.hidden = !nombreCreador;
     if (nombreCreador) notaCreador.textContent = "Creada por: " + nombreCreador;
+
+    const selectMecanico = document.getElementById("factura-mecanico");
+    selectMecanico.innerHTML =
+      '<option value="">— Sin asignar —</option>' +
+      state.mecanicos
+        .filter((m) => m.activo || (factura && factura.mecanico_id === m.id))
+        .map((m) => '<option value="' + m.id + '">' + escapeHtml(m.nombre) + "</option>")
+        .join("");
+    selectMecanico.value = factura && factura.mecanico_id ? factura.mecanico_id : "";
+
     populateClientesDatalist();
     const clienteExistente = factura ? state.clientes.find((c) => c.id === factura.cliente_id) : null;
     document.getElementById("factura-cliente").value = factura ? (factura.clientes ? factura.clientes.nombre : clienteExistente ? clienteExistente.nombre : "") : "";
@@ -2107,6 +2128,7 @@
       total,
       notas: document.getElementById("factura-notas").value.trim(),
       orden_id: ordenId,
+      mecanico_id: document.getElementById("factura-mecanico").value || null,
     };
 
     let facturaId = id;
@@ -3723,16 +3745,20 @@
 
     container.innerHTML = mecanicosActivos
       .map(
-        (m, idx) =>
+        (m) =>
           '<div class="table-wrap registro-mecanico-card" data-mecanico-id="' +
           m.id +
-          '" style="padding:1.25rem 1.5rem;margin-bottom:1.25rem;border-top:3px solid var(--series-' +
-          ((idx % 8) + 1) +
-          ');">' +
+          '" style="padding:1.25rem 1.5rem;margin-bottom:1.25rem;border-top:3px solid ' +
+          nameColor(m.nombre) +
+          ';">' +
           '<header class="view-header" style="margin-bottom:.75rem;">' +
+          '<div style="display:flex;align-items:center;gap:.6rem;">' +
+          avatarHtml(m.nombre) +
           '<h2 style="font-size:1rem;margin:0;">' +
           escapeHtml(m.nombre) +
-          '</h2><span class="view-sub" style="margin:0;">Labor: <strong class="reg-sub-labor">$0.00</strong> &middot; Piezas: <strong class="reg-sub-piezas">$0.00</strong></span>' +
+          "</h2>" +
+          "</div>" +
+          '<span class="view-sub" style="margin:0;">Labor: <strong class="reg-sub-labor">$0.00</strong> &middot; Piezas: <strong class="reg-sub-piezas">$0.00</strong></span>' +
           "</header>" +
           '<div class="table-wrap"><table class="data-table">' +
           "<thead><tr><th>Carro</th><th>Descripción</th><th>Labor</th><th>Piezas</th><th>Otro</th><th>Dinero de salida</th><th></th></tr></thead>" +
@@ -4463,6 +4489,15 @@
     await cargarRegistroDiario(todayISO());
     renderDashboard();
     verificarConexionReal();
+
+    const clienteIdUrl = new URLSearchParams(location.search).get("cliente");
+    if (clienteIdUrl) {
+      const cliente = state.clientes.find((c) => c.id === clienteIdUrl);
+      if (cliente) {
+        goToView("clientes");
+        openClienteDetalle(cliente);
+      }
+    }
   }
 
   if ("serviceWorker" in navigator) {
