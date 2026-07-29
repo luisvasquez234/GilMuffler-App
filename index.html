@@ -148,6 +148,7 @@
       <button class="nav-item" data-view="ordenes"><svg class="icon" aria-hidden="true"><use href="#icon-wrench"></use></svg>Órdenes de servicio</button>
       <button class="nav-item" data-view="inventario"><svg class="icon" aria-hidden="true"><use href="#icon-box"></use></svg>Inventario</button>
       <button class="nav-item" data-view="tareas"><svg class="icon" aria-hidden="true"><use href="#icon-check-square"></use></svg>Tareas</button>
+      <button class="nav-item" data-view="llamadas"><svg class="icon" aria-hidden="true"><use href="#icon-phone"></use></svg>Por llamar</button>
       <button class="nav-item" data-view="facturas"><svg class="icon" aria-hidden="true"><use href="#icon-file-text"></use></svg>Facturas</button>
       <button class="nav-item" data-view="estimados"><svg class="icon" aria-hidden="true"><use href="#icon-clipboard"></use></svg>Estimates</button>
       <button class="nav-item" data-view="finanzas"><svg class="icon" aria-hidden="true"><use href="#icon-dollar"></use></svg>Finanzas</button>
@@ -192,6 +193,7 @@
         <div class="kpi-card is-clickable" id="kpi-card-ingresos" data-goto="finanzas" role="button" tabindex="0">
           <span class="kpi-label">Ingresos este mes</span>
           <strong class="kpi-value" id="kpi-ingresos">$0.00</strong>
+          <span class="kpi-sub" id="kpi-ingresos-comparacion" hidden></span>
         </div>
         <div class="kpi-card is-clickable" id="kpi-card-facturas-pendientes" data-goto="facturas" data-goto-filter="pendiente" role="button" tabindex="0">
           <span class="kpi-label">Facturas pendientes</span>
@@ -622,6 +624,7 @@
         <div style="display:flex;gap:.6rem;">
           <button class="btn-ghost" id="btn-ver-rotacion" type="button">Ver rotación de inventario</button>
           <button class="btn-ghost" id="btn-ver-historial-precios" type="button">Ver historial de precios</button>
+          <button class="btn-ghost" id="btn-ver-reordenar" type="button">Para reordenar</button>
           <button class="btn-primary" id="btn-nueva-pieza" type="button">+ Nueva pieza</button>
         </div>
       </header>
@@ -654,7 +657,41 @@
       </header>
       <div class="tareas-groups" id="tareas-groups"></div>
     </section>
+
+    <section id="view-llamadas" class="view" hidden>
+      <header class="view-header">
+        <div>
+          <h1>Por llamar</h1>
+          <p class="view-sub">Clientes a los que hay que avisar por teléfono</p>
+        </div>
+      </header>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Cliente</th><th>Teléfono</th><th>Carro</th><th>Motivo</th><th></th></tr></thead>
+          <tbody id="llamadas-tbody"></tbody>
+        </table>
+        <p id="llamadas-empty" class="empty-state" hidden>No hay llamadas pendientes ahora mismo.</p>
+      </div>
+    </section>
   </main>
+</div>
+
+<div id="modal-llamada-nota" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2>Marcar llamada hecha</h2>
+      <button class="icon-btn" data-close-modal="modal-llamada-nota" type="button">&times;</button>
+    </header>
+    <form id="form-llamada-nota" class="modal-body">
+      <input type="hidden" id="llamada-nota-id" />
+      <div class="field"><label>Notas de la llamada (opcional)</label><textarea id="llamada-nota-texto" rows="3" placeholder="Ej. Dijo que pasa mañana por la tarde."></textarea></div>
+      <footer class="modal-footer">
+        <span class="spacer"></span>
+        <button type="button" class="btn-ghost" data-close-modal="modal-llamada-nota">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar y marcar como llamado</button>
+      </footer>
+    </form>
+  </div>
 </div>
 
 <div id="modal-cliente" class="modal-backdrop" hidden>
@@ -674,6 +711,7 @@
         <div class="field"><label><svg class="icon field-icon" aria-hidden="true"><use href="#icon-mail"></use></svg>Email</label><input type="email" id="cliente-email" /></div>
       </div>
       <div class="field"><label><svg class="icon field-icon" aria-hidden="true"><use href="#icon-map-pin"></use></svg>Dirección</label><input type="text" id="cliente-direccion" /></div>
+      <div class="field"><label>Etiquetas (separadas por coma)</label><input type="text" id="cliente-etiquetas" placeholder="Ej. VIP, flotilla" /></div>
       <div class="field-label-standalone">Vehículo</div>
       <div class="field-row">
         <div class="field"><label>Marca *</label><input type="text" id="cliente-vehiculo-marca" required /></div>
@@ -919,6 +957,24 @@
   </div>
 </div>
 
+<div id="modal-reordenar" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2>Piezas para reordenar</h2>
+      <button class="icon-btn" data-close-modal="modal-reordenar" type="button">&times;</button>
+    </header>
+    <div class="modal-body">
+      <p class="view-sub" style="margin-top:0;">Piezas con stock igual o por debajo del mínimo, con una sugerencia de cuánto pedir.</p>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Pieza</th><th>Proveedor</th><th>Stock actual</th><th>Mínimo</th><th>Sugerido a pedir</th></tr></thead>
+          <tbody id="reordenar-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="modal-pieza" class="modal-backdrop" hidden>
   <div class="modal">
     <header class="modal-header">
@@ -970,7 +1026,15 @@
         <div class="field"><label>Placa</label><input type="text" id="vehiculo-placa" /></div>
       </div>
       <div class="field-row">
-        <div class="field"><label>VIN</label><input type="text" id="vehiculo-vin" /></div>
+        <div class="field">
+          <label>VIN</label>
+          <div style="display:flex;gap:.4rem;">
+            <input type="text" id="vehiculo-vin" style="flex:1;" />
+            <button type="button" class="btn-ghost" id="btn-escanear-vin" title="Escanear VIN con la cámara">
+              <svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg>
+            </button>
+          </div>
+        </div>
         <div class="field"><label>Kilometraje actual</label><input type="text" id="vehiculo-kilometraje" placeholder="ej. 85,000 millas" /></div>
       </div>
       <div class="field"><label>Notas</label><textarea id="vehiculo-notas" rows="2"></textarea></div>
@@ -987,6 +1051,20 @@
         <button type="submit" class="btn-primary">Guardar</button>
       </footer>
     </form>
+  </div>
+</div>
+
+<div id="modal-escaner-vin" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2>Escanear VIN</h2>
+      <button class="icon-btn" data-close-modal="modal-escaner-vin" type="button">&times;</button>
+    </header>
+    <div class="modal-body">
+      <p class="view-sub" style="margin-top:0;">Apunta la cámara al código de barras del VIN (suele estar en la puerta del conductor o el parabrisas).</p>
+      <video id="video-escaner-vin" style="width:100%;border-radius:8px;background:#000;" muted playsinline></video>
+      <p id="escaner-vin-estado" class="view-sub" style="margin-top:.6rem;">Iniciando cámara...</p>
+    </div>
   </div>
 </div>
 
@@ -1042,6 +1120,14 @@
       <button type="button" class="btn-ghost" id="btn-add-orden-pieza">+ Agregar pieza</button>
 
       <div class="field"><label>Notas</label><textarea id="orden-notas" rows="2"></textarea></div>
+
+      <label class="field-label-standalone">Fotos del vehículo</label>
+      <p id="orden-fotos-nota" class="orden-nota" hidden>Guarda la orden primero para poder subir fotos.</p>
+      <div id="orden-fotos-grid" class="orden-fotos-grid"></div>
+      <label class="btn-ghost" id="btn-subir-orden-foto-label" style="display:inline-block;cursor:pointer;">
+        + Subir foto
+        <input type="file" id="input-orden-foto" accept="image/*" capture="environment" style="display:none;" />
+      </label>
 
       <footer class="modal-footer">
         <button type="button" class="btn-danger" id="btn-eliminar-orden" hidden>Eliminar</button>
@@ -1127,17 +1213,31 @@
     <div class="modal-body">
       <div id="cliente-detalle-info" class="cliente-detalle-info"></div>
 
-      <h3 class="detalle-subtitle">
-        Vehículos
-        <button type="button" class="btn-ghost" id="btn-detalle-agregar-vehiculo" style="margin-left:.75rem;">+ Agregar vehículo</button>
-      </h3>
-      <div id="cliente-detalle-vehiculos" class="detalle-list"></div>
+      <div class="config-tabs">
+        <button type="button" class="config-tab is-active" data-detalle-tab="vehiculos">Vehículos</button>
+        <button type="button" class="config-tab" data-detalle-tab="historial">Historial</button>
+        <button type="button" class="config-tab" data-detalle-tab="tareas">Tareas</button>
+      </div>
 
-      <h3 class="detalle-subtitle">Historial</h3>
-      <div id="cliente-detalle-historial" class="detalle-list"></div>
+      <div id="detalle-tab-vehiculos" class="config-tab-panel">
+        <h3 class="detalle-subtitle">
+          Vehículos
+          <button type="button" class="btn-ghost" id="btn-detalle-agregar-vehiculo" style="margin-left:.75rem;">+ Agregar vehículo</button>
+        </h3>
+        <div id="cliente-detalle-vehiculos" class="detalle-list"></div>
+      </div>
 
-      <h3 class="detalle-subtitle">Tareas</h3>
-      <div id="cliente-detalle-tareas" class="detalle-list"></div>
+      <div id="detalle-tab-historial" class="config-tab-panel" hidden>
+        <div class="toolbar" style="margin-top:0;">
+          <input type="search" id="cliente-detalle-historial-search" placeholder="Buscar en el historial..." />
+        </div>
+        <div id="cliente-detalle-historial" class="detalle-list"></div>
+      </div>
+
+      <div id="detalle-tab-tareas" class="config-tab-panel" hidden>
+        <h3 class="detalle-subtitle">Tareas</h3>
+        <div id="cliente-detalle-tareas" class="detalle-list"></div>
+      </div>
 
       <footer class="modal-footer">
         <button type="button" class="btn-primary" id="btn-detalle-crear-factura">
