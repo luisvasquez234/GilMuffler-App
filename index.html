@@ -147,13 +147,10 @@
       <button class="nav-item" data-view="reservas"><svg class="icon" aria-hidden="true"><use href="#icon-calendar"></use></svg>Bookings</button>
       <button class="nav-item" data-view="ordenes"><svg class="icon" aria-hidden="true"><use href="#icon-wrench"></use></svg>Órdenes de servicio</button>
       <button class="nav-item" data-view="inventario"><svg class="icon" aria-hidden="true"><use href="#icon-box"></use></svg>Inventario</button>
-      <button class="nav-item" data-view="tareas"><svg class="icon" aria-hidden="true"><use href="#icon-check-square"></use></svg>Tareas</button>
       <button class="nav-item" data-view="llamadas"><svg class="icon" aria-hidden="true"><use href="#icon-phone"></use></svg>Por llamar</button>
       <button class="nav-item" data-view="facturas"><svg class="icon" aria-hidden="true"><use href="#icon-file-text"></use></svg>Facturas</button>
       <button class="nav-item" data-view="estimados"><svg class="icon" aria-hidden="true"><use href="#icon-clipboard"></use></svg>Estimates</button>
-      <button class="nav-item" data-view="finanzas"><svg class="icon" aria-hidden="true"><use href="#icon-dollar"></use></svg>Finanzas</button>
       <button class="nav-item" data-view="registro-diario"><svg class="icon" aria-hidden="true"><use href="#icon-hash"></use></svg>Registro diario</button>
-      <button class="nav-item" data-view="export"><svg class="icon" aria-hidden="true"><use href="#icon-download"></use></svg>Export</button>
       <button class="nav-item" data-view="configuracion"><svg class="icon" aria-hidden="true"><use href="#icon-settings"></use></svg>Configuración</button>
     </nav>
     <div class="sidebar-footer">
@@ -203,10 +200,6 @@
         <div class="kpi-card is-clickable" id="kpi-card-ordenes-activas" data-goto="ordenes" role="button" tabindex="0">
           <span class="kpi-label">Órdenes activas</span>
           <strong class="kpi-value" id="kpi-ordenes-activas">0</strong>
-        </div>
-        <div class="kpi-card is-clickable" id="kpi-card-tareas-vencidas" data-goto="tareas" role="button" tabindex="0">
-          <span class="kpi-label">Tareas vencidas</span>
-          <strong class="kpi-value" id="kpi-tareas-vencidas">0</strong>
         </div>
         <div class="kpi-card is-clickable" id="kpi-card-stock-bajo" data-goto="inventario" role="button" tabindex="0">
           <span class="kpi-label">Piezas con stock bajo</span>
@@ -320,40 +313,6 @@
       </div>
     </section>
 
-    <section id="view-finanzas" class="view" hidden>
-      <header class="view-header">
-        <div>
-          <h1>Finanzas</h1>
-          <p class="view-sub">Ingresos, gastos y ganancias por mes</p>
-        </div>
-        <div class="toolbar" style="margin:0;">
-          <select id="finanzas-anio"></select>
-        </div>
-      </header>
-
-      <div class="table-wrap" style="margin-bottom:1.75rem;">
-        <table class="data-table">
-          <thead><tr><th>Mes</th><th>Ingresos</th><th>Gastos</th><th>Ganancia neta</th></tr></thead>
-          <tbody id="finanzas-meses-tbody"></tbody>
-        </table>
-      </div>
-
-      <header class="view-header">
-        <div>
-          <h2 style="font-size:1.1rem;">Gastos</h2>
-          <p class="view-sub">Registro de gastos del negocio</p>
-        </div>
-        <button class="btn-primary" id="btn-nuevo-gasto" type="button">+ Nuevo gasto</button>
-      </header>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Monto</th><th></th></tr></thead>
-          <tbody id="gastos-tbody"></tbody>
-        </table>
-        <p id="gastos-empty" class="empty-state" hidden>Todavía no hay gastos registrados.</p>
-      </div>
-    </section>
-
     <section id="view-registro-diario" class="view" hidden>
       <header class="view-header">
         <div>
@@ -442,41 +401,6 @@
       </div>
     </section>
 
-    <section id="view-export" class="view" hidden>
-      <header class="view-header">
-        <div>
-          <h1>Export</h1>
-          <p class="view-sub">Descarga tus datos en CSV (se abren en Excel/Google Sheets)</p>
-        </div>
-      </header>
-      <div class="export-grid">
-        <div class="export-card">
-          <svg class="icon" aria-hidden="true"><use href="#icon-user"></use></svg>
-          <h2>Clientes</h2>
-          <p>Nombre, apellido, teléfono, email, dirección.</p>
-          <button class="btn-primary" type="button" data-export="clientes">Descargar CSV</button>
-        </div>
-        <div class="export-card">
-          <svg class="icon" aria-hidden="true"><use href="#icon-car"></use></svg>
-          <h2>Vehículos</h2>
-          <p>Marca, modelo, año, placa, VIN, kilometraje.</p>
-          <button class="btn-primary" type="button" data-export="vehiculos">Descargar CSV</button>
-        </div>
-        <div class="export-card">
-          <svg class="icon" aria-hidden="true"><use href="#icon-file-text"></use></svg>
-          <h2>Facturas</h2>
-          <p>Número, fecha, estado, subtotal, impuesto, total.</p>
-          <button class="btn-primary" type="button" data-export="facturas">Descargar CSV</button>
-        </div>
-        <div class="export-card">
-          <svg class="icon" aria-hidden="true"><use href="#icon-wrench"></use></svg>
-          <h2>Órdenes de servicio</h2>
-          <p>Etapa, vehículo, diagnóstico, fechas.</p>
-          <button class="btn-primary" type="button" data-export="ordenes">Descargar CSV</button>
-        </div>
-      </div>
-    </section>
-
     <section id="view-configuracion" class="view" hidden>
       <header class="view-header">
         <div>
@@ -488,7 +412,78 @@
       <div class="config-tabs">
         <button type="button" class="config-tab is-active" data-config-tab="negocio">Negocio</button>
         <button type="button" class="config-tab" data-config-tab="mecanicos">Mecánicos</button>
+        <button type="button" class="config-tab" data-config-tab="finanzas">Finanzas</button>
+        <button type="button" class="config-tab" data-config-tab="export">Export</button>
         <button type="button" class="config-tab" data-config-tab="cuenta">My Account</button>
+      </div>
+
+      <div id="config-tab-finanzas" class="config-tab-panel" hidden>
+        <header class="view-header">
+          <div>
+            <h2 style="font-size:1.1rem;margin:0;">Finanzas</h2>
+            <p class="view-sub">Ingresos, gastos y ganancias por mes</p>
+          </div>
+          <div class="toolbar" style="margin:0;">
+            <select id="finanzas-anio"></select>
+          </div>
+        </header>
+
+        <div class="table-wrap" style="margin-bottom:1.75rem;">
+          <table class="data-table">
+            <thead><tr><th>Mes</th><th>Ingresos</th><th>Gastos</th><th>Ganancia neta</th></tr></thead>
+            <tbody id="finanzas-meses-tbody"></tbody>
+          </table>
+        </div>
+
+        <header class="view-header">
+          <div>
+            <h2 style="font-size:1.1rem;">Gastos</h2>
+            <p class="view-sub">Registro de gastos del negocio</p>
+          </div>
+          <button class="btn-primary" id="btn-nuevo-gasto" type="button">+ Nuevo gasto</button>
+        </header>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Monto</th><th></th></tr></thead>
+            <tbody id="gastos-tbody"></tbody>
+          </table>
+          <p id="gastos-empty" class="empty-state" hidden>Todavía no hay gastos registrados.</p>
+        </div>
+      </div>
+
+      <div id="config-tab-export" class="config-tab-panel" hidden>
+        <header class="view-header">
+          <div>
+            <h2 style="font-size:1.1rem;margin:0;">Export</h2>
+            <p class="view-sub">Descarga tus datos en CSV (se abren en Excel/Google Sheets)</p>
+          </div>
+        </header>
+        <div class="export-grid">
+          <div class="export-card">
+            <svg class="icon" aria-hidden="true"><use href="#icon-user"></use></svg>
+            <h2>Clientes</h2>
+            <p>Nombre, apellido, teléfono, email, dirección.</p>
+            <button class="btn-primary" type="button" data-export="clientes">Descargar CSV</button>
+          </div>
+          <div class="export-card">
+            <svg class="icon" aria-hidden="true"><use href="#icon-car"></use></svg>
+            <h2>Vehículos</h2>
+            <p>Marca, modelo, año, placa, VIN, kilometraje.</p>
+            <button class="btn-primary" type="button" data-export="vehiculos">Descargar CSV</button>
+          </div>
+          <div class="export-card">
+            <svg class="icon" aria-hidden="true"><use href="#icon-file-text"></use></svg>
+            <h2>Facturas</h2>
+            <p>Número, fecha, estado, subtotal, impuesto, total.</p>
+            <button class="btn-primary" type="button" data-export="facturas">Descargar CSV</button>
+          </div>
+          <div class="export-card">
+            <svg class="icon" aria-hidden="true"><use href="#icon-wrench"></use></svg>
+            <h2>Órdenes de servicio</h2>
+            <p>Etapa, vehículo, diagnóstico, fechas.</p>
+            <button class="btn-primary" type="button" data-export="ordenes">Descargar CSV</button>
+          </div>
+        </div>
       </div>
 
       <div id="config-tab-negocio" class="config-tab-panel">
@@ -647,23 +642,13 @@
       </div>
     </section>
 
-    <section id="view-tareas" class="view" hidden>
-      <header class="view-header">
-        <div>
-          <h1>Tareas</h1>
-          <p class="view-sub">Seguimiento y recordatorios</p>
-        </div>
-        <button class="btn-primary" id="btn-nueva-tarea" type="button">+ Nueva tarea</button>
-      </header>
-      <div class="tareas-groups" id="tareas-groups"></div>
-    </section>
-
     <section id="view-llamadas" class="view" hidden>
       <header class="view-header">
         <div>
           <h1>Por llamar</h1>
           <p class="view-sub">Clientes a los que hay que avisar por teléfono</p>
         </div>
+        <button class="btn-primary" id="btn-nueva-llamada" type="button">+ Agregar llamada</button>
       </header>
       <div class="table-wrap">
         <table class="data-table">
@@ -674,6 +659,32 @@
       </div>
     </section>
   </main>
+</div>
+
+<div id="modal-llamada-manual" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2>Nueva llamada pendiente</h2>
+      <button class="icon-btn" data-close-modal="modal-llamada-manual" type="button">&times;</button>
+    </header>
+    <form id="form-llamada-manual" class="modal-body">
+      <div class="field">
+        <label>Cliente *</label>
+        <input type="text" id="llamada-manual-cliente" list="clientes-datalist" placeholder="Escribe el nombre del cliente..." required autocomplete="off" />
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Carro</label><input type="text" id="llamada-manual-carro" /></div>
+        <div class="field"><label>Modelo</label><input type="text" id="llamada-manual-modelo" /></div>
+        <div class="field"><label>Año</label><input type="text" id="llamada-manual-anio" /></div>
+      </div>
+      <div class="field"><label>Motivo</label><input type="text" id="llamada-manual-motivo" placeholder="Ej. Confirmar cita de mañana" /></div>
+      <footer class="modal-footer">
+        <span class="spacer"></span>
+        <button type="button" class="btn-ghost" data-close-modal="modal-llamada-manual">Cancelar</button>
+        <button type="submit" class="btn-primary">Agregar</button>
+      </footer>
+    </form>
+  </div>
 </div>
 
 <div id="modal-llamada-nota" class="modal-backdrop" hidden>
@@ -1142,35 +1153,6 @@
   </div>
 </div>
 
-<div id="modal-tarea" class="modal-backdrop" hidden>
-  <div class="modal">
-    <header class="modal-header">
-      <h2 id="modal-tarea-title">Nueva tarea</h2>
-      <button class="icon-btn" data-close-modal="modal-tarea" type="button">&times;</button>
-    </header>
-    <form id="form-tarea" class="modal-body">
-      <input type="hidden" id="tarea-id" />
-      <div class="field"><label>Título *</label><input type="text" id="tarea-titulo" required /></div>
-      <div class="field-row">
-        <div class="field">
-          <label>Cliente (opcional)</label>
-          <select id="tarea-cliente">
-            <option value="">— Sin cliente —</option>
-          </select>
-        </div>
-        <div class="field"><label>Fecha de vencimiento</label><input type="date" id="tarea-fecha" /></div>
-      </div>
-      <div class="field"><label>Descripción</label><textarea id="tarea-descripcion" rows="2"></textarea></div>
-      <footer class="modal-footer">
-        <button type="button" class="btn-danger" id="btn-eliminar-tarea" hidden>Eliminar</button>
-        <span class="spacer"></span>
-        <button type="button" class="btn-ghost" data-close-modal="modal-tarea">Cancelar</button>
-        <button type="submit" class="btn-primary">Guardar tarea</button>
-      </footer>
-    </form>
-  </div>
-</div>
-
 <div id="modal-gasto" class="modal-backdrop" hidden>
   <div class="modal">
     <header class="modal-header">
@@ -1240,6 +1222,10 @@
       </div>
 
       <footer class="modal-footer">
+        <button type="button" class="btn-ghost" id="btn-detalle-imprimir">
+          <svg class="icon" aria-hidden="true"><use href="#icon-printer"></use></svg>
+          Imprimir
+        </button>
         <button type="button" class="btn-primary" id="btn-detalle-crear-factura">
           <svg class="icon" aria-hidden="true"><use href="#icon-file-text"></use></svg>
           Crear factura
