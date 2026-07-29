@@ -515,6 +515,7 @@ body.tiene-banner-offline .app{padding-top:2.7rem;}
 .quick-tile[data-view="ordenes"]{--item-color:var(--series-7);}
 .quick-tile[data-view="inventario"]{--item-color:var(--series-4);}
 .quick-tile[data-view="tareas"]{--item-color:var(--series-8);}
+.quick-tile[data-view="llamadas"]{--item-color:var(--series-5);}
 .quick-tile[data-view="facturas"]{--item-color:var(--series-6);}
 .quick-tile[data-view="estimados"]{--item-color:var(--series-5);}
 .quick-tile[data-view="finanzas"]{--item-color:var(--series-1);}
@@ -685,6 +686,7 @@ body.tiene-banner-offline .app{padding-top:2.7rem;}
   font-size:.78rem;
   font-weight:600;
 }
+.pill-etiqueta{background:var(--accent-soft);color:var(--accent);margin-right:.3rem;}
 .pill-pendiente{background:var(--warning-soft);color:var(--warning);}
 .pill-pagada{background:var(--success-soft);color:var(--success);}
 .pill-cancelada{background:var(--danger-soft);color:var(--danger);}
@@ -787,6 +789,15 @@ body.tiene-banner-offline .app{padding-top:2.7rem;}
 .items-table .item-remove{background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:1.1rem;}
 .items-table .item-remove:hover{color:var(--danger);}
 .items-table td:first-child{width:50%;}
+
+.orden-fotos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(6rem,1fr));gap:.6rem;margin-bottom:.75rem;}
+.orden-foto-item{position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--border);aspect-ratio:1;}
+.orden-foto-item img{width:100%;height:100%;object-fit:cover;display:block;}
+.orden-foto-item .orden-foto-eliminar{
+  position:absolute;top:.25rem;right:.25rem;width:1.4rem;height:1.4rem;border-radius:999px;
+  background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;font-size:.9rem;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+}
 
 .registro-items-tbody input{padding:.4rem .5rem;border:1px solid var(--border);border-radius:5px;font-size:.85rem;width:100%;}
 .registro-items-tbody .item-remove{background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:1.1rem;}
