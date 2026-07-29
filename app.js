@@ -566,8 +566,7 @@
     reservas: "btn-nueva-reserva",
     ordenes: "btn-nueva-orden",
     inventario: "btn-nueva-pieza",
-    tareas: "btn-nueva-tarea",
-    finanzas: "btn-nuevo-gasto",
+    llamadas: "btn-nueva-llamada",
   };
 
   function initKeyboardShortcuts() {
@@ -767,7 +766,7 @@
   }
 
   function showView(name) {
-    ["setup", "dashboard", "clientes", "reservas", "ordenes", "inventario", "tareas", "llamadas", "facturas", "estimados", "finanzas", "registro-diario", "export", "configuracion"].forEach((v) => {
+    ["setup", "dashboard", "clientes", "reservas", "ordenes", "inventario", "llamadas", "facturas", "estimados", "registro-diario", "configuracion"].forEach((v) => {
       const el = document.getElementById("view-" + v);
       if (v === name) {
         el.hidden = false;
@@ -1469,7 +1468,69 @@
           .join("")
       : '<p class="detalle-empty">Sin tareas registradas.</p>';
 
+    document.getElementById("btn-detalle-imprimir").onclick = () => {
+      imprimirHistorialCliente(cliente, vehiculosCliente, historial, tareasCliente, totalGastado);
+    };
+
     openModal("modal-cliente-detalle");
+  }
+
+  function imprimirHistorialCliente(cliente, vehiculos, historial, tareas, totalGastado) {
+    const cfg = state.configNegocio || {};
+    const nombreNegocio = cfg.nombre_negocio || "Gil Muffler";
+
+    const vehiculosHtml = vehiculos.length
+      ? "<ul>" + vehiculos.map((v) => "<li>" + escapeHtml(vehiculoLabel(v)) + " — Placa: " + escapeHtml(v.placa || "—") + " — Kilometraje: " + escapeHtml(v.kilometraje || "—") + "</li>").join("") + "</ul>"
+      : "<p>Sin vehículos registrados.</p>";
+
+    const historialHtml = historial.length
+      ? "<table><thead><tr><th>Fecha</th><th>Detalle</th><th>Estado</th></tr></thead><tbody>" +
+        historial
+          .map((h) => "<tr><td>" + escapeHtml(h.fecha ? formatDate(h.fecha) : "Sin fecha") + "</td><td>" + escapeHtml(h.texto) + "</td><td>" + escapeHtml(h.etiqueta) + "</td></tr>")
+          .join("") +
+        "</tbody></table>"
+      : "<p>Sin historial todavía.</p>";
+
+    const tareasHtml = tareas.length
+      ? "<ul>" + tareas.map((t) => "<li>" + escapeHtml(t.titulo) + " — " + (t.completada ? "Completada" : escapeHtml(t.fecha_vencimiento ? formatDate(t.fecha_vencimiento) : "Sin fecha")) + "</li>").join("") + "</ul>"
+      : "<p>Sin tareas registradas.</p>";
+
+    const html =
+      "<!doctype html><html><head><meta charset='utf-8'><title>" +
+      escapeHtml(cliente.nombre) +
+      " — Historial</title><style>" +
+      "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:2.5rem;max-width:40rem;margin:0 auto;}" +
+      "h1{font-size:1.3rem;margin:0 0 .2rem;}" +
+      "h2{font-size:1rem;margin:1.5rem 0 .5rem;border-bottom:1px solid #ccc;padding-bottom:.3rem;}" +
+      ".sub{color:#68707e;font-size:.85rem;margin:0 0 1.2rem;}" +
+      "table{width:100%;border-collapse:collapse;font-size:.85rem;}" +
+      "th,td{text-align:left;padding:.4rem .5rem;border:1px solid #ccc;}" +
+      "th{background:#eef0f1;text-transform:uppercase;font-size:.72rem;}" +
+      "ul{margin:0;padding-left:1.2rem;font-size:.85rem;}" +
+      "@media print{body{padding:0;}}" +
+      "</style></head><body>" +
+      "<h1>" +
+      escapeHtml(nombreNegocio) +
+      "</h1>" +
+      "<p class='sub'>Historial del cliente — impreso el " +
+      escapeHtml(formatDate(todayISO())) +
+      "</p>" +
+      "<p><strong>Cliente:</strong> " +
+      escapeHtml([cliente.nombre, cliente.apellido].filter(Boolean).join(" ")) +
+      "<br><strong>Teléfono:</strong> " +
+      escapeHtml(cliente.telefono || "—") +
+      "<br><strong>Total gastado:</strong> " +
+      money(totalGastado) +
+      "</p>" +
+      "<h2>Vehículos</h2>" +
+      vehiculosHtml +
+      "<h2>Historial</h2>" +
+      historialHtml +
+      "<h2>Tareas</h2>" +
+      tareasHtml +
+      "</body></html>";
+
+    openPrintWindow(html);
   }
 
   function escapeHtml(str) {
@@ -3482,158 +3543,8 @@
 
   // ---------------- render: tareas ----------------
 
-  function populateTareaClienteSelect() {
-    const select = document.getElementById("tarea-cliente");
-    const current = select.value;
-    select.innerHTML = '<option value="">— Sin cliente —</option>';
-    state.clientes.forEach((c) => {
-      const opt = document.createElement("option");
-      opt.value = c.id;
-      opt.textContent = c.nombre;
-      select.appendChild(opt);
-    });
-    if (current) select.value = current;
-  }
-
-  function renderTareas() {
-    const container = document.getElementById("tareas-groups");
-    container.innerHTML = "";
-    const today = todayISO();
-
-    const grupos = [
-      { title: "Vencidas", items: state.tareas.filter((t) => !t.completada && t.fecha_vencimiento && t.fecha_vencimiento < today) },
-      { title: "Hoy", items: state.tareas.filter((t) => !t.completada && t.fecha_vencimiento === today) },
-      { title: "Próximas", items: state.tareas.filter((t) => !t.completada && (!t.fecha_vencimiento || t.fecha_vencimiento > today)) },
-      { title: "Completadas", items: state.tareas.filter((t) => t.completada) },
-    ];
-
-    grupos.forEach((grupo) => {
-      if (!grupo.items.length) return;
-      const section = document.createElement("div");
-      const clienteTxt = (t) => (t.clientes ? " — " + escapeHtml(t.clientes.nombre) : "");
-      section.innerHTML =
-        '<p class="tarea-group-title">' +
-        grupo.title +
-        " (" +
-        grupo.items.length +
-        ")</p>" +
-        grupo.items
-          .map(
-            (t) =>
-              '<div class="tarea-row' +
-              (t.completada ? " is-completada" : "") +
-              '" data-tarea-id="' +
-              t.id +
-              '">' +
-              '<input type="checkbox" class="tarea-check" ' +
-              (t.completada ? "checked" : "") +
-              " />" +
-              '<div class="tarea-row-body">' +
-              '<div class="tarea-row-title">' +
-              escapeHtml(t.titulo) +
-              clienteTxt(t) +
-              "</div>" +
-              '<div class="tarea-row-meta' +
-              (!t.completada && t.fecha_vencimiento && t.fecha_vencimiento < today ? " is-vencida" : "") +
-              '">' +
-              (t.fecha_vencimiento ? "Vence: " + escapeHtml(formatDate(t.fecha_vencimiento)) : "Sin fecha") +
-              "</div>" +
-              "</div>" +
-              "</div>"
-          )
-          .join("");
-      container.appendChild(section);
-    });
-
-    if (!state.tareas.length) {
-      container.innerHTML = emptyStateHtml("check-square", "Todavía no hay tareas registradas.", "+ Crear la primera tarea", "empty-cta-tarea");
-      document.getElementById("empty-cta-tarea").addEventListener("click", () => openTareaModal(null));
-    }
-
-    container.querySelectorAll(".tarea-check").forEach((chk) => {
-      chk.addEventListener("change", async (e) => {
-        e.stopPropagation();
-        const row = chk.closest(".tarea-row");
-        await toggleTareaCompletada(row.dataset.tareaId, chk.checked);
-      });
-    });
-
-    container.querySelectorAll(".tarea-row-body").forEach((body) => {
-      body.addEventListener("click", () => {
-        const row = body.closest(".tarea-row");
-        const tarea = state.tareas.find((t) => t.id === row.dataset.tareaId);
-        openTareaModal(tarea);
-      });
-    });
-  }
-
-  async function toggleTareaCompletada(id, completada) {
-    const { error } = await sb.from("tareas").update({ completada }).eq("id", id);
-    if (error) {
-      showToast("No se pudo actualizar la tarea.", true);
-      return;
-    }
-    await refreshTareas();
-  }
-
-  function openTareaModal(tarea) {
-    document.getElementById("modal-tarea-title").textContent = tarea ? "Editar tarea" : "Nueva tarea";
-    document.getElementById("tarea-id").value = tarea ? tarea.id : "";
-    populateTareaClienteSelect();
-    document.getElementById("tarea-titulo").value = tarea ? tarea.titulo || "" : "";
-    document.getElementById("tarea-cliente").value = tarea ? tarea.cliente_id || "" : "";
-    document.getElementById("tarea-fecha").value = tarea ? tarea.fecha_vencimiento || "" : "";
-    document.getElementById("tarea-descripcion").value = tarea ? tarea.descripcion || "" : "";
-    document.getElementById("btn-eliminar-tarea").hidden = !tarea;
-    openModal("modal-tarea");
-  }
-
-  async function saveTarea(e) {
-    e.preventDefault();
-    const id = document.getElementById("tarea-id").value;
-    const payload = {
-      titulo: document.getElementById("tarea-titulo").value.trim(),
-      cliente_id: document.getElementById("tarea-cliente").value || null,
-      fecha_vencimiento: document.getElementById("tarea-fecha").value || null,
-      descripcion: document.getElementById("tarea-descripcion").value.trim(),
-    };
-
-    let error;
-    if (id) {
-      ({ error } = await sb.from("tareas").update(payload).eq("id", id));
-    } else {
-      ({ error } = await sb.from("tareas").insert(payload));
-    }
-
-    if (error) {
-      showToast("No se pudo guardar la tarea.", true);
-      return;
-    }
-
-    closeModal("modal-tarea");
-    showToast("Tarea guardada.");
-    await refreshTareas();
-  }
-
-  async function deleteTarea() {
-    const id = document.getElementById("tarea-id").value;
-    if (!id) return;
-    if (!(await confirmDialog("¿Eliminar esta tarea?", { title: "Eliminar tarea" }))) return;
-
-    const { error } = await sb.from("tareas").delete().eq("id", id);
-    if (error) {
-      showToast("No se pudo eliminar la tarea.", true);
-      return;
-    }
-
-    closeModal("modal-tarea");
-    showToast("Tarea eliminada.");
-    await refreshTareas();
-  }
-
   async function refreshTareas() {
     state.tareas = await fetchTareas();
-    renderTareas();
     renderDashboard();
   }
 
@@ -3652,7 +3563,9 @@
   async function fetchLlamadasPendientes() {
     const { data, error } = await sb
       .from("llamadas_ordenes")
-      .select("*, ordenes_servicio(numero, vehiculo_marca, vehiculo_modelo, vehiculo_anio, clientes(nombre, apellido, telefono))")
+      .select(
+        "*, ordenes_servicio(numero, vehiculo_marca, vehiculo_modelo, vehiculo_anio, clientes(nombre, apellido, telefono)), clientes(nombre, apellido, telefono)"
+      )
       .eq("hecha", false)
       .order("created_at", { ascending: true });
     if (error) {
@@ -3674,10 +3587,13 @@
     empty.hidden = state.llamadas.length !== 0;
     tbody.innerHTML = state.llamadas
       .map((l) => {
-        const orden = l.ordenes_servicio || {};
-        const cliente = orden.clientes || {};
+        const orden = l.ordenes_servicio;
+        const cliente = orden ? orden.clientes || {} : l.clientes || {};
         const nombreCliente = [cliente.nombre, cliente.apellido].filter(Boolean).join(" ") || "—";
-        const carro = [orden.vehiculo_marca, orden.vehiculo_modelo, orden.vehiculo_anio].filter(Boolean).join(" ") || "—";
+        const carro = orden
+          ? [orden.vehiculo_marca, orden.vehiculo_modelo, orden.vehiculo_anio].filter(Boolean).join(" ") || "—"
+          : [l.vehiculo_marca, l.vehiculo_modelo, l.vehiculo_anio].filter(Boolean).join(" ") || "—";
+        const motivoTexto = orden ? MOTIVO_LLAMADA_LABELS[l.motivo] || l.motivo : l.motivo || "Llamar";
         return (
           "<tr><td>" +
           escapeHtml(nombreCliente) +
@@ -3686,7 +3602,7 @@
           "</td><td>" +
           escapeHtml(carro) +
           "</td><td>" +
-          escapeHtml(MOTIVO_LLAMADA_LABELS[l.motivo] || l.motivo) +
+          escapeHtml(motivoTexto) +
           '</td><td><button type="button" class="btn-ghost" data-marcar-llamada="' +
           l.id +
           '">Ya llamé</button></td></tr>'
@@ -3714,6 +3630,39 @@
     }
     closeModal("modal-llamada-nota");
     showToast("Llamada marcada.");
+    await refreshLlamadas();
+  }
+
+  async function guardarLlamadaManual(e) {
+    e.preventDefault();
+    const nombreCliente = document.getElementById("llamada-manual-cliente").value.trim();
+    if (!nombreCliente) {
+      showToast("Escribe el nombre del cliente.", true);
+      return;
+    }
+    const clienteId = await resolveClienteIdByName(nombreCliente);
+    if (!clienteId) {
+      showToast("No se pudo guardar el cliente.", true);
+      return;
+    }
+
+    const payload = {
+      cliente_id: clienteId,
+      vehiculo_marca: document.getElementById("llamada-manual-carro").value.trim(),
+      vehiculo_modelo: document.getElementById("llamada-manual-modelo").value.trim(),
+      vehiculo_anio: document.getElementById("llamada-manual-anio").value.trim(),
+      motivo: document.getElementById("llamada-manual-motivo").value.trim() || "Llamar",
+    };
+
+    const { error } = await sb.from("llamadas_ordenes").insert(payload);
+    if (error) {
+      showToast("No se pudo agregar la llamada.", true);
+      return;
+    }
+
+    closeModal("modal-llamada-manual");
+    document.getElementById("form-llamada-manual").reset();
+    showToast("Llamada agregada.");
     await refreshLlamadas();
   }
 
@@ -4329,13 +4278,10 @@
     { view: "reservas", icon: "calendar", label: "Bookings" },
     { view: "ordenes", icon: "wrench", label: "Órdenes de servicio", badge: "neutral" },
     { view: "inventario", icon: "box", label: "Inventario", badge: "danger" },
-    { view: "tareas", icon: "check-square", label: "Tareas", badge: "danger" },
     { view: "llamadas", icon: "phone", label: "Por llamar", badge: "warning" },
     { view: "facturas", icon: "file-text", label: "Facturas", badge: "warning" },
     { view: "estimados", icon: "clipboard", label: "Estimates", badge: "neutral" },
-    { view: "finanzas", icon: "dollar", label: "Finanzas" },
     { view: "registro-diario", icon: "hash", label: "Registro diario" },
-    { view: "export", icon: "download", label: "Export" },
     { view: "configuracion", icon: "settings", label: "Configuración" },
   ];
 
@@ -4359,11 +4305,9 @@
   }
 
   function updateQuickAccessBadges() {
-    const hoy = todayISO();
     const counts = {
       ordenes: state.ordenes.filter((o) => o.etapa !== "facturado" && o.etapa !== "cancelado").length,
       inventario: state.piezas.filter((p) => Number(p.stock) <= Number(p.stock_minimo)).length,
-      tareas: state.tareas.filter((t) => !t.completada && t.fecha_vencimiento && t.fecha_vencimiento < hoy).length,
       facturas: state.facturas.filter((f) => f.estado === "pendiente").length,
       estimados: state.estimados.filter((e) => e.estado === "pendiente").length,
       llamadas: (state.llamadas || []).length,
@@ -4408,15 +4352,12 @@
 
     const ordenesActivas = state.ordenes.filter((o) => o.etapa !== "facturado" && o.etapa !== "cancelado");
 
-    const tareasVencidas = state.tareas.filter((t) => !t.completada && t.fecha_vencimiento && t.fecha_vencimiento < hoy);
-
     const stockBajo = state.piezas.filter((p) => Number(p.stock) <= Number(p.stock_minimo));
 
     document.getElementById("kpi-ingresos").textContent = money(ingresosMes);
     document.getElementById("kpi-facturas-pendientes").textContent = String(pendientes.length);
     document.getElementById("kpi-facturas-pendientes-monto").textContent = money(pendientesMonto);
     document.getElementById("kpi-ordenes-activas").textContent = String(ordenesActivas.length);
-    document.getElementById("kpi-tareas-vencidas").textContent = String(tareasVencidas.length);
     document.getElementById("kpi-stock-bajo").textContent = String(stockBajo.length);
 
     const counts = document.getElementById("dashboard-etapa-counts");
@@ -4660,10 +4601,12 @@
     document.getElementById("orden-cliente").addEventListener("change", (e) => populateOrdenVehiculoSelect(e.target.value));
     document.getElementById("orden-vehiculo").addEventListener("change", (e) => toggleOrdenVehiculoNuevo(e.target.value === "__nuevo__"));
 
-    document.getElementById("btn-nueva-tarea").addEventListener("click", () => openTareaModal(null));
-    document.getElementById("form-tarea").addEventListener("submit", saveTarea);
     document.getElementById("form-llamada-nota").addEventListener("submit", guardarLlamadaNota);
-    document.getElementById("btn-eliminar-tarea").addEventListener("click", deleteTarea);
+    document.getElementById("btn-nueva-llamada").addEventListener("click", () => {
+      populateClientesDatalist();
+      openModal("modal-llamada-manual");
+    });
+    document.getElementById("form-llamada-manual").addEventListener("submit", guardarLlamadaManual);
 
     document.getElementById("btn-nuevo-gasto").addEventListener("click", () => openGastoModal(null));
     document.getElementById("form-gasto").addEventListener("submit", saveGasto);
