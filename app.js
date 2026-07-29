@@ -3681,11 +3681,30 @@
     return data;
   }
 
+  let registroDiarioSucio = false;
+
   async function cargarRegistroDiario(fecha) {
     const registro = await fetchRegistroDiario(fecha);
     state.registroDiarioId = registro ? registro.id : null;
     const items = registro ? await fetchRegistroDiarioItems(registro.id) : [];
     renderRegistroDiario(registro, items);
+    registroDiarioSucio = false;
+  }
+
+  async function irAFechaRegistro(nuevaFecha) {
+    if (registroDiarioSucio) {
+      const seguir = await confirmDialog("Tienes cambios sin guardar en el registro de hoy. Si cambias de día se van a perder. ¿Quieres continuar sin guardarlos?", {
+        title: "Cambios sin guardar",
+        okLabel: "Continuar sin guardar",
+      });
+      if (!seguir) {
+        document.getElementById("registro-fecha").value = state.registroDiarioFechaActual || todayISO();
+        return;
+      }
+    }
+    document.getElementById("registro-fecha").value = nuevaFecha;
+    state.registroDiarioFechaActual = nuevaFecha;
+    await cargarRegistroDiario(nuevaFecha);
   }
 
   function renderRegistroDiario(registro, items) {
@@ -3704,10 +3723,12 @@
 
     container.innerHTML = mecanicosActivos
       .map(
-        (m) =>
+        (m, idx) =>
           '<div class="table-wrap registro-mecanico-card" data-mecanico-id="' +
           m.id +
-          '" style="padding:1.25rem 1.5rem;margin-bottom:1.25rem;">' +
+          '" style="padding:1.25rem 1.5rem;margin-bottom:1.25rem;border-top:3px solid var(--series-' +
+          ((idx % 8) + 1) +
+          ');">' +
           '<header class="view-header" style="margin-bottom:.75rem;">' +
           '<h2 style="font-size:1rem;margin:0;">' +
           escapeHtml(m.nombre) +
@@ -3725,8 +3746,11 @@
     container.querySelectorAll(".registro-add-fila").forEach((btn) => {
       btn.addEventListener("click", () => {
         const card = btn.closest(".registro-mecanico-card");
-        addRegistroItemRow(card.querySelector(".registro-items-tbody"), null);
+        const tr = addRegistroItemRow(card.querySelector(".registro-items-tbody"), null);
+        registroDiarioSucio = true;
         recalcularRegistroDiario();
+        const primerInput = tr.querySelector(".reg-carro");
+        if (primerInput) primerInput.focus();
       });
     });
 
@@ -3764,26 +3788,46 @@
       '<td><button type="button" class="item-remove" title="Quitar fila">&times;</button></td>';
     tbody.appendChild(tr);
 
-    tr.querySelectorAll(".reg-labor, .reg-piezas, .reg-otro, .reg-dinero-salida").forEach((input) => {
-      input.addEventListener("input", recalcularRegistroDiario);
+    tr.querySelectorAll(".reg-carro, .reg-desc, .reg-labor, .reg-piezas, .reg-otro, .reg-dinero-salida").forEach((input) => {
+      input.addEventListener("input", () => {
+        registroDiarioSucio = true;
+        recalcularRegistroDiario();
+      });
     });
     tr.querySelector(".item-remove").addEventListener("click", () => {
       tr.remove();
+      registroDiarioSucio = true;
       recalcularRegistroDiario();
     });
+
+    return tr;
   }
 
   function recalcularRegistroDiario() {
+    let laborDia = 0;
+    let piezasDia = 0;
+    let otroDia = 0;
+    let dineroSalidaDia = 0;
+
     document.querySelectorAll(".registro-mecanico-card").forEach((card) => {
       let laborM = 0;
       let piezasM = 0;
       card.querySelectorAll(".registro-items-tbody tr").forEach((tr) => {
         laborM += parseFloat(tr.querySelector(".reg-labor").value) || 0;
         piezasM += parseFloat(tr.querySelector(".reg-piezas").value) || 0;
+        otroDia += parseFloat(tr.querySelector(".reg-otro").value) || 0;
+        dineroSalidaDia += parseFloat(tr.querySelector(".reg-dinero-salida").value) || 0;
       });
       card.querySelector(".reg-sub-labor").textContent = money(laborM);
       card.querySelector(".reg-sub-piezas").textContent = money(piezasM);
+      laborDia += laborM;
+      piezasDia += piezasM;
     });
+
+    document.getElementById("registro-resumen-labor").textContent = money(laborDia);
+    document.getElementById("registro-resumen-piezas").textContent = money(piezasDia);
+    document.getElementById("registro-resumen-otro").textContent = money(otroDia);
+    document.getElementById("registro-resumen-dinero-salida").textContent = money(dineroSalidaDia);
 
     const cc = parseFloat(document.getElementById("registro-credit-card").value) || 0;
     const cash = parseFloat(document.getElementById("registro-cash").value) || 0;
@@ -4291,24 +4335,23 @@
 
     document.getElementById("btn-guardar-registro-diario").addEventListener("click", guardarRegistroDiario);
     ["registro-credit-card", "registro-cash", "registro-check"].forEach((id) => {
-      document.getElementById(id).addEventListener("input", recalcularRegistroDiario);
+      document.getElementById(id).addEventListener("input", () => {
+        registroDiarioSucio = true;
+        recalcularRegistroDiario();
+      });
     });
     document.getElementById("registro-fecha").addEventListener("change", (e) => {
-      cargarRegistroDiario(e.target.value);
+      irAFechaRegistro(e.target.value);
     });
     document.getElementById("btn-registro-dia-anterior").addEventListener("click", () => {
-      const input = document.getElementById("registro-fecha");
-      const d = new Date(input.value + "T00:00:00");
+      const d = new Date(document.getElementById("registro-fecha").value + "T00:00:00");
       d.setDate(d.getDate() - 1);
-      input.value = d.toISOString().slice(0, 10);
-      cargarRegistroDiario(input.value);
+      irAFechaRegistro(d.toISOString().slice(0, 10));
     });
     document.getElementById("btn-registro-dia-siguiente").addEventListener("click", () => {
-      const input = document.getElementById("registro-fecha");
-      const d = new Date(input.value + "T00:00:00");
+      const d = new Date(document.getElementById("registro-fecha").value + "T00:00:00");
       d.setDate(d.getDate() + 1);
-      input.value = d.toISOString().slice(0, 10);
-      cargarRegistroDiario(input.value);
+      irAFechaRegistro(d.toISOString().slice(0, 10));
     });
 
     document.getElementById("form-configuracion").addEventListener("submit", saveConfiguracion);
@@ -4416,6 +4459,7 @@
     await refreshEmpleados();
     await refreshMecanicos();
     document.getElementById("registro-fecha").value = todayISO();
+    state.registroDiarioFechaActual = todayISO();
     await cargarRegistroDiario(todayISO());
     renderDashboard();
     verificarConexionReal();
