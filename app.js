@@ -1296,7 +1296,7 @@
     });
 
     wireRowActions(tbody, {
-      detalle: (id) => window.open(location.pathname + "?cliente=" + id, "_blank"),
+      detalle: (id) => openClienteDetalle(state.clientes.find((c) => c.id === id)),
       factura: (id) => crearFacturaParaCliente(state.clientes.find((c) => c.id === id)),
       editar: (id) => openClienteModal(state.clientes.find((c) => c.id === id)),
       eliminar: (id, btn) => deleteClienteRow(id, btn),
@@ -4806,15 +4806,6 @@
     await refreshLlamadas();
     renderDashboard();
     verificarConexionReal();
-
-    const clienteIdUrl = new URLSearchParams(location.search).get("cliente");
-    if (clienteIdUrl) {
-      const cliente = state.clientes.find((c) => c.id === clienteIdUrl);
-      if (cliente) {
-        goToView("clientes");
-        openClienteDetalle(cliente);
-      }
-    }
   }
 
   if ("serviceWorker" in navigator) {
