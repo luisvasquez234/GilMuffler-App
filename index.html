@@ -680,8 +680,11 @@
         <div class="field"><label>Modelo *</label><input type="text" id="cliente-vehiculo-modelo" required /></div>
         <div class="field"><label>Año *</label><input type="text" id="cliente-vehiculo-anio" required /></div>
       </div>
+      <div class="field-row">
+        <div class="field"><label>Placa</label><input type="text" id="cliente-vehiculo-placa" /></div>
+        <div class="field"><label>Kilometraje</label><input type="text" id="cliente-vehiculo-kilometraje" /></div>
+      </div>
       <div class="field"><label><svg class="icon field-icon" aria-hidden="true"><use href="#icon-edit"></use></svg>Notas</label><textarea id="cliente-notas" rows="2"></textarea></div>
-      <p class="orden-nota">La placa y el kilometraje se agregan desde la ficha del cliente, después de guardarlo.</p>
       <footer class="modal-footer">
         <button type="button" class="btn-danger" id="btn-eliminar-cliente" hidden>Eliminar</button>
         <span class="spacer"></span>
@@ -838,9 +841,17 @@
         </div>
       </div>
 
-      <div class="field" style="max-width:16rem;">
-        <label>Mano de obra (Labor)</label>
-        <input type="number" id="factura-labor" min="0" step="0.01" value="0" />
+      <div class="field-row">
+        <div class="field" style="max-width:16rem;">
+          <label>Mano de obra (Labor)</label>
+          <input type="number" id="factura-labor" min="0" step="0.01" value="0" />
+        </div>
+        <div class="field" style="max-width:16rem;">
+          <label>Mecánico</label>
+          <select id="factura-mecanico">
+            <option value="">— Sin asignar —</option>
+          </select>
+        </div>
       </div>
 
       <table class="items-table">
