@@ -19,11 +19,13 @@
     configNegocio: null,
     mecanicos: [],
     registroDiarioId: null,
+    llamadas: [],
   };
 
   let finanzasAnio = null;
 
   let sb = null;
+  let zxingReaderInstancia = null;
   let ordenPiezasOriginal = [];
 
   const ETAPAS = [
@@ -278,6 +280,10 @@
     requestAnimationFrame(() => el.classList.add("is-open"));
   }
   function closeModal(id) {
+    if (id === "modal-escaner-vin" && zxingReaderInstancia) {
+      zxingReaderInstancia.reset();
+      zxingReaderInstancia = null;
+    }
     const el = document.getElementById(id);
     el.classList.remove("is-open");
     if (prefersReducedMotion()) {
@@ -761,7 +767,7 @@
   }
 
   function showView(name) {
-    ["setup", "dashboard", "clientes", "reservas", "ordenes", "inventario", "tareas", "facturas", "estimados", "finanzas", "registro-diario", "export", "configuracion"].forEach((v) => {
+    ["setup", "dashboard", "clientes", "reservas", "ordenes", "inventario", "tareas", "llamadas", "facturas", "estimados", "finanzas", "registro-diario", "export", "configuracion"].forEach((v) => {
       const el = document.getElementById("view-" + v);
       if (v === name) {
         el.hidden = false;
@@ -831,6 +837,68 @@
 
   function vehiculoLabel(v) {
     return [v.marca, v.modelo, v.anio].filter(Boolean).join(" ") || "Vehículo sin marca/modelo";
+  }
+
+  function cargarZXing() {
+    if (window.ZXing) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js";
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("No se pudo cargar el escáner."));
+      document.head.appendChild(script);
+    });
+  }
+
+  async function abrirEscanerVin() {
+    const estado = document.getElementById("escaner-vin-estado");
+    estado.textContent = "Iniciando cámara...";
+    openModal("modal-escaner-vin");
+
+    try {
+      await cargarZXing();
+    } catch (e) {
+      estado.textContent = "No se pudo cargar el escáner. Revisa tu conexión a internet.";
+      return;
+    }
+
+    const video = document.getElementById("video-escaner-vin");
+    zxingReaderInstancia = new ZXing.BrowserMultiFormatReader();
+    try {
+      await zxingReaderInstancia.decodeFromConstraints({ video: { facingMode: "environment" } }, video, (result) => {
+        if (result) {
+          const texto = result.getText().toUpperCase().replace(/[^A-Z0-9]/g, "");
+          document.getElementById("vehiculo-vin").value = texto;
+          closeModal("modal-escaner-vin");
+          showToast("VIN detectado: " + texto);
+          decodificarVinNHTSA(texto);
+        }
+      });
+      estado.textContent = "Buscando el código de barras del VIN...";
+    } catch (e) {
+      estado.textContent = "No se pudo acceder a la cámara. Revisa que le hayas dado permiso al navegador.";
+    }
+  }
+
+  async function decodificarVinNHTSA(vin) {
+    if (!vin || vin.length !== 17) return;
+    try {
+      const resp = await fetch("https://vpic.nhtsa.gov/api/vehicles/decodevin/" + encodeURIComponent(vin) + "?format=json");
+      const data = await resp.json();
+      const campos = {};
+      (data.Results || []).forEach((r) => {
+        if (r.Value && r.Value !== "Not Applicable") campos[r.Variable] = r.Value;
+      });
+      const marca = campos["Make"];
+      const modelo = campos["Model"];
+      const anio = campos["Model Year"];
+      if (marca && !document.getElementById("vehiculo-marca").value.trim()) document.getElementById("vehiculo-marca").value = marca;
+      if (modelo && !document.getElementById("vehiculo-modelo").value.trim()) document.getElementById("vehiculo-modelo").value = modelo;
+      if (anio && !document.getElementById("vehiculo-anio").value.trim()) document.getElementById("vehiculo-anio").value = anio;
+      if (marca || modelo || anio) showToast("Marca/modelo/año completados con el VIN.");
+    } catch (e) {
+      // Si falla la consulta del VIN, no pasa nada más — el VIN ya quedó guardado.
+    }
   }
 
   async function openVehiculoModal(vehiculo, clienteId) {
@@ -983,6 +1051,76 @@
     return data;
   }
 
+  async function refreshOrdenFotos(ordenId) {
+    const { data, error } = await sb.from("orden_fotos").select("*").eq("orden_id", ordenId).order("created_at", { ascending: true });
+    if (error) {
+      showToast("No se pudieron cargar las fotos.", true);
+      return;
+    }
+    renderOrdenFotos(data || []);
+  }
+
+  function renderOrdenFotos(fotos) {
+    const grid = document.getElementById("orden-fotos-grid");
+    grid.innerHTML = fotos
+      .map(
+        (f) =>
+          '<div class="orden-foto-item"><img src="' +
+          f.url +
+          '" alt="Foto del vehículo" /><button type="button" class="orden-foto-eliminar" data-foto-id="' +
+          f.id +
+          '" data-storage-path="' +
+          escapeHtml(f.storage_path) +
+          '" title="Eliminar foto">&times;</button></div>'
+      )
+      .join("");
+
+    grid.querySelectorAll("[data-foto-id]").forEach((btn) => {
+      btn.addEventListener("click", () => eliminarOrdenFoto(btn.dataset.fotoId, btn.dataset.storagePath));
+    });
+  }
+
+  async function subirOrdenFoto(file) {
+    const ordenId = document.getElementById("orden-id").value;
+    if (!ordenId || !file) return;
+
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const storagePath = "orden-" + ordenId + "/" + crypto.randomUUID() + "." + ext;
+
+    showToast("Subiendo foto...");
+    const { error: uploadError } = await sb.storage.from("fotos-ordenes").upload(storagePath, file);
+    if (uploadError) {
+      showToast("No se pudo subir la foto.", true);
+      return;
+    }
+
+    const { data: urlData } = sb.storage.from("fotos-ordenes").getPublicUrl(storagePath);
+    const { error: insertError } = await sb.from("orden_fotos").insert({
+      orden_id: ordenId,
+      url: urlData.publicUrl,
+      storage_path: storagePath,
+    });
+    if (insertError) {
+      showToast("No se pudo guardar la foto.", true);
+      return;
+    }
+
+    showToast("Foto agregada.");
+    await refreshOrdenFotos(ordenId);
+  }
+
+  async function eliminarOrdenFoto(fotoId, storagePath) {
+    if (!(await confirmDialog("¿Eliminar esta foto?", { title: "Eliminar foto" }))) return;
+    await sb.storage.from("fotos-ordenes").remove([storagePath]);
+    const { error } = await sb.from("orden_fotos").delete().eq("id", fotoId);
+    if (error) {
+      showToast("No se pudo eliminar la foto.", true);
+      return;
+    }
+    const ordenId = document.getElementById("orden-id").value;
+    await refreshOrdenFotos(ordenId);
+  }
+
   async function mostrarRotacionInventario() {
     const { data, error } = await sb.from("orden_piezas").select("pieza_id, cantidad");
     const usoPorPieza = new Map();
@@ -1067,6 +1205,32 @@
     openModal("modal-historial-precios");
   }
 
+  function mostrarParaReordenar() {
+    const bajas = state.piezas.filter((p) => Number(p.stock) <= Number(p.stock_minimo));
+    const tbody = document.getElementById("reordenar-tbody");
+    tbody.innerHTML = bajas.length
+      ? bajas
+          .map((p) => {
+            const sugerido = Math.max(Number(p.stock_minimo) * 2 - Number(p.stock), Number(p.stock_minimo) || 1);
+            return (
+              "<tr><td>" +
+              escapeHtml(p.nombre) +
+              "</td><td>" +
+              escapeHtml(p.proveedor || "—") +
+              "</td><td>" +
+              p.stock +
+              "</td><td>" +
+              p.stock_minimo +
+              "</td><td>" +
+              Math.ceil(sugerido) +
+              "</td></tr>"
+            );
+          })
+          .join("")
+      : "<tr><td colspan='5'>Ninguna pieza está en o por debajo de su stock mínimo ahora mismo.</td></tr>";
+    openModal("modal-reordenar");
+  }
+
   async function fetchTareas() {
     return fetchConCache(
       "tareas",
@@ -1084,6 +1248,19 @@
   }
 
   // ---------------- render: clientes ----------------
+
+  function etiquetasList(etiquetas) {
+    return (etiquetas || "")
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+  }
+
+  function etiquetasPillsHtml(etiquetas) {
+    return etiquetasList(etiquetas)
+      .map((t) => '<span class="pill pill-etiqueta">' + escapeHtml(t) + "</span>")
+      .join("");
+  }
 
   function renderClientes(list) {
     const tbody = document.getElementById("clientes-tbody");
@@ -1109,7 +1286,7 @@
         { key: "eliminar", icon: "trash", label: "Eliminar", danger: true },
       ];
       tr.innerHTML =
-        "<td>" + avatarHtml(c.nombre) + escapeHtml(c.nombre) + "</td>" +
+        "<td>" + avatarHtml(c.nombre) + escapeHtml(c.nombre) + " " + etiquetasPillsHtml(c.etiquetas) + "</td>" +
         "<td>" + escapeHtml(c.telefono || "—") + "</td>" +
         "<td>" + escapeHtml(vehiculo || "—") + "</td>" +
         "<td>" + escapeHtml(placa) + "</td>" +
@@ -1174,7 +1351,8 @@
       "<div><span>ID Cliente</span>" + escapeHtml(String(cliente.numero || "—")) + "</div>" +
       "<div><span>Teléfono</span>" + escapeHtml(cliente.telefono || "—") + "</div>" +
       "<div><span>Email</span>" + escapeHtml(cliente.email || "—") + "</div>" +
-      "<div><span>Total gastado</span>" + money(totalGastado) + "</div>";
+      "<div><span>Total gastado</span>" + money(totalGastado) + "</div>" +
+      (cliente.etiquetas ? "<div><span>Etiquetas</span>" + etiquetasPillsHtml(cliente.etiquetas) + "</div>" : "");
 
     const vehiculosCliente = state.vehiculos.filter((v) => v.cliente_id === cliente.id);
     const vehiculosEl = document.getElementById("cliente-detalle-vehiculos");
@@ -1228,42 +1406,53 @@
     });
     historial.sort((a, b) => (a.fecha < b.fecha ? 1 : a.fecha > b.fecha ? -1 : 0));
 
-    const historialEl = document.getElementById("cliente-detalle-historial");
-    historialEl.innerHTML = historial.length
-      ? historial
-          .map(
-            (h) =>
-              '<div class="detalle-list-item is-clickable ' +
-              h.estadoClass +
-              '" data-historial-tipo="' +
-              h.tipo +
-              '" data-historial-id="' +
-              h.id +
-              '"><span class="historial-fecha">' +
-              escapeHtml(h.fecha ? formatDate(h.fecha) : "Sin fecha") +
-              "</span><span style=\"flex:1;\">" +
-              escapeHtml(h.texto) +
-              '</span><span class="pill pill-' +
-              (h.estadoClass === "is-pagada" ? "pagada" : h.estadoClass === "is-pendiente" ? "pendiente" : "cancelada") +
-              '">' +
-              escapeHtml(h.etiqueta) +
-              "</span></div>"
-          )
-          .join("")
-      : '<p class="detalle-empty">Sin historial todavía — aún no se le ha hecho ninguna orden o factura.</p>';
+    function renderHistorialFiltrado() {
+      const q = document.getElementById("cliente-detalle-historial-search").value.trim().toLowerCase();
+      const filtrado = !q ? historial : historial.filter((h) => h.texto.toLowerCase().includes(q) || h.etiqueta.toLowerCase().includes(q));
 
-    historialEl.querySelectorAll("[data-historial-id]").forEach((row) => {
-      row.addEventListener("click", () => {
-        const tipo = row.dataset.historialTipo;
-        const itemId = row.dataset.historialId;
-        closeModal("modal-cliente-detalle");
-        if (tipo === "orden") {
-          openOrdenModal(state.ordenes.find((o) => o.id === itemId));
-        } else {
-          openFacturaModal(state.facturas.find((f) => f.id === itemId));
-        }
+      const historialEl = document.getElementById("cliente-detalle-historial");
+      historialEl.innerHTML = filtrado.length
+        ? filtrado
+            .map(
+              (h) =>
+                '<div class="detalle-list-item is-clickable ' +
+                h.estadoClass +
+                '" data-historial-tipo="' +
+                h.tipo +
+                '" data-historial-id="' +
+                h.id +
+                '"><span class="historial-fecha">' +
+                escapeHtml(h.fecha ? formatDate(h.fecha) : "Sin fecha") +
+                "</span><span style=\"flex:1;\">" +
+                escapeHtml(h.texto) +
+                '</span><span class="pill pill-' +
+                (h.estadoClass === "is-pagada" ? "pagada" : h.estadoClass === "is-pendiente" ? "pendiente" : "cancelada") +
+                '">' +
+                escapeHtml(h.etiqueta) +
+                "</span></div>"
+            )
+            .join("")
+        : historial.length
+        ? '<p class="detalle-empty">Nada en el historial coincide con esa búsqueda.</p>'
+        : '<p class="detalle-empty">Sin historial todavía — aún no se le ha hecho ninguna orden o factura.</p>';
+
+      historialEl.querySelectorAll("[data-historial-id]").forEach((row) => {
+        row.addEventListener("click", () => {
+          const tipo = row.dataset.historialTipo;
+          const itemId = row.dataset.historialId;
+          closeModal("modal-cliente-detalle");
+          if (tipo === "orden") {
+            openOrdenModal(state.ordenes.find((o) => o.id === itemId));
+          } else {
+            openFacturaModal(state.facturas.find((f) => f.id === itemId));
+          }
+        });
       });
-    });
+    }
+
+    document.getElementById("cliente-detalle-historial-search").value = "";
+    document.getElementById("cliente-detalle-historial-search").oninput = renderHistorialFiltrado;
+    renderHistorialFiltrado();
 
     const tareasCliente = state.tareas.filter((t) => t.cliente_id === cliente.id);
     const tareasEl = document.getElementById("cliente-detalle-tareas");
@@ -1370,6 +1559,7 @@
           return (
             (c.nombre || "").toLowerCase().includes(q) ||
             (c.telefono || "").toLowerCase().includes(q) ||
+            (c.etiquetas || "").toLowerCase().includes(q) ||
             state.vehiculos.some((v) => v.cliente_id === c.id && (v.placa || "").toLowerCase().includes(q))
           );
         });
@@ -1393,6 +1583,7 @@
     document.getElementById("cliente-telefono").value = cliente ? cliente.telefono || "" : "";
     document.getElementById("cliente-email").value = cliente ? cliente.email || "" : "";
     document.getElementById("cliente-direccion").value = cliente ? cliente.direccion || "" : "";
+    document.getElementById("cliente-etiquetas").value = cliente ? cliente.etiquetas || "" : "";
     document.getElementById("cliente-notas").value = cliente ? cliente.notas || "" : "";
     const vehiculoPrincipal = cliente ? state.vehiculos.find((v) => v.cliente_id === cliente.id) : null;
     document.getElementById("cliente-vehiculo-marca").value = vehiculoPrincipal ? vehiculoPrincipal.marca || "" : "";
@@ -1424,6 +1615,7 @@
       telefono: document.getElementById("cliente-telefono").value.trim(),
       email: document.getElementById("cliente-email").value.trim(),
       direccion: document.getElementById("cliente-direccion").value.trim(),
+      etiquetas: document.getElementById("cliente-etiquetas").value.trim(),
       notas: document.getElementById("cliente-notas").value.trim(),
     };
 
@@ -2911,6 +3103,10 @@
     showToast("Etapa actualizada.");
     await refreshOrdenes();
 
+    if (etapa === "presupuesto") await crearLlamadaPendiente(ordenId, "presupuesto");
+    if (etapa === "completado") await crearLlamadaPendiente(ordenId, "listo");
+    await refreshLlamadas();
+
     const card = document.querySelector('.kanban-card[data-orden-id="' + ordenId + '"]');
     if (card) {
       card.classList.add("just-moved");
@@ -3096,6 +3292,14 @@
       addOrdenPiezaRow(null);
     }
 
+    document.getElementById("orden-fotos-nota").hidden = !!orden;
+    document.getElementById("btn-subir-orden-foto-label").hidden = !orden;
+    if (orden) {
+      await refreshOrdenFotos(orden.id);
+    } else {
+      document.getElementById("orden-fotos-grid").innerHTML = "";
+    }
+
     openModal("modal-orden");
   }
 
@@ -3169,6 +3373,7 @@
         return;
       }
       ordenId = data.id;
+      await crearLlamadaPendiente(ordenId, "recibido");
     }
 
     // Restaurar el stock de las piezas que ya estaban antes de este guardado.
@@ -3430,6 +3635,86 @@
     state.tareas = await fetchTareas();
     renderTareas();
     renderDashboard();
+  }
+
+  // ---------------- llamadas pendientes (por llamar) ----------------
+
+  const MOTIVO_LLAMADA_LABELS = {
+    recibido: "Confirmar que se recibió el carro",
+    presupuesto: "Avisar diagnóstico/presupuesto",
+    listo: "Avisar que está listo",
+  };
+
+  async function crearLlamadaPendiente(ordenId, motivo) {
+    await sb.from("llamadas_ordenes").upsert({ orden_id: ordenId, motivo }, { onConflict: "orden_id,motivo", ignoreDuplicates: true });
+  }
+
+  async function fetchLlamadasPendientes() {
+    const { data, error } = await sb
+      .from("llamadas_ordenes")
+      .select("*, ordenes_servicio(numero, vehiculo_marca, vehiculo_modelo, vehiculo_anio, clientes(nombre, apellido, telefono))")
+      .eq("hecha", false)
+      .order("created_at", { ascending: true });
+    if (error) {
+      showToast("No se pudieron cargar las llamadas pendientes.", true);
+      return [];
+    }
+    return data;
+  }
+
+  async function refreshLlamadas() {
+    state.llamadas = await fetchLlamadasPendientes();
+    renderLlamadas();
+    renderDashboard();
+  }
+
+  function renderLlamadas() {
+    const tbody = document.getElementById("llamadas-tbody");
+    const empty = document.getElementById("llamadas-empty");
+    empty.hidden = state.llamadas.length !== 0;
+    tbody.innerHTML = state.llamadas
+      .map((l) => {
+        const orden = l.ordenes_servicio || {};
+        const cliente = orden.clientes || {};
+        const nombreCliente = [cliente.nombre, cliente.apellido].filter(Boolean).join(" ") || "—";
+        const carro = [orden.vehiculo_marca, orden.vehiculo_modelo, orden.vehiculo_anio].filter(Boolean).join(" ") || "—";
+        return (
+          "<tr><td>" +
+          escapeHtml(nombreCliente) +
+          "</td><td>" +
+          escapeHtml(cliente.telefono || "—") +
+          "</td><td>" +
+          escapeHtml(carro) +
+          "</td><td>" +
+          escapeHtml(MOTIVO_LLAMADA_LABELS[l.motivo] || l.motivo) +
+          '</td><td><button type="button" class="btn-ghost" data-marcar-llamada="' +
+          l.id +
+          '">Ya llamé</button></td></tr>'
+        );
+      })
+      .join("");
+
+    tbody.querySelectorAll("[data-marcar-llamada]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.getElementById("llamada-nota-id").value = btn.dataset.marcarLlamada;
+        document.getElementById("llamada-nota-texto").value = "";
+        openModal("modal-llamada-nota");
+      });
+    });
+  }
+
+  async function guardarLlamadaNota(e) {
+    e.preventDefault();
+    const id = document.getElementById("llamada-nota-id").value;
+    const notas = document.getElementById("llamada-nota-texto").value.trim();
+    const { error } = await sb.from("llamadas_ordenes").update({ hecha: true, notas, fecha_hecha: new Date().toISOString() }).eq("id", id);
+    if (error) {
+      showToast("No se pudo guardar.", true);
+      return;
+    }
+    closeModal("modal-llamada-nota");
+    showToast("Llamada marcada.");
+    await refreshLlamadas();
   }
 
   // ---------------- finanzas (ingresos, gastos, ganancias) ----------------
@@ -4045,6 +4330,7 @@
     { view: "ordenes", icon: "wrench", label: "Órdenes de servicio", badge: "neutral" },
     { view: "inventario", icon: "box", label: "Inventario", badge: "danger" },
     { view: "tareas", icon: "check-square", label: "Tareas", badge: "danger" },
+    { view: "llamadas", icon: "phone", label: "Por llamar", badge: "warning" },
     { view: "facturas", icon: "file-text", label: "Facturas", badge: "warning" },
     { view: "estimados", icon: "clipboard", label: "Estimates", badge: "neutral" },
     { view: "finanzas", icon: "dollar", label: "Finanzas" },
@@ -4080,6 +4366,7 @@
       tareas: state.tareas.filter((t) => !t.completada && t.fecha_vencimiento && t.fecha_vencimiento < hoy).length,
       facturas: state.facturas.filter((f) => f.estado === "pendiente").length,
       estimados: state.estimados.filter((e) => e.estado === "pendiente").length,
+      llamadas: (state.llamadas || []).length,
     };
     QUICK_ACCESS.forEach((q) => {
       if (!q.badge) return;
@@ -4099,6 +4386,22 @@
     const ingresosMes = state.facturas
       .filter((f) => f.estado === "pagada" && (f.fecha || "").slice(0, 7) === mesActual)
       .reduce((sum, f) => sum + Number(f.total), 0);
+
+    const [anioActual, mesNum] = mesActual.split("-");
+    const mesAnioPasado = String(Number(anioActual) - 1) + "-" + mesNum;
+    const ingresosMesAnioPasado = state.facturas
+      .filter((f) => f.estado === "pagada" && (f.fecha || "").slice(0, 7) === mesAnioPasado)
+      .reduce((sum, f) => sum + Number(f.total), 0);
+
+    const comparacionEl = document.getElementById("kpi-ingresos-comparacion");
+    if (ingresosMesAnioPasado > 0) {
+      const cambio = ((ingresosMes - ingresosMesAnioPasado) / ingresosMesAnioPasado) * 100;
+      comparacionEl.hidden = false;
+      comparacionEl.textContent = (cambio >= 0 ? "▲ " : "▼ ") + Math.abs(cambio).toFixed(0) + "% vs. el mismo mes del año pasado";
+      comparacionEl.style.color = cambio >= 0 ? "var(--success)" : "var(--danger)";
+    } else {
+      comparacionEl.hidden = true;
+    }
 
     const pendientes = state.facturas.filter((f) => f.estado === "pendiente");
     const pendientesMonto = pendientes.reduce((sum, f) => sum + Number(f.total), 0);
@@ -4228,12 +4531,17 @@
   // ---------------- wiring ----------------
 
   function initEvents() {
-    document.querySelectorAll(".config-tab").forEach((tab) => {
-      tab.addEventListener("click", () => {
-        document.querySelectorAll(".config-tab").forEach((t) => t.classList.toggle("is-active", t === tab));
-        document.getElementById("config-tab-negocio").hidden = tab.dataset.configTab !== "negocio";
-        document.getElementById("config-tab-mecanicos").hidden = tab.dataset.configTab !== "mecanicos";
-        document.getElementById("config-tab-cuenta").hidden = tab.dataset.configTab !== "cuenta";
+    document.querySelectorAll(".config-tabs").forEach((tabGroup) => {
+      const tabs = tabGroup.querySelectorAll(".config-tab");
+      tabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          tabs.forEach((t) => t.classList.toggle("is-active", t === tab));
+          const prefijo = tab.dataset.configTab ? "config-tab-" : "detalle-tab-";
+          const nombre = tab.dataset.configTab || tab.dataset.detalleTab;
+          tabGroup.parentElement.querySelectorAll('[id^="' + prefijo + '"]').forEach((panel) => {
+            panel.hidden = panel.id !== prefijo + nombre;
+          });
+        });
       });
     });
 
@@ -4327,11 +4635,13 @@
     document.getElementById("btn-nueva-pieza").addEventListener("click", () => openPiezaModal(null));
     document.getElementById("btn-ver-rotacion").addEventListener("click", mostrarRotacionInventario);
     document.getElementById("btn-ver-historial-precios").addEventListener("click", mostrarHistorialPrecios);
+    document.getElementById("btn-ver-reordenar").addEventListener("click", mostrarParaReordenar);
     document.getElementById("form-pieza").addEventListener("submit", savePieza);
     document.getElementById("btn-eliminar-pieza").addEventListener("click", deletePieza);
 
     document.getElementById("form-vehiculo").addEventListener("submit", saveVehiculo);
     document.getElementById("btn-eliminar-vehiculo").addEventListener("click", deleteVehiculo);
+    document.getElementById("btn-escanear-vin").addEventListener("click", abrirEscanerVin);
     document.getElementById("piezas-search").addEventListener("input", () => renderPiezas(filterPiezas()));
     wireSortHeaders(document.querySelector("#view-inventario thead tr"), piezasSortState, PIEZAS_SORT_LABELS, () => renderPiezas(filterPiezas()));
 
@@ -4341,12 +4651,18 @@
     document.getElementById("btn-eliminar-orden").addEventListener("click", deleteOrden);
     document.getElementById("btn-imprimir-orden").addEventListener("click", () => printOrden(document.getElementById("btn-imprimir-orden").dataset.ordenId));
     document.getElementById("btn-add-orden-pieza").addEventListener("click", () => addOrdenPiezaRow(null));
+    document.getElementById("input-orden-foto").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) subirOrdenFoto(file);
+      e.target.value = "";
+    });
     document.getElementById("btn-generar-factura").addEventListener("click", generarFacturaDesdeOrden);
     document.getElementById("orden-cliente").addEventListener("change", (e) => populateOrdenVehiculoSelect(e.target.value));
     document.getElementById("orden-vehiculo").addEventListener("change", (e) => toggleOrdenVehiculoNuevo(e.target.value === "__nuevo__"));
 
     document.getElementById("btn-nueva-tarea").addEventListener("click", () => openTareaModal(null));
     document.getElementById("form-tarea").addEventListener("submit", saveTarea);
+    document.getElementById("form-llamada-nota").addEventListener("submit", guardarLlamadaNota);
     document.getElementById("btn-eliminar-tarea").addEventListener("click", deleteTarea);
 
     document.getElementById("btn-nuevo-gasto").addEventListener("click", () => openGastoModal(null));
@@ -4487,6 +4803,7 @@
     document.getElementById("registro-fecha").value = todayISO();
     state.registroDiarioFechaActual = todayISO();
     await cargarRegistroDiario(todayISO());
+    await refreshLlamadas();
     renderDashboard();
     verificarConexionReal();
 
