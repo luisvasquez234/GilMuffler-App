@@ -123,3 +123,57 @@ PWA** (punto 24 — `manifest.json` + `sw.js`, instalable en celular).
 - Bot de WhatsApp real vía Twilio para el negocio de diseño web de Luis
   (código ya escrito en `supabase/functions/whatsapp-bot`, pendiente decisión
   de pagar Twilio — ver punto 1, mismo bloqueo).
+
+## Registro diario — ideas para seguir mejorándolo
+
+1. **Duplicar el día anterior** — botón para copiar las filas de ayer como
+   plantilla cuando el trabajo se repite. Tamaño: chico.
+2. **Vincular una fila a una factura real** — que el labor del registro se
+   refleje automático en la factura del cliente, sin escribirlo dos veces.
+   Tamaño: mediano.
+3. **Total semanal/mensual por mecánico** — reporte que suma cuánto generó
+   cada mecánico en la semana/mes, insumo directo para pagos o comisión
+   (ver punto 22 arriba). Tamaño: mediano.
+4. **Exportar o imprimir el día** — como PDF o CSV, para archivo físico o
+   para mandarlo por WhatsApp/email al cerrar el día. Tamaño: chico.
+5. **Cerrar un día ya guardado** — marcarlo como "cerrado" para evitar
+   ediciones accidentales después de cuadrar la caja. Tamaño: chico.
+6. **Alerta si el total no cuadra** — comparar labor+piezas contra el cierre
+   de caja (tarjeta+efectivo+cheque) y avisar si no coinciden. Tamaño: chico.
+7. **Buscar por carro o placa entre varios días** — para ver el historial de
+   trabajo de un carro específico sin ir día por día. Tamaño: mediano.
+8. **Foto de la hoja de papel como respaldo** — subir una foto del papel
+   original junto al registro digital de ese día (Supabase Storage).
+   Tamaño: mediano.
+9. **Aviso de día sin guardar** — recordatorio si ya pasó el día y nadie
+   guardó el registro. Tamaño: chico.
+10. **Vista de calendario mensual** — ver de un vistazo qué días ya tienen
+    registro guardado y cuáles faltan, en vez de navegar de uno en uno.
+    Tamaño: mediano.
+
+## Factura impresa — ideas para seguir mejorándola
+
+1. **Firma digital del cliente al recoger el vehículo** (mismo punto 7 de
+   arriba, aplicado directo a la factura impresa).
+2. **Sello de "Trabajo garantizado"** en la factura cuando la pieza instalada
+   tiene garantía vigente (depende del punto 10 de arriba).
+3. **Foto de antes/después** — miniatura impresa en la factura si se
+   implementa esa mejora (punto 12 de arriba).
+4. **Línea de "Descuento"** visible en el desglose — hoy no existe ese campo
+   si alguna vez das un descuento manual.
+5. **Elegir tamaño de papel** — carta completa vs. recibo térmico angosto,
+   por si compras una impresora de recibos para el mostrador.
+
+## Ficha del cliente (historial) — ideas para simplificarla
+
+1. **Pestañas en vez de todo junto** — Vehículos / Historial / Tareas como
+   pestañas (igual que ya se hizo en Configuración) en vez de secciones
+   apiladas una debajo de otra.
+2. **Resumen arriba de todo** — 3-4 números grandes (total facturado, última
+   visita, vehículos, tareas pendientes) antes de la lista larga.
+3. **Buscar dentro del historial** de ese cliente, para cuando ya tiene
+   muchas facturas u órdenes acumuladas.
+4. **Botón directo de "Llamar" / "WhatsApp"** con el teléfono del cliente,
+   sin copiar el número a mano.
+5. **Acceso rápido con QR** — un código que se pueda escanear desde el
+   celular del mostrador para abrir de una vez la ficha de ese cliente.
