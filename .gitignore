@@ -1,3 +1,4 @@
 config.local.js
 .env
 .env.*
+.claude/skills/run-gilmuffler-app/screenshots/
