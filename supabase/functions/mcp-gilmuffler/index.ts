@@ -1,15 +1,31 @@
 // Servidor MCP (Model Context Protocol) de Gil Muffler.
-// Endpoint público (sin JWT) para que un cliente MCP externo (ej. `claude mcp add
-// --transport http`) se conecte directo. Implementa el transporte "Streamable HTTP":
-// el cliente manda un POST con un mensaje JSON-RPC 2.0 y este handler responde con
-// un único objeto JSON (sin abrir stream SSE, ya que no hace falta para estas
-// herramientas).
+// Sin verificación JWT de Supabase (un cliente MCP no hace login normal), pero
+// exige una clave secreta compartida en el header Authorization — ver
+// MCP_SHARED_SECRET más abajo. Sin esa clave, cualquier request se rechaza
+// antes de tocar la base de datos.
+// Conexión: `claude mcp add --transport http gilmuffler <url> --header
+// "Authorization: Bearer <secret>"`. Implementa el transporte "Streamable
+// HTTP": el cliente manda un POST con un mensaje JSON-RPC 2.0 y este handler
+// responde con un único objeto JSON (sin abrir stream SSE, ya que no hace
+// falta para estas herramientas).
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const MCP_SHARED_SECRET = Deno.env.get("MCP_SHARED_SECRET")!;
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+function autorizado(req: Request): boolean {
+  const header = req.headers.get("Authorization") ?? "";
+  const recibido = header.startsWith("Bearer ") ? header.slice(7) : "";
+  if (!MCP_SHARED_SECRET || recibido.length !== MCP_SHARED_SECRET.length) return false;
+  let diff = 0;
+  for (let i = 0; i < recibido.length; i++) {
+    diff |= recibido.charCodeAt(i) ^ MCP_SHARED_SECRET.charCodeAt(i);
+  }
+  return diff === 0;
+}
 
 const PROTOCOL_VERSION = "2025-06-18";
 
@@ -112,9 +128,13 @@ const CORS_HEADERS = {
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS_HEADERS });
 
+  if (!autorizado(req)) {
+    return Response.json({ error: "No autorizado" }, { status: 401, headers: CORS_HEADERS });
+  }
+
   if (req.method !== "POST") {
     return new Response(
-      "Servidor MCP de Gil Muffler. Conéctate con: claude mcp add --transport http gilmuffler <esta-url>",
+      'Servidor MCP de Gil Muffler. Conéctate con: claude mcp add --transport http gilmuffler <esta-url> --header "Authorization: Bearer <secret>"',
       { headers: { ...CORS_HEADERS, "Content-Type": "text/plain" } },
     );
   }

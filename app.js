@@ -20,6 +20,7 @@
     mecanicos: [],
     registroDiarioId: null,
     llamadas: [],
+    telefonos: [],
   };
 
   let finanzasAnio = null;
@@ -274,10 +275,55 @@
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }
 
+  const FOCUSABLE_SELECTOR =
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+  function getFocusableEls(modal) {
+    return Array.from(modal.querySelectorAll(FOCUSABLE_SELECTOR)).filter((el) => el.offsetParent !== null);
+  }
+
+  function trapFocusKeydown(e) {
+    if (e.key !== "Tab") return;
+    const focusable = getFocusableEls(e.currentTarget);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+
+  const modalFocusStack = [];
+
   function openModal(id) {
     const el = document.getElementById(id);
     el.hidden = false;
     requestAnimationFrame(() => el.classList.add("is-open"));
+
+    const modal = el.querySelector(".modal");
+    if (modal) {
+      modal.setAttribute("role", "dialog");
+      modal.setAttribute("aria-modal", "true");
+      const heading = modal.querySelector("h2");
+      if (heading) {
+        if (!heading.id) heading.id = id + "-title";
+        modal.setAttribute("aria-labelledby", heading.id);
+      } else {
+        const labeledField = modal.querySelector("[aria-label]");
+        if (labeledField) modal.setAttribute("aria-label", labeledField.getAttribute("aria-label"));
+      }
+      if (!modal._focusTrapBound) {
+        modal.addEventListener("keydown", trapFocusKeydown);
+        modal._focusTrapBound = true;
+      }
+      modalFocusStack.push(document.activeElement);
+      const focusable = getFocusableEls(modal);
+      if (focusable.length) focusable[0].focus();
+    }
   }
   function closeModal(id) {
     if (id === "modal-escaner-vin" && zxingReaderInstancia) {
@@ -292,6 +338,10 @@
       setTimeout(() => {
         el.hidden = true;
       }, 180);
+    }
+    const previouslyFocused = modalFocusStack.pop();
+    if (previouslyFocused && typeof previouslyFocused.focus === "function") {
+      previouslyFocused.focus();
     }
   }
 
@@ -502,6 +552,7 @@
       if (data.session) {
         gate.hidden = true;
         app.hidden = false;
+        showView("dashboard");
         boot();
       }
     });
@@ -516,6 +567,7 @@
         error.hidden = true;
         gate.hidden = true;
         app.hidden = false;
+        showView("dashboard");
         boot();
       } else {
         error.hidden = false;
@@ -832,6 +884,71 @@
 
   async function refreshVehiculos() {
     state.vehiculos = await fetchVehiculos();
+  }
+
+  async function fetchTelefonos() {
+    return fetchConCache(
+      "cliente_telefonos",
+      () => sb.from("cliente_telefonos").select("*").order("created_at", { ascending: true }),
+      [],
+      "No se pudieron cargar los teléfonos adicionales."
+    );
+  }
+
+  async function refreshTelefonos() {
+    state.telefonos = await fetchTelefonos();
+  }
+
+  async function agregarTelefonoCliente(clienteId, telefono, etiqueta) {
+    const { data, error } = await sb
+      .from("cliente_telefonos")
+      .insert({ cliente_id: clienteId, telefono, etiqueta: etiqueta || null })
+      .select()
+      .single();
+    if (error) {
+      showToast("No se pudo agregar el teléfono.", true);
+      return null;
+    }
+    state.telefonos.push(data);
+    return data;
+  }
+
+  async function eliminarTelefonoCliente(id) {
+    const { error } = await sb.from("cliente_telefonos").delete().eq("id", id);
+    if (error) {
+      showToast("No se pudo eliminar el teléfono.", true);
+      return;
+    }
+    state.telefonos = state.telefonos.filter((t) => t.id !== id);
+  }
+
+  function telefonosDeCliente(clienteId) {
+    return state.telefonos.filter((t) => t.cliente_id === clienteId);
+  }
+
+  function renderTelefonosClienteDetalle(clienteId) {
+    const telefonosEl = document.getElementById("cliente-detalle-telefonos");
+    const telefonos = telefonosDeCliente(clienteId);
+    telefonosEl.innerHTML = telefonos.length
+      ? telefonos
+          .map(
+            (t) =>
+              '<div class="detalle-list-item" data-telefono-id="' +
+              t.id +
+              '"><span style="flex:1;">' +
+              escapeHtml(t.telefono) +
+              '</span><button type="button" class="icon-btn" data-eliminar-telefono="' +
+              t.id +
+              '" aria-label="Eliminar teléfono">&times;</button></div>'
+          )
+          .join("")
+      : '<p class="detalle-empty">Sin teléfonos adicionales.</p>';
+    telefonosEl.querySelectorAll("[data-eliminar-telefono]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        await eliminarTelefonoCliente(btn.dataset.eliminarTelefono);
+        renderTelefonosClienteDetalle(clienteId);
+      });
+    });
   }
 
   function vehiculoLabel(v) {
@@ -1353,6 +1470,24 @@
       "<div><span>Total gastado</span>" + money(totalGastado) + "</div>" +
       (cliente.etiquetas ? "<div><span>Etiquetas</span>" + etiquetasPillsHtml(cliente.etiquetas) + "</div>" : "");
 
+    renderTelefonosClienteDetalle(cliente.id);
+    const telefonoForm = document.getElementById("cliente-detalle-telefono-form");
+    const telefonoInput = document.getElementById("cliente-detalle-telefono-nuevo");
+    telefonoForm.hidden = true;
+    telefonoInput.value = "";
+    document.getElementById("btn-detalle-agregar-telefono").onclick = () => {
+      telefonoForm.hidden = !telefonoForm.hidden;
+      if (!telefonoForm.hidden) telefonoInput.focus();
+    };
+    document.getElementById("btn-guardar-telefono-nuevo").onclick = async () => {
+      const valor = telefonoInput.value.trim();
+      if (!valor) return;
+      await agregarTelefonoCliente(cliente.id, valor);
+      telefonoInput.value = "";
+      telefonoForm.hidden = true;
+      renderTelefonosClienteDetalle(cliente.id);
+    };
+
     const vehiculosCliente = state.vehiculos.filter((v) => v.cliente_id === cliente.id);
     const vehiculosEl = document.getElementById("cliente-detalle-vehiculos");
     vehiculosEl.innerHTML = vehiculosCliente.length
@@ -1372,7 +1507,7 @@
           .join("")
       : '<p class="detalle-empty">Este cliente todavía no tiene vehículos registrados.</p>';
     vehiculosEl.querySelectorAll("[data-vehiculo-id]").forEach((row) => {
-      row.addEventListener("click", () => {
+      makeRowActivatable(row, () => {
         openVehiculoModal(state.vehiculos.find((v) => v.id === row.dataset.vehiculoId), cliente.id);
       });
     });
@@ -1436,7 +1571,7 @@
         : '<p class="detalle-empty">Sin historial todavía — aún no se le ha hecho ninguna orden o factura.</p>';
 
       historialEl.querySelectorAll("[data-historial-id]").forEach((row) => {
-        row.addEventListener("click", () => {
+        makeRowActivatable(row, () => {
           const tipo = row.dataset.historialTipo;
           const itemId = row.dataset.historialId;
           closeModal("modal-cliente-detalle");
@@ -1593,6 +1728,18 @@
       escapeHtml(initials(name)) +
       "</span>"
     );
+  }
+
+  function makeRowActivatable(el, handler) {
+    el.setAttribute("role", "button");
+    el.setAttribute("tabindex", "0");
+    el.addEventListener("click", handler);
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        handler(e);
+      }
+    });
   }
 
   const clientesSortState = { field: null, dir: 1 };
@@ -2833,7 +2980,7 @@
     }
 
     container.querySelectorAll(".tarea-row").forEach((row) => {
-      row.addEventListener("click", () => {
+      makeRowActivatable(row, () => {
         const cita = state.citas.find((c) => c.id === row.dataset.citaId);
         openReservaModal(cita);
       });
@@ -3120,7 +3267,7 @@
           (o.diagnostico ? '<span class="kanban-card-diag">' + escapeHtml(o.diagnostico) + "</span>" : "") +
           '<div class="kanban-card-actions"></div>';
 
-        card.addEventListener("click", (e) => {
+        makeRowActivatable(card, (e) => {
           if (e.target.closest(".kanban-card-actions")) return;
           openOrdenModal(o);
         });
@@ -3564,7 +3711,7 @@
     const { data, error } = await sb
       .from("llamadas_ordenes")
       .select(
-        "*, ordenes_servicio(numero, vehiculo_marca, vehiculo_modelo, vehiculo_anio, clientes(nombre, apellido, telefono)), clientes(nombre, apellido, telefono)"
+        "*, ordenes_servicio(numero, vehiculo_marca, vehiculo_modelo, vehiculo_anio, clientes(id, nombre, apellido, telefono)), clientes(id, nombre, apellido, telefono)"
       )
       .eq("hecha", false)
       .order("created_at", { ascending: true });
@@ -3594,11 +3741,12 @@
           ? [orden.vehiculo_marca, orden.vehiculo_modelo, orden.vehiculo_anio].filter(Boolean).join(" ") || "—"
           : [l.vehiculo_marca, l.vehiculo_modelo, l.vehiculo_anio].filter(Boolean).join(" ") || "—";
         const motivoTexto = orden ? MOTIVO_LLAMADA_LABELS[l.motivo] || l.motivo : l.motivo || "Llamar";
+        const telefonos = [cliente.telefono, ...telefonosDeCliente(cliente.id).map((t) => t.telefono)].filter(Boolean);
         return (
           "<tr><td>" +
           escapeHtml(nombreCliente) +
           "</td><td>" +
-          escapeHtml(cliente.telefono || "—") +
+          escapeHtml(telefonos.length ? telefonos.join(" · ") : "—") +
           "</td><td>" +
           escapeHtml(carro) +
           "</td><td>" +
@@ -3644,6 +3792,11 @@
     if (!clienteId) {
       showToast("No se pudo guardar el cliente.", true);
       return;
+    }
+
+    const telefonoAdicional = document.getElementById("llamada-manual-telefono").value.trim();
+    if (telefonoAdicional) {
+      await agregarTelefonoCliente(clienteId, telefonoAdicional);
     }
 
     const payload = {
@@ -4462,7 +4615,7 @@
       )
       .join("");
     el.querySelectorAll("[data-pago-factura]").forEach((row) => {
-      row.addEventListener("click", () => {
+      makeRowActivatable(row, () => {
         const factura = state.facturas.find((f) => f.id === row.dataset.pagoFactura);
         if (factura) openFacturaModal(factura);
       });
@@ -4734,6 +4887,7 @@
     await refreshClientes();
     await refreshPiezas();
     await refreshVehiculos();
+    await refreshTelefonos();
     await refreshOrdenes();
     await refreshTareas();
     await refreshFacturas();
