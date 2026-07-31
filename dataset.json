@@ -1,0 +1,11 @@
+[
+  {
+    "task": "Write a regex pattern that matches valid AWS S3 bucket names, ensuring they are between 3 and 63 characters long, contain only lowercase letters, numbers, dots, and hyphens, and start and end with a letter or number."
+  },
+  {
+    "task": "Write a Python function that takes an AWS ARN string (e.g., 'arn:aws:s3:::my-bucket/my-key') and parses it into its components (partition, service, region, account-id, resource), returning them as a dictionary."
+  },
+  {
+    "task": "Create a JSON object representing an AWS IAM policy document that grants read-only access (GetObject and ListBucket) to a specific S3 bucket named 'my-example-bucket' and its contents."
+  }
+]
