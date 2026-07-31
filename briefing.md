@@ -67,3 +67,77 @@ La consulta devolvió **un solo cliente**:
 
 **Nota para Luis:** no hay ningún cliente con facturas viejas de más de 90 días — todos los que sí han facturado alguna vez volvieron dentro de los últimos 3 meses. Josefina aparece porque está registrada como cliente pero nunca se le hizo una factura, así que puede ser alguien que llamó o pasó a preguntar y no llegó a dejar el carro.
 
+## Briefing 2026-07-31
+Verificado todo. Aquí va la lista.
+
+## 3 prospectos verificados
+
+- **Pollo Tipico** (190 Lawrence St, Lawrence) — Restaurante dominicano con 199+ reseñas y buena reputación, pero **cero web propia**. Solo Instagram (@pollotipico) y fichas de terceros. El menú y los precios solo existen en páginas de agregadores que ellos no controlan (Zmenu, allmenus, netwaiter). El botón "Visit Website" de su perfil BBB manda a Yellow Pages, no a un sitio suyo — contacto: (978) 975-8013 / Instagram @pollotipico
+
+- **Sweet Grace Heavenly Cakes** (98 Essex St, Lawrence) — Repostería dominicana/puertorriqueña con ~73 reseñas y 92% de recomendación en Facebook. **Sin web propia**: solo Facebook e Instagram. Para pasteles por encargo esto es una pérdida clara — no hay catálogo, ni precios, ni formulario de pedido. Además hay direcciones y teléfonos inconsistentes entre directorios (98 vs 100 Essex St; aparece un segundo número 351-208-1993) — contacto: (978) 258-9418 / facebook.com/sweetgraceheavenlycakes
+
+- **Mark's Deli** (2 Railroad Sq, Haverhill) — Uno de los negocios más antiguos del centro de Haverhill, familiar, famoso por su comida griega. Su campo de "sitio web" en los directorios apunta literalmente a `facebook.com`. La página que aparece como "marks-deli.hub.biz" es un directorio auto-generado con opción de "Claim this Listing" — o sea, ni siquiera es suya y no muestra horarios — contacto: (978) 374-9402 / facebook.com/Marksdelihaverhill
+
+### Extra, pero con una advertencia
+
+- **Checo's Auto Repair** (121 West St, Lawrence) — Es el mejor verificado de todos: el dominio `checosautorepair.com` que aparece en resultados de búsqueda **no existe** (no resuelve en DNS), y su ficha en Loc8NearMe no tiene campo de web. 4.8/5 con 107 reseñas, así que hay negocio real detrás — contacto: (978) 725-8005
+
+**La advertencia:** Checo's hace "todo menos hojalatería, de motor a diferencial", lo que probablemente incluye escapes. Es competencia directa de Gil's Muffler en la misma ciudad. Técnicamente es tu mejor prospecto (mismo giro = tu prueba social encaja perfecto), pero venderle una web a un competidor de tu cliente actual puede incomodar a Gil. Tu decisión, no mía — solo que lo sepas antes de mandar el mensaje.
+
+## Dos que descarté (para que no pierdas tiempo)
+
+El buscador me los dio como "sin web" y resultaron falsos positivos al verificarlos:
+
+- **Dominic's Diner** (Haverhill) — sí tiene sitio real: `dominicshaverhill.com`
+- **Taqueria Del Pueblo** (Lawrence) — tiene `taqueriadelpuebloma.com`. Es una plantilla flojita y no muestra teléfono, pero sí trae dirección, horarios y menú. Prospecto débil, no lo pondría arriba de los otros.
+
+## Nota sobre el método
+
+Yelp bloquea el acceso automático (error 403), así que no pude leer los campos de "website" ahí directamente. Verifiqué por dos vías: fetch al dominio que el buscador afirmaba que existía (así cayó Checo's), y fichas de directorios que sí se pueden leer (Loc8NearMe, Restaurantji, RestaurantGuru, BBB) para confirmar la ausencia del campo de web.
+
+Un aviso honesto: los resúmenes de búsqueda inventan webs con frecuencia — a Checo's y a Larry Auto Service les atribuyó dominios que están muertos. Antes de contactar, vale la pena que confirmes en Google Maps desde tu teléfono, porque un negocio puede haber puesto web ayer sin que los directorios se actualicen. Tampoco pude verificar el email `sweetgracehc@gmail.com` que apareció en un resumen — no lo encontré en ninguna página que sí pude leer, así que no lo uses como dato confirmado.
+
+Sources:
+- [Loc8NearMe — Checo's Auto Repair](https://www.loc8nearme.com/massachusetts/lawrence/checos-auto-repair/4399665/)
+- [Restaurantji — Pollo Tipico](https://www.restaurantji.com/ma/lawrence/pollo-tipico-/)
+- [BBB — Pollo Tipico Restaurant](https://www.bbb.org/us/ma/lawrence/profile/restaurants/pollo-tipico-restaurant-0021-189556)
+- [Instagram — @pollotipico](https://www.instagram.com/pollotipico/)
+- [Restaurantji — Sweet Grace Heavenly Cakes](https://www.restaurantji.com/ma/lawrence/sweet-grace-heavenly-cakes-/)
+- [Facebook — Sweet Grace Heavenly Cakes](https://www.facebook.com/sweetgraceheavenlycakes)
+- [Cakes.com — Sweet Grace Heavenly Cakes](https://preview.cakeordering.com/us/bakeries/ma/lawrence/sweet-grace-heavenly-cakes)
+- [RestaurantGuru — Mark's Deli](https://restaurantguru.com/Marks-Deli-Haverhill)
+- [Hubbiz — Marks Deli](https://marks-deli.hub.biz)
+- [Facebook — Mark's Deli](https://www.facebook.com/Marksdelihaverhill/)
+- [Dominic's Haverhill](https://dominicshaverhill.com/)
+- [Taqueria Del Pueblo](https://taqueriadelpuebloma.com/)
+
+### Clientes inactivos (Gil Muffler) — 2026-07-31
+## No hay ningún cliente en esa lista
+
+La consulta corrió correctamente contra la base de datos y devolvió **cero resultados**: ningún cliente lleva más de 90 días sin volver, y ninguno está sin facturar.
+
+Pero antes de que Luis salga a llamar a nadie, hay algo importante que explica ese cero:
+
+**La base de datos tiene solo 2 clientes y 2 facturas en total.**
+
+| Dato | Valor |
+|---|---|
+| Clientes registrados | 2 |
+| Facturas registradas | 2 |
+| Factura más antigua | 28 de julio de 2026 |
+| Factura más reciente | 30 de julio de 2026 |
+| Clientes sin ninguna factura | 0 |
+
+Las dos facturas son de hace 1 y 3 días. Con solo tres días de historial, es **imposible** que alguien aparezca como "no ha vuelto en 90 días" — todavía no ha pasado ese tiempo desde que existe el primer registro.
+
+### Qué significa esto en la práctica
+
+El resultado vacío no quiere decir "todos los clientes están volviendo puntualmente". Quiere decir que **la base todavía no tiene historial suficiente** para responder esa pregunta. Esto pinta a datos de prueba o a una migración de AutoRepairBill que aún no se ha hecho.
+
+Dos caminos posibles, según cuál sea el caso:
+
+1. **Si el historial viejo sigue en AutoRepairBill**: la consulta solo será útil después de importar las facturas anteriores. Hoy no puede ver el pasado del taller porque ese pasado no está en Supabase.
+2. **Si el taller ya está trabajando dentro de la app**: la consulta ya está lista y correcta; simplemente hay que volver a correrla dentro de unos meses, cuando haya clientes con más de 90 días desde su última visita.
+
+Si quieres, puedo dejar esta consulta guardada (o armar una versión con un umbral más corto, por ejemplo 30 días) para que sirva de algo mientras se acumula historial. Solo dime cuál de los dos casos aplica.
+
