@@ -1,20 +1,20 @@
 [
   {
-    "height": "180 cm",
-    "weight": "75 kg",
-    "goal": "build lean muscle mass for competitive swimming",
-    "restrictions": "lactose intolerant, no shellfish"
+    "height": "180",
+    "weight": "75",
+    "goal": "Build lean muscle mass for competitive swimming",
+    "restrictions": "Lactose intolerant, no shellfish"
   },
   {
-    "height": "165 cm",
-    "weight": "58 kg",
-    "goal": "improve endurance for marathon training",
-    "restrictions": "vegetarian, gluten-free"
+    "height": "165",
+    "weight": "58",
+    "goal": "Improve endurance for marathon training",
+    "restrictions": "Vegetarian, gluten-free"
   },
   {
-    "height": "190 cm",
-    "weight": "95 kg",
-    "goal": "maintain strength and power for competitive powerlifting",
-    "restrictions": "no nuts, low sodium"
+    "height": "190",
+    "weight": "95",
+    "goal": "Cut body fat while maintaining strength for powerlifting",
+    "restrictions": "No pork, low sodium due to hypertension"
   }
 ]

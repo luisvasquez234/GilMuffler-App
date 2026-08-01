@@ -74,12 +74,45 @@ Generate {num_cases} distinct, realistic test cases.
 
 def run_prompt(prompt_inputs):
     prompt = f"""
-Write a compact, concise 1 day meal plan for this athlete:
+Write a compact, concise 1-day meal plan for this athlete:
 
 - Height: {prompt_inputs["height"]}
 - Weight: {prompt_inputs["weight"]}
 - Goal: {prompt_inputs["goal"]}
 - Dietary restrictions: {prompt_inputs["restrictions"]}
+
+* List only the meals for one day (breakfast, lunch, dinner, and snacks if
+  needed), each with specific foods and exact portions/quantities (e.g.
+  grams, cups, oz) so it's ready to follow as-is.
+* Before finalizing, check every single ingredient you listed one by one
+  against the dietary restrictions above and remove or replace any that
+  violate them. This includes common defaults that quietly break a
+  restriction if you're not careful - e.g. peanut butter, almond milk, or
+  trail mix under a "no nuts"/"no peanuts" restriction, or deli meats,
+  canned goods, cheese, and condiments (soy sauce, salad dressing) under a
+  "low sodium" restriction, even when not obviously salty. Never list a
+  restricted ingredient as the primary choice with a compliant swap only
+  mentioned as an aside - if a food violates the restriction, it does not
+  appear in the plan at all.
+* If a restriction is quantitative (e.g. "low sodium", "high protein"),
+  track and report that specific number per meal - not just a qualitative
+  proxy like "no added salt". Use realistic values for sodium/protein
+  content per the actual serving sizes listed (including sodium naturally
+  present in dairy, meat, and packaged foods, not only added salt), and
+  round up rather than underestimate when unsure.
+* Set the daily calorie, protein, carb, and fat targets based on the
+  athlete's actual height, weight, and goal (e.g. a rough body-weight-based
+  estimate) - state those targets briefly, then build the meals to match
+  them.
+* End with a one-line total: approximate calories, grams of protein, grams
+  of carbs, and grams of fat for the full day, calculated from the actual
+  foods/portions listed above, plus the quantity for any quantitative
+  restriction (e.g. total mg of sodium).
+* Add one more line with a single practical, sport-specific tip tied to the
+  athlete's goal (e.g. hydration, or when to eat a meal relative to
+  training) - one sentence, no more.
+* Do not include a nutrition education section, general tips, disclaimers,
+  or follow-up questions - just the meal plan and the daily total.
 """
 
     messages = []
@@ -143,7 +176,7 @@ def run_eval(task_description, dataset):
 
 
 if __name__ == "__main__":
-    TASK_DESCRIPTION = "Write a compact, concise 1 day meal plan for a single athlete"
+    TASK_DESCRIPTION = "Generate a one-day meal plan for an athlete that meets their dietary restrictions"
 
     dataset = generate_dataset(
         task_description=TASK_DESCRIPTION,
