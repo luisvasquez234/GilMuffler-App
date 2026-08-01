@@ -9,8 +9,11 @@ DATASET_SCHEMA = {
             "type": "array",
             "items": {
                 "type": "object",
-                "properties": {"task": {"type": "string"}},
-                "required": ["task"],
+                "properties": {
+                    "task": {"type": "string"},
+                    "format": {"type": "string", "enum": ["python", "json", "regex"]},
+                },
+                "required": ["task", "format"],
                 "additionalProperties": False,
             },
         }
@@ -26,6 +29,7 @@ Generate an evaluation dataset for a prompt evaluation. The dataset will be used
 
 * Focus on tasks that can be solved by writing a single Python function, a single JSON object, or a single regex
 * Focus on tasks that do not require writing much code
+* For each task, set "format" to whichever of "python", "json", or "regex" the solution should be written in
 
 Please generate 3 tasks.
 """
