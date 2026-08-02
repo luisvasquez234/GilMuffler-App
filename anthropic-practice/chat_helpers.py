@@ -7,13 +7,19 @@ client = Anthropic()
 model = "claude-sonnet-5"
 
 
-def add_user_message(messages, text):
-    user_message = {"role": "user", "content": text}
+def add_user_message(messages, content):
+    """`content` can be a plain string, or a list of content blocks
+    (e.g. tool_result blocks, or a Message's `.content` for multi-block
+    turns)."""
+    user_message = {"role": "user", "content": content}
     messages.append(user_message)
 
 
-def add_assistant_message(messages, text):
-    assistant_message = {"role": "assistant", "content": text}
+def add_assistant_message(messages, content):
+    """`content` can be a plain string, or a list of content blocks
+    (e.g. a Message's `.content`, which may include thinking/tool_use
+    blocks alongside text)."""
+    assistant_message = {"role": "assistant", "content": content}
     messages.append(assistant_message)
 
 
