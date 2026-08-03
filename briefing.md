@@ -141,3 +141,45 @@ Dos caminos posibles, según cuál sea el caso:
 
 Si quieres, puedo dejar esta consulta guardada (o armar una versión con un umbral más corto, por ejemplo 30 días) para que sirva de algo mientras se acumula historial. Solo dime cuál de los dos casos aplica.
 
+## Briefing 2026-08-03
+Verifiqué cada negocio (dominios propios probados uno a uno, no solo búsquedas). Aquí van los 3:
+
+- **Mass Auto Service LLC** (665 Haverhill St, unidad 3 rear, Lawrence — antes "Larry's Auto Service") — No tiene web funcionando: su dominio antiguo `larrysservice.com` ya no responde (conexión rechazada). Solo página de Facebook y fichas de directorios, y esas fichas se contradicen en horarios (unas dicen 9:00–18:00, otras 8:30–18:30) y aún lo listan con el nombre viejo. Sin precios ni forma de pedir cita. — contacto: (978) 258-0946 / Facebook "Mass Auto Service LLC"
+- **La Esquina del Sabor** (39 Manchester St, Lawrence) — Restaurante dominicano con solo Facebook (facebook.com/Sabor39). No tiene dominio propio: `laesquinadelsabor.com` está en venta en HugeDomains, no es de ellos. Su menú y horarios solo aparecen en sitios de terceros (Yelp, Zmenu, Restaurantji) que ellos no controlan ni actualizan. — contacto: (978) 258-1441
+- **Canela Market** (111 White St, Haverhill) — Tienda latina con solo Facebook (facebook.com/Canelamarketllc). `canelamarket.com` también está parqueado en venta, no es suyo. Depende de DoorDash/Postmates para que la gente vea qué vende, y usa correo de Hotmail en vez de uno propio. — contacto: (978) 372-0108 / canelamarketllc@hotmail.com
+
+**Extra verificado, por si quieres un cuarto:** **Crimmins Landscaping** (Methuen) — sin web propia (`crimminslandscaping.com` tiene certificado vencido y no aparece indexado como suyo), solo Facebook y correo de Gmail — contacto: (978) 702-6749 / Crimminslandscaping@gmail.com
+
+Dos cosas antes de contactar:
+
+1. **Confirma los teléfonos llamando.** Los saqué de directorios; el número puede estar viejo (justo el problema que les venderías resolver).
+2. **Mass Auto Service es competencia directa de Gil's** — también hace escapes/mufflers. Es el mejor encaje técnico (tu app es exactamente para un taller), pero piénsalo con Gil antes, no sea que le caiga mal que le hagas la web al de la esquina.
+
+Los otros tres no compiten con Gil, así que ahí puedes usar la app como prueba social sin problema.
+
+Sources:
+- [Mass Auto Service (Loc8NearMe)](https://www.loc8nearme.com/massachusetts/lawrence/larry-auto-service/4402857/)
+- [Mass Auto Service LLC (Facebook)](https://www.facebook.com/p/Mass-Auto-Service-LLC-100075847808880/)
+- [La Esquina del Sabor (Facebook)](https://www.facebook.com/Sabor39/)
+- [La Esquina del Sabor (Yelp)](https://www.yelp.com/biz/la-esquina-del-sabor-lawrence)
+- [Canela Market (Facebook)](https://www.facebook.com/Canelamarketllc/)
+- [Canela Market (Yelp)](https://www.yelp.com/biz/canela-market-haverhill)
+- [Crimmins Landscaping (Facebook)](https://www.facebook.com/CrimminsLandscaping/)
+
+### Clientes inactivos (Gil Muffler) — 2026-08-03
+La consulta corrió correctamente contra la base de datos. **No hay ningún cliente para contactar: la lista está vacía.**
+
+No es un error ni un fallo de la consulta — lo verifiqué con una segunda consulta:
+
+| Dato | Valor |
+|---|---|
+| Clientes en la base | 2 |
+| Facturas en la base | 2 |
+| Factura más vieja | 28 de julio de 2026 |
+| Factura más nueva | 30 de julio de 2026 |
+| Hoy | 3 de agosto de 2026 |
+
+Los dos clientes que hay en el sistema facturaron hace 4 y 6 días, así que ninguno pasa de los 90 días sin volver, y ninguno está sin facturar.
+
+Una nota para que la tengas en cuenta, Luis: la base todavía tiene solo 2 clientes, así que esta consulta no te va a dar nada útil por un buen rato. Recién empieza a servir cuando lleves varios meses cargando facturas en la app — ahí sí te va a marcar quién dejó de venir. Si quieres, más adelante te la puedo dejar armada como un botón o reporte dentro del panel para que no tengas que pedírmela cada vez.
+
