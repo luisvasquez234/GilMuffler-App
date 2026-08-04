@@ -183,3 +183,72 @@ Los dos clientes que hay en el sistema facturaron hace 4 y 6 días, así que nin
 
 Una nota para que la tengas en cuenta, Luis: la base todavía tiene solo 2 clientes, así que esta consulta no te va a dar nada útil por un buen rato. Recién empieza a servir cuando lleves varios meses cargando facturas en la app — ahí sí te va a marcar quién dejó de venir. Si quieres, más adelante te la puedo dejar armada como un botón o reporte dentro del panel para que no tengas que pedírmela cada vez.
 
+## Briefing 2026-08-04
+Verificado todo con dos fuentes independientes cada uno. Aquí van los 3:
+
+## 3 prospectos verificados
+
+- **Azzi Tailor Shop** (321 E Haverhill St, Lawrence) — Sastrería con **39 años operando** y cero web propia. `azzitailorshop.com` no existe (el DNS no resuelve). Lo que Yellow Pages presenta como su "sitio web" es `azzitailorshop.localsearch.com`, un micrositio que genera el propio directorio, no suyo. Yahoo Local y MerchantCircle no listan web, y MerchantCircle marca la ficha como **sin reclamar** (por eso ni horarios aparecen ahí). Sus horarios existen en un solo directorio y en ningún sitio oficial — contacto: (978) 683-4006
+
+- **Gallery Barber Shop** (107 Essex St, Haverhill — algunos listados dicen 109) — Barbería con 8 años. El único "sitio web" que le atribuyen los buscadores, `109thegallerybarbershopllc.business.site`, **está muerto: devuelve 404** (era una página gratis de Google, y Google cerró ese servicio). Su perfil de BBB no lista ninguna web. Y el campo "website" de Superpages es un desastre: apunta a la ficha de Yellow Pages de **otra barbería distinta** (Clipper Shop at the Tannery) más un enlace de Booksy. Su ficha de Fresha dice literalmente que el negocio "no está afiliado" a la plataforma. Sin precios publicados y con la dirección contradictoria entre fuentes — contacto: (978) 519-8669
+
+- **VIP Cuts** (10 White St, Haverhill — Booksy y Fresha dicen 12) — Barbería con **15 años** (desde 2011) y **4.9/5 con 321 reseñas**: hay demanda real y sostenida detrás. Sin web propia: su perfil de BBB no tiene campo de sitio web, y su única presencia con precios y reservas es Booksy/Fresha, plataformas que ellos no controlan. Si Booksy sube comisión o los quita, desaparecen de internet — contacto: (978) 912-7505
+
+## Cómo lo verifiqué
+
+Para cada uno hice dos comprobaciones independientes: (1) probar el dominio propio directamente, no solo confiar en el buscador, y (2) abrir al menos dos directorios que **sí muestran** el campo "website" (BBB, Yahoo Local, MerchantCircle, Superpages). Los tres son negocios activos, no cerrados.
+
+**Ninguno de los tres compite con Gil's Muffler**, así que puedes usar la app como prueba social sin problema. Azzi está en Lawrence mismo, y Gallery y VIP Cuts están los dos en Haverhill a unas calles entre sí — esos dos los puedes pasar a ver el mismo día.
+
+## Descartados durante la verificación
+
+- **Cleaning and Services Santana** (Lawrence) — Yelp lo marca como **CERRADO** desde diciembre 2025. No pierdas el tiempo.
+- **FMR Cleaning** (Lawrence) — sí tiene sitio real (`fmrcleaning.org`), aunque **solo funciona por HTTP: el HTTPS falla en el handshake SSL**, así que el navegador le muestra "No seguro" a cualquier cliente. Es un prospecto legítimo pero de otro tipo de venta (arreglar, no construir), y su dirección se contradice entre fuentes (360 Merrimack St vs 7 Wilmot St). Te lo dejo apuntado por si te interesa ese ángulo.
+- **NOTS Barbershop** y **The Fix Barbershop** (Haverhill) — descartados: tienen web propia real (`thefixbarbershophaverhill.com`).
+- **Methuen Flowers**, **Flowers By Elena** — descartados, ambas con dominio propio funcionando.
+
+## Dos advertencias honestas
+
+1. **Confirma los teléfonos llamando** antes de mandar mensaje. Los saqué de directorios y pueden estar viejos — que es justo el problema que les venderías resolver.
+2. El email **`vipcuts@live.com`** apareció en un resumen de búsqueda pero **no lo pude leer en ninguna página real**, así que no lo uses como dato confirmado. Igual con Yelp: bloquea el acceso automático (403), así que no leí sus campos directamente; verifiqué por las otras vías. Vale la pena que confirmes en Google Maps desde tu teléfono, porque un negocio pudo poner web ayer sin que los directorios se actualicen.
+
+Revisé antes `briefing.md` y **ninguno de estos tres repite** los 22 negocios que ya habías cubierto o descartado en briefings anteriores.
+
+**Sources:**
+- [BBB — Gallery Barber Shop](https://www.bbb.org/us/ma/haverhill/profile/barber/gallery-barber-shop-0021-497836)
+- [Superpages — Gallery Barber Shop](https://www.superpages.com/haverhill-ma/bpp/gallery-barber-shop-545397804)
+- [Fresha — The Gallery Barbershop](https://www.fresha.com/lvp/the-gallery-barbershop-essex-street-haverhill-D4J01)
+- [Yellow Pages — Azzi Tailor Shop](https://www.yellowpages.com/lawrence-ma/mip/azzi-tailor-shop-5884593)
+- [Yahoo Local — Azzi Tailor Shop](https://local.yahoo.com/info-10098122-azzi-tailor-shop-lawrence)
+- [MerchantCircle — Azzi Tailor Shop](https://www.merchantcircle.com/Azzi.Tailor.Shop.978-683-4006)
+- [Facebook — Azzi's Tailor Shop](https://www.facebook.com/p/Azzis-Tailor-Shop-100070603144073/)
+- [BBB — VIP Cuts](https://www.bbb.org/us/ma/haverhill/profile/barber/vip-cuts-0021-253686)
+- [Booksy — VIP Cuts](https://booksy.com/en-us/429057_vip-cuts_barber-shop_22136_haverhill)
+- [Fresha — Vip Cuts](https://www.fresha.com/lvp/vip-cuts-white-street-haverhill-4PwWQe)
+- [Yelp — Cleaning and Services Santana (CLOSED)](https://www.yelp.com/biz/cleaning-and-services-santana-lawrence)
+- [Yelp — FMR Cleaning](https://www.yelp.com/biz/fmr-cleaning-lawrence)
+- [The Fix Barbershop Haverhill](https://thefixbarbershophaverhill.com/)
+
+### Clientes inactivos (Gil Muffler) — 2026-08-04
+## Resultado: no hay ningún cliente para contactar
+
+La consulta corrió correctamente contra la base de Gil Muffler y devolvió **cero clientes**. No hay nadie que lleve más de 90 días sin volver, ni nadie sin facturar.
+
+Hice una segunda comprobación para asegurarme de que no era un error de la consulta, y el motivo está claro:
+
+| Dato | Valor |
+|---|---|
+| Clientes en la base | 2 |
+| Facturas en la base | 2 |
+| Factura más antigua | 28 de julio de 2026 |
+| Factura más reciente | 30 de julio de 2026 |
+| Clientes sin ninguna factura | 0 |
+
+En palabras simples: los únicos 2 clientes que hay registrados facturaron hace menos de una semana, así que ninguno cae en el filtro de "más de 90 días sin volver". Y como los dos tienen factura, tampoco hay nadie en el grupo de "nunca facturó".
+
+**Lo que esto significa para la lista de contacto:** por ahora no hay nada que contactar — la lista queda vacía, y eso es correcto, no un fallo.
+
+**Cuándo volverá a servir esta consulta:** con solo 2 clientes y datos que arrancan a finales de julio de 2026, esta consulta no va a dar resultados útiles hasta que pase de todo un poco: más clientes cargados y al menos 3 meses de historial. La primera vez que podría devolver algo es a finales de octubre de 2026 (90 días después del 28 de julio), y solo si ese cliente no ha vuelto antes.
+
+Si quieres, te la puedo dejar guardada como un botón o una vista en la app para que la puedas correr tú mismo cuando haya más historial, en vez de tener que pedírmelo. Dime y lo armamos.
+
