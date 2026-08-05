@@ -19,6 +19,7 @@
     configNegocio: null,
     mecanicos: [],
     registroDiarioId: null,
+    registroDiarioSinGuardarAyer: 0,
     llamadas: [],
     telefonos: [],
   };
@@ -74,6 +75,13 @@
     const [anio, mes, dia] = iso.slice(0, 10).split("-");
     const formato = state.configNegocio && state.configNegocio.formato_fecha === "DD/MM/YYYY" ? "DD/MM/YYYY" : "MM/DD/YYYY";
     return formato === "DD/MM/YYYY" ? dia + "/" + mes + "/" + anio : mes + "/" + dia + "/" + anio;
+  }
+
+  function sumarDias(fechaIso, dias) {
+    if (!fechaIso) return null;
+    const d = new Date(fechaIso + "T00:00:00");
+    d.setDate(d.getDate() + Number(dias || 0));
+    return d.toISOString().slice(0, 10);
   }
 
   // ---------------- modo sin conexión (consulta de datos guardados) ----------------
@@ -2088,6 +2096,11 @@
     const extraHtml = cfg.texto_adicional
       ? "<p class='extra'>" + escapeHtml(cfg.texto_adicional).replace(/\n/g, "<br>") + "</p>"
       : "";
+    const garantiaDiasFactura = Number(cfg.garantia_dias) || 0;
+    const garantiaHastaFactura = garantiaDiasFactura ? sumarDias(factura.fecha, garantiaDiasFactura) : null;
+    const garantiaHtml = garantiaHastaFactura
+      ? "<p class='garantia'>Garantía válida hasta: " + escapeHtml(formatDate(garantiaHastaFactura)) + "</p>"
+      : "";
 
     let qrBlockHtml = "";
     if (mostrarQr) {
@@ -2106,7 +2119,8 @@
       " #" +
       String(factura.numero).padStart(4, "0") +
       "</title><style>" +
-      "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:2.5rem 2.5rem 7rem;max-width:40rem;margin:0 auto;}" +
+      "body{position:relative;font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:2.5rem 2.5rem 7rem;max-width:40rem;margin:0 auto;}" +
+      ".watermark{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);font-size:4rem;font-weight:800;color:rgba(0,0,0,0.06);white-space:nowrap;z-index:-1;pointer-events:none;}" +
       ".header{border-bottom:3px solid " +
       colorAcento +
       ";padding-bottom:1rem;margin-bottom:1.2rem;display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;}" +
@@ -2131,11 +2145,15 @@
       ".notas strong{display:block;margin-bottom:.3rem;color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}" +
       ".pie{margin-top:2rem;text-align:center;font-style:italic;color:#68707e;font-size:.9rem;}" +
       ".extra{margin-top:.75rem;text-align:center;color:#68707e;font-size:.8rem;white-space:pre-line;}" +
+      ".garantia{margin-top:.5rem;text-align:center;color:#68707e;font-size:.8rem;}" +
       ".qr{position:fixed;bottom:1.2rem;right:1.2rem;text-align:center;margin:0;}" +
       ".qr img{width:90px;height:90px;}" +
       ".qr p{margin:.25rem 0 0;font-size:.62rem;color:#68707e;}" +
       "@media print{body{padding:0;}}" +
       "</style></head><body>" +
+      "<div class='watermark'>" +
+      escapeHtml(nombreNegocio) +
+      "</div>" +
       "<div class='header'><div class='header-brand'><img src='" +
       logoSrc +
       "' alt='' /><h1>" +
@@ -2177,6 +2195,7 @@
       "</span></div></div>" +
       notasHtml +
       extraHtml +
+      garantiaHtml +
       pieHtml +
       qrBlockHtml +
       "</body></html>";
@@ -2262,6 +2281,35 @@
           "</tbody></table></div>"
         : "") +
       (orden.notas ? "<div class='bloque'><strong>Notas</strong>" + escapeHtml(orden.notas).replace(/\n/g, "<br>") + "</div>" : "") +
+      "</body></html>";
+
+    openPrintWindow(html);
+  }
+
+  function imprimirQrLlamame() {
+    const url = (typeof LAN_ORIGIN !== "undefined" && LAN_ORIGIN ? LAN_ORIGIN : location.origin) + location.pathname.replace(/index\.html$/, "") + "llamame.html";
+    const qr = qrcode(0, "M");
+    qr.addData(url);
+    qr.make();
+    const qrDataUrl = qr.createDataURL(8, 8);
+    const cfg = state.configNegocio || {};
+    const nombreNegocio = cfg.nombre_negocio || "Gil Muffler";
+
+    const html =
+      "<!doctype html><html><head><meta charset='utf-8'><title>QR — Pídenos que te llamemos</title><style>" +
+      "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:3rem;text-align:center;}" +
+      "h1{font-size:1.3rem;margin-bottom:.5rem;}" +
+      "p{color:#68707e;margin-top:0;}" +
+      "img{margin-top:1.5rem;}" +
+      "@media print{body{padding:0;}}" +
+      "</style></head><body>" +
+      "<h1>" +
+      escapeHtml(nombreNegocio) +
+      "</h1>" +
+      "<p>Escanea este código para pedir que te llamemos</p>" +
+      "<img src='" +
+      qrDataUrl +
+      "' alt='QR' />" +
       "</body></html>";
 
     openPrintWindow(html);
@@ -2415,6 +2463,12 @@
     const nombreCreador = factura && factura.creado_por ? nombreEmpleado(factura.creado_por) : null;
     notaCreador.hidden = !nombreCreador;
     if (nombreCreador) notaCreador.textContent = "Creada por: " + nombreCreador;
+
+    const notaGarantia = document.getElementById("factura-garantia-nota");
+    const garantiaDias = state.configNegocio ? Number(state.configNegocio.garantia_dias) || 0 : 0;
+    const garantiaHasta = factura && garantiaDias ? sumarDias(factura.fecha, garantiaDias) : null;
+    notaGarantia.hidden = !garantiaHasta;
+    if (garantiaHasta) notaGarantia.textContent = "Garantía válida hasta: " + formatDate(garantiaHasta);
 
     const selectMecanico = document.getElementById("factura-mecanico");
     selectMecanico.innerHTML =
@@ -3508,7 +3562,136 @@
       document.getElementById("orden-fotos-grid").innerHTML = "";
     }
 
+    renderFirmaEntrega(orden);
+
     openModal("modal-orden");
+  }
+
+  function renderFirmaEntrega(orden) {
+    const seccion = document.getElementById("orden-firma-seccion");
+    const puedeFirmar = !!(orden && (orden.etapa === "completado" || orden.etapa === "facturado"));
+    seccion.hidden = !puedeFirmar;
+    if (!puedeFirmar) return;
+
+    const guardada = document.getElementById("orden-firma-guardada");
+    const captura = document.getElementById("orden-firma-captura");
+    if (orden.firma_entrega_url) {
+      guardada.hidden = false;
+      captura.hidden = true;
+      guardada.innerHTML =
+        '<img src="' +
+        escapeHtml(orden.firma_entrega_url) +
+        '" alt="Firma de entrega" style="max-width:400px;border:1px solid var(--border);border-radius:6px;background:#fff;" />' +
+        "<p class='orden-nota'>Firmado por: " +
+        escapeHtml(orden.firma_entrega_nombre || "—") +
+        (orden.firma_entrega_fecha ? " — " + escapeHtml(formatDate(orden.firma_entrega_fecha.slice(0, 10))) : "") +
+        "</p>" +
+        '<button type="button" class="btn-ghost" id="btn-firmar-de-nuevo">Firmar de nuevo</button>';
+      document.getElementById("btn-firmar-de-nuevo").addEventListener("click", () => {
+        guardada.hidden = true;
+        captura.hidden = false;
+        initFirmaCanvas(document.getElementById("orden-firma-canvas"));
+      });
+    } else {
+      guardada.hidden = true;
+      captura.hidden = false;
+      document.getElementById("orden-firma-nombre").value = "";
+      initFirmaCanvas(document.getElementById("orden-firma-canvas"));
+    }
+  }
+
+  let firmaCanvasCtx = null;
+  let firmaDibujando = false;
+  let firmaTieneTrazo = false;
+
+  function initFirmaCanvas(canvas) {
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#1f2430";
+    firmaCanvasCtx = ctx;
+    firmaTieneTrazo = false;
+    if (canvas._firmaBound) return;
+    canvas._firmaBound = true;
+
+    const posDesdeEvento = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: ((e.clientX - rect.left) / rect.width) * canvas.width,
+        y: ((e.clientY - rect.top) / rect.height) * canvas.height,
+      };
+    };
+
+    canvas.addEventListener("pointerdown", (e) => {
+      firmaDibujando = true;
+      firmaTieneTrazo = true;
+      const p = posDesdeEvento(e);
+      firmaCanvasCtx.beginPath();
+      firmaCanvasCtx.moveTo(p.x, p.y);
+      e.preventDefault();
+    });
+    canvas.addEventListener("pointermove", (e) => {
+      if (!firmaDibujando) return;
+      const p = posDesdeEvento(e);
+      firmaCanvasCtx.lineTo(p.x, p.y);
+      firmaCanvasCtx.stroke();
+      e.preventDefault();
+    });
+    ["pointerup", "pointerleave", "pointercancel"].forEach((evt) => {
+      canvas.addEventListener(evt, () => {
+        firmaDibujando = false;
+      });
+    });
+  }
+
+  function limpiarFirma() {
+    const canvas = document.getElementById("orden-firma-canvas");
+    firmaCanvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+    firmaTieneTrazo = false;
+  }
+
+  async function guardarFirmaEntrega() {
+    const ordenId = document.getElementById("orden-id").value;
+    const nombre = document.getElementById("orden-firma-nombre").value.trim();
+    if (!ordenId) return;
+    if (!nombre) {
+      showToast("Escribe el nombre de quien recibe el vehículo.", true);
+      return;
+    }
+    if (!firmaTieneTrazo) {
+      showToast("Todavía no hay una firma dibujada. Dibújala en el recuadro antes de guardar.", true);
+      return;
+    }
+    const canvas = document.getElementById("orden-firma-canvas");
+
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+    if (!blob) {
+      showToast("No se pudo guardar la firma.", true);
+      return;
+    }
+    const storagePath = "orden-" + ordenId + "/firma-" + crypto.randomUUID() + ".png";
+    const { error: uploadError } = await sb.storage.from("fotos-ordenes").upload(storagePath, blob, { contentType: "image/png" });
+    if (uploadError) {
+      showToast("No se pudo subir la firma.", true);
+      return;
+    }
+    const { data: urlData } = sb.storage.from("fotos-ordenes").getPublicUrl(storagePath);
+    const { error: updateError } = await sb
+      .from("ordenes_servicio")
+      .update({
+        firma_entrega_url: urlData.publicUrl,
+        firma_entrega_nombre: nombre,
+        firma_entrega_fecha: new Date().toISOString(),
+      })
+      .eq("id", ordenId);
+    if (updateError) {
+      showToast("No se pudo guardar la firma.", true);
+      return;
+    }
+    showToast("Firma guardada.");
+    await refreshOrdenes();
+    renderFirmaEntrega(state.ordenes.find((o) => o.id === ordenId));
   }
 
   async function saveOrden(e) {
@@ -3736,12 +3919,12 @@
       .map((l) => {
         const orden = l.ordenes_servicio;
         const cliente = orden ? orden.clientes || {} : l.clientes || {};
-        const nombreCliente = [cliente.nombre, cliente.apellido].filter(Boolean).join(" ") || "—";
+        const nombreCliente = [cliente.nombre, cliente.apellido].filter(Boolean).join(" ") || l.nombre_contacto || "—";
         const carro = orden
           ? [orden.vehiculo_marca, orden.vehiculo_modelo, orden.vehiculo_anio].filter(Boolean).join(" ") || "—"
           : [l.vehiculo_marca, l.vehiculo_modelo, l.vehiculo_anio].filter(Boolean).join(" ") || "—";
         const motivoTexto = orden ? MOTIVO_LLAMADA_LABELS[l.motivo] || l.motivo : l.motivo || "Llamar";
-        const telefonos = [cliente.telefono, ...telefonosDeCliente(cliente.id).map((t) => t.telefono)].filter(Boolean);
+        const telefonos = [cliente.telefono, ...telefonosDeCliente(cliente.id).map((t) => t.telefono), l.telefono_contacto].filter(Boolean);
         return (
           "<tr><td>" +
           escapeHtml(nombreCliente) +
@@ -4091,10 +4274,13 @@
   }
 
   let registroDiarioSucio = false;
+  let registroDiarioCerrado = false;
+  let registroDiarioActual = null;
 
   async function cargarRegistroDiario(fecha) {
     const registro = await fetchRegistroDiario(fecha);
     state.registroDiarioId = registro ? registro.id : null;
+    registroDiarioActual = registro;
     const items = registro ? await fetchRegistroDiarioItems(registro.id) : [];
     renderRegistroDiario(registro, items);
     registroDiarioSucio = false;
@@ -4116,10 +4302,118 @@
     await cargarRegistroDiario(nuevaFecha);
   }
 
+  const REGISTRO_COLUMNAS_DEF = {
+    carro: { label: "Carro", celda: (item) => '<input type="text" class="reg-carro" value="' + (item ? escapeHtml(item.carro || "") : "") + '" />' },
+    descripcion: { label: "Descripción", celda: (item) => '<input type="text" class="reg-desc" value="' + (item ? escapeHtml(item.descripcion || "") : "") + '" />' },
+    labor: { label: "Labor", celda: (item) => '<input type="number" class="reg-labor" step="0.01" min="0" value="' + (item ? item.labor : 0) + '" />' },
+    piezas: { label: "Piezas", celda: (item) => '<input type="number" class="reg-piezas" step="0.01" min="0" value="' + (item ? item.piezas : 0) + '" />' },
+    otro: { label: "Otro", celda: (item) => '<input type="number" class="reg-otro" step="0.01" min="0" value="' + (item ? item.otro : 0) + '" />' },
+    dinero_salida: { label: "Dinero de salida", celda: (item) => '<input type="number" class="reg-dinero-salida" step="0.01" min="0" value="' + (item ? item.dinero_salida : 0) + '" />' },
+    factura: {
+      label: "Factura",
+      celda: (item) =>
+        '<button type="button" class="reg-factura-btn' +
+        (item && item.factura_id ? " is-vinculada" : "") +
+        '" aria-label="' +
+        (item && item.factura_id ? "Factura vinculada" : "Vincular factura") +
+        (item && item.carro ? " para " + escapeHtml(item.carro) : "") +
+        '">' +
+        facturaBadgeLabel(item && item.factura_id) +
+        "</button>",
+    },
+  };
+  const REGISTRO_COLUMNAS_ORDEN_DEFAULT = ["carro", "descripcion", "labor", "piezas", "otro", "dinero_salida", "factura"];
+
+  function getRegistroColumnOrder() {
+    try {
+      const guardado = JSON.parse(localStorage.getItem("registroColumnasOrden") || "null");
+      if (Array.isArray(guardado) && guardado.length === REGISTRO_COLUMNAS_ORDEN_DEFAULT.length && REGISTRO_COLUMNAS_ORDEN_DEFAULT.every((k) => guardado.includes(k))) {
+        return guardado;
+      }
+    } catch (e) {}
+    return REGISTRO_COLUMNAS_ORDEN_DEFAULT.slice();
+  }
+
+  function setRegistroColumnOrder(orden) {
+    localStorage.setItem("registroColumnasOrden", JSON.stringify(orden));
+  }
+
+  function renderRegistroTheadHtml() {
+    return (
+      "<thead><tr>" +
+      getRegistroColumnOrder()
+        .map(
+          (key) =>
+            '<th draggable="true" tabindex="0" class="registro-col-header" data-col="' +
+            key +
+            '" aria-label="' +
+            REGISTRO_COLUMNAS_DEF[key].label +
+            ' — columna. Arrastra, o con el teclado usa flecha izquierda/derecha para moverla" title="Arrastra o usa las flechas del teclado para reordenar">' +
+            REGISTRO_COLUMNAS_DEF[key].label +
+            "</th>"
+        )
+        .join("") +
+      "<th></th></tr></thead>"
+    );
+  }
+
+  function wireRegistroColumnDragDrop() {
+    document.querySelectorAll(".registro-col-header").forEach((th) => {
+      th.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", th.dataset.col);
+      });
+      th.addEventListener("dragover", (e) => e.preventDefault());
+      th.addEventListener("drop", (e) => {
+        e.preventDefault();
+        const origenKey = e.dataTransfer.getData("text/plain");
+        moverColumnaRegistro(origenKey, th.dataset.col);
+      });
+      th.addEventListener("keydown", (e) => {
+        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+        e.preventDefault();
+        const orden = getRegistroColumnOrder();
+        const idx = orden.indexOf(th.dataset.col);
+        const vecinoIdx = e.key === "ArrowLeft" ? idx - 1 : idx + 1;
+        if (vecinoIdx < 0 || vecinoIdx >= orden.length) return;
+        moverColumnaRegistro(th.dataset.col, orden[vecinoIdx]);
+        const nuevoTh = document.querySelector('.registro-col-header[data-col="' + th.dataset.col + '"]');
+        if (nuevoTh) nuevoTh.focus();
+      });
+    });
+  }
+
+  function moverColumnaRegistro(origenKey, destinoKey) {
+    const ordenViejo = getRegistroColumnOrder();
+    const origenIdx = ordenViejo.indexOf(origenKey);
+    const destinoIdx = ordenViejo.indexOf(destinoKey);
+    if (origenIdx === -1 || destinoIdx === -1 || origenIdx === destinoIdx) return;
+
+    document.querySelectorAll(".registro-mecanico-card table tr").forEach((tr) => {
+      const celdas = Array.from(tr.children);
+      const celdaMovida = celdas[origenIdx];
+      const celdaReferencia = celdas[destinoIdx];
+      if (!celdaMovida || !celdaReferencia) return;
+      if (origenIdx < destinoIdx) celdaReferencia.after(celdaMovida);
+      else celdaReferencia.before(celdaMovida);
+    });
+
+    const ordenNuevo = ordenViejo.slice();
+    ordenNuevo.splice(origenIdx, 1);
+    ordenNuevo.splice(destinoIdx, 0, origenKey);
+    setRegistroColumnOrder(ordenNuevo);
+  }
+
   function renderRegistroDiario(registro, items) {
     document.getElementById("registro-credit-card").value = registro ? registro.credit_card_total : 0;
     document.getElementById("registro-cash").value = registro ? registro.cash_total : 0;
     document.getElementById("registro-check").value = registro ? registro.check_total : 0;
+
+    registroDiarioCerrado = !!(registro && registro.cerrado);
+    document.getElementById("registro-cerrado-banner").hidden = !registroDiarioCerrado;
+    document.getElementById("btn-cerrar-registro-diario").hidden = !registro || registroDiarioCerrado;
+    document.getElementById("btn-reabrir-registro-diario").hidden = !registroDiarioCerrado;
+    document.getElementById("btn-guardar-registro-diario").disabled = registroDiarioCerrado;
+    document.getElementById("btn-duplicar-dia-anterior").disabled = registroDiarioCerrado;
 
     const container = document.getElementById("registro-mecanicos-container");
     const mecanicosActivos = state.mecanicos.filter((m) => m.activo);
@@ -4127,6 +4421,7 @@
     if (!mecanicosActivos.length) {
       container.innerHTML = "<p class='empty-state'>Todavía no hay mecánicos activos. Agrega uno en Configuración &rarr; Mecánicos.</p>";
       recalcularRegistroDiario();
+      renderFotoHojaRegistro(registro);
       return;
     }
 
@@ -4148,13 +4443,15 @@
           '<span class="view-sub" style="margin:0;">Labor: <strong class="reg-sub-labor">$0.00</strong> &middot; Piezas: <strong class="reg-sub-piezas">$0.00</strong></span>' +
           "</header>" +
           '<div class="table-wrap"><table class="data-table">' +
-          "<thead><tr><th>Carro</th><th>Descripción</th><th>Labor</th><th>Piezas</th><th>Otro</th><th>Dinero de salida</th><th></th></tr></thead>" +
+          renderRegistroTheadHtml() +
           '<tbody class="registro-items-tbody"></tbody>' +
           "</table></div>" +
           '<button type="button" class="btn-ghost registro-add-fila" style="margin-top:.6rem;">+ Agregar fila</button>' +
           "</div>"
       )
       .join("");
+
+    wireRegistroColumnDragDrop();
 
     container.querySelectorAll(".registro-add-fila").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -4173,32 +4470,28 @@
       items.filter((it) => it.mecanico_id === m.id).forEach((it) => addRegistroItemRow(tbody, it));
     });
 
+    if (registroDiarioCerrado) {
+      container.querySelectorAll("input, button").forEach((el) => (el.disabled = true));
+    }
+
     recalcularRegistroDiario();
+    renderFotoHojaRegistro(registro);
+  }
+
+  function facturaBadgeLabel(facturaId) {
+    if (!facturaId) return "+ Vincular";
+    const f = state.facturas.find((x) => x.id === facturaId);
+    return f ? "#" + String(f.numero).padStart(4, "0") : "+ Vincular";
   }
 
   function addRegistroItemRow(tbody, item) {
     const tr = document.createElement("tr");
     tr.dataset.itemId = item ? item.id : "";
+    tr.dataset.facturaId = item && item.factura_id ? item.factura_id : "";
     tr.innerHTML =
-      '<td><input type="text" class="reg-carro" value="' +
-      (item ? escapeHtml(item.carro || "") : "") +
-      '" /></td>' +
-      '<td><input type="text" class="reg-desc" value="' +
-      (item ? escapeHtml(item.descripcion || "") : "") +
-      '" /></td>' +
-      '<td><input type="number" class="reg-labor" step="0.01" min="0" value="' +
-      (item ? item.labor : 0) +
-      '" /></td>' +
-      '<td><input type="number" class="reg-piezas" step="0.01" min="0" value="' +
-      (item ? item.piezas : 0) +
-      '" /></td>' +
-      '<td><input type="number" class="reg-otro" step="0.01" min="0" value="' +
-      (item ? item.otro : 0) +
-      '" /></td>' +
-      '<td><input type="number" class="reg-dinero-salida" step="0.01" min="0" value="' +
-      (item ? item.dinero_salida : 0) +
-      '" /></td>' +
-      '<td><button type="button" class="item-remove" title="Quitar fila">&times;</button></td>';
+      getRegistroColumnOrder()
+        .map((key) => "<td>" + REGISTRO_COLUMNAS_DEF[key].celda(item) + "</td>")
+        .join("") + '<td><button type="button" class="item-remove" title="Quitar fila">&times;</button></td>';
     tbody.appendChild(tr);
 
     tr.querySelectorAll(".reg-carro, .reg-desc, .reg-labor, .reg-piezas, .reg-otro, .reg-dinero-salida").forEach((input) => {
@@ -4212,6 +4505,7 @@
       registroDiarioSucio = true;
       recalcularRegistroDiario();
     });
+    tr.querySelector(".reg-factura-btn").addEventListener("click", () => abrirVincularFactura(tr));
 
     return tr;
   }
@@ -4246,9 +4540,28 @@
     const cash = parseFloat(document.getElementById("registro-cash").value) || 0;
     const check = parseFloat(document.getElementById("registro-check").value) || 0;
     document.getElementById("registro-total-dia").textContent = money(cc + cash + check);
+
+    const trabajoTotal = laborDia + piezasDia + otroDia;
+    const cajaTotal = cc + cash + check;
+    const diferencia = trabajoTotal - cajaTotal;
+    const warningEl = document.getElementById("registro-mismatch-warning");
+    if (Math.abs(diferencia) > 0.01) {
+      warningEl.hidden = false;
+      warningEl.textContent =
+        diferencia > 0
+          ? "El trabajo del día (" + money(trabajoTotal) + ") es " + money(diferencia) + " más que el cierre de caja (" + money(cajaTotal) + ")."
+          : "El cierre de caja (" + money(cajaTotal) + ") es " + money(-diferencia) + " más que el trabajo del día (" + money(trabajoTotal) + "). Puede ser normal si hubo dinero de salida.";
+    } else {
+      warningEl.hidden = true;
+      warningEl.textContent = "";
+    }
   }
 
   async function guardarRegistroDiario() {
+    if (registroDiarioCerrado) {
+      showToast("Este día ya está cerrado. Reábrelo primero para poder editarlo.", true);
+      return;
+    }
     const fecha = document.getElementById("registro-fecha").value;
     if (!fecha) {
       showToast("Elige una fecha.", true);
@@ -4288,6 +4601,7 @@
         const piezas = parseFloat(tr.querySelector(".reg-piezas").value) || 0;
         const otro = parseFloat(tr.querySelector(".reg-otro").value) || 0;
         const dineroSalida = parseFloat(tr.querySelector(".reg-dinero-salida").value) || 0;
+        const facturaId = tr.dataset.facturaId || null;
         if (!carro && !descripcion && !labor && !piezas && !otro && !dineroSalida) return;
         filas.push({
           registro_id: registroId,
@@ -4298,6 +4612,7 @@
           piezas,
           otro,
           dinero_salida: dineroSalida,
+          factura_id: facturaId,
           orden: orden++,
         });
       });
@@ -4319,6 +4634,416 @@
     state.registroDiarioId = registroId;
     showToast("Registro del día guardado.");
     await cargarRegistroDiario(fecha);
+  }
+
+  async function duplicarDiaAnterior() {
+    if (registroDiarioCerrado) {
+      showToast("Este día está cerrado, no se puede editar.", true);
+      return;
+    }
+    const fechaActual = document.getElementById("registro-fecha").value;
+    if (!fechaActual) return;
+
+    const hayFilas = document.querySelectorAll(".registro-items-tbody tr").length > 0;
+    if (hayFilas) {
+      const seguir = await confirmDialog("Esto va a agregar las filas de ayer (sin los montos, solo carro y descripción) a las de hoy. ¿Continuar?", {
+        title: "Duplicar día anterior",
+        okLabel: "Sí, agregar",
+      });
+      if (!seguir) return;
+    }
+
+    const d = new Date(fechaActual + "T00:00:00");
+    d.setDate(d.getDate() - 1);
+    const fechaAnterior = d.toISOString().slice(0, 10);
+
+    const registroAnterior = await fetchRegistroDiario(fechaAnterior);
+    if (!registroAnterior) {
+      showToast("El día anterior no tiene un registro guardado.", true);
+      return;
+    }
+    const itemsAnteriores = await fetchRegistroDiarioItems(registroAnterior.id);
+    if (!itemsAnteriores.length) {
+      showToast("El día anterior no tiene filas guardadas.", true);
+      return;
+    }
+
+    itemsAnteriores.forEach((it) => {
+      const card = document.querySelector('.registro-mecanico-card[data-mecanico-id="' + it.mecanico_id + '"]');
+      if (!card) return;
+      const tbody = card.querySelector(".registro-items-tbody");
+      addRegistroItemRow(tbody, { carro: it.carro, descripcion: it.descripcion, labor: 0, piezas: 0, otro: 0, dinero_salida: 0 });
+    });
+
+    registroDiarioSucio = true;
+    recalcularRegistroDiario();
+    showToast("Filas de ayer agregadas. Revisa los montos y guarda cuando estés listo.");
+  }
+
+  let vincularFacturaMapaLabels = {};
+
+  function abrirVincularFactura(tr) {
+    const datalist = document.getElementById("vincular-facturas-datalist");
+    vincularFacturaMapaLabels = {};
+    datalist.innerHTML = state.facturas
+      .map((f) => {
+        const clienteNombre = f.clientes ? f.clientes.nombre : "";
+        const label = (clienteNombre ? clienteNombre + " — " : "") + "#" + String(f.numero).padStart(4, "0");
+        vincularFacturaMapaLabels[label.toLowerCase()] = f.id;
+        return '<option value="' + escapeHtml(label) + '"></option>';
+      })
+      .join("");
+
+    document.getElementById("vincular-factura-input").value = "";
+    window.__vincularFacturaTr = tr;
+    openModal("modal-vincular-factura");
+  }
+
+  function confirmarVinculoFactura() {
+    const tr = window.__vincularFacturaTr;
+    if (!tr) return;
+    const label = document.getElementById("vincular-factura-input").value.trim().toLowerCase();
+    const facturaId = vincularFacturaMapaLabels[label];
+    if (!facturaId) {
+      showToast("Elige una factura de la lista.", true);
+      return;
+    }
+    tr.dataset.facturaId = facturaId;
+    const btn = tr.querySelector(".reg-factura-btn");
+    btn.textContent = facturaBadgeLabel(facturaId);
+    btn.classList.add("is-vinculada");
+    registroDiarioSucio = true;
+    closeModal("modal-vincular-factura");
+    showToast("Fila vinculada a la factura.");
+  }
+
+  function quitarVinculoFactura() {
+    const tr = window.__vincularFacturaTr;
+    if (!tr) return;
+    tr.dataset.facturaId = "";
+    const btn = tr.querySelector(".reg-factura-btn");
+    btn.textContent = "+ Vincular";
+    btn.classList.remove("is-vinculada");
+    registroDiarioSucio = true;
+    closeModal("modal-vincular-factura");
+  }
+
+  function exportarRegistroDiario() {
+    const fecha = document.getElementById("registro-fecha").value;
+    const filas = [];
+    document.querySelectorAll(".registro-mecanico-card").forEach((card) => {
+      const mecanicoId = card.dataset.mecanicoId;
+      const mecanico = state.mecanicos.find((m) => m.id === mecanicoId);
+      card.querySelectorAll(".registro-items-tbody tr").forEach((tr) => {
+        filas.push({
+          mecanico: mecanico ? mecanico.nombre : "",
+          carro: tr.querySelector(".reg-carro").value,
+          descripcion: tr.querySelector(".reg-desc").value,
+          labor: tr.querySelector(".reg-labor").value,
+          piezas: tr.querySelector(".reg-piezas").value,
+          otro: tr.querySelector(".reg-otro").value,
+          dinero_salida: tr.querySelector(".reg-dinero-salida").value,
+        });
+      });
+    });
+    descargarCsv("registro-" + fecha + ".csv", filas);
+  }
+
+  function imprimirRegistroDiario() {
+    const fecha = document.getElementById("registro-fecha").value;
+    let filasHtml = "";
+    document.querySelectorAll(".registro-mecanico-card").forEach((card) => {
+      const mecanicoId = card.dataset.mecanicoId;
+      const mecanico = state.mecanicos.find((m) => m.id === mecanicoId);
+      const filasMecanico = card.querySelectorAll(".registro-items-tbody tr");
+      if (!filasMecanico.length) return;
+      filasHtml +=
+        "<h3>" +
+        escapeHtml(mecanico ? mecanico.nombre : "") +
+        "</h3><table><thead><tr><th>Carro</th><th>Descripción</th><th class='num'>Labor</th><th class='num'>Piezas</th><th class='num'>Otro</th><th class='num'>Dinero de salida</th></tr></thead><tbody>";
+      filasMecanico.forEach((tr) => {
+        filasHtml +=
+          "<tr><td>" +
+          escapeHtml(tr.querySelector(".reg-carro").value) +
+          "</td><td>" +
+          escapeHtml(tr.querySelector(".reg-desc").value) +
+          "</td><td class='num'>" +
+          money(tr.querySelector(".reg-labor").value) +
+          "</td><td class='num'>" +
+          money(tr.querySelector(".reg-piezas").value) +
+          "</td><td class='num'>" +
+          money(tr.querySelector(".reg-otro").value) +
+          "</td><td class='num'>" +
+          money(tr.querySelector(".reg-dinero-salida").value) +
+          "</td></tr>";
+      });
+      filasHtml += "</tbody></table>";
+    });
+
+    const cc = document.getElementById("registro-credit-card").value;
+    const cash = document.getElementById("registro-cash").value;
+    const check = document.getElementById("registro-check").value;
+
+    const html =
+      "<!doctype html><html><head><meta charset='utf-8'><title>Registro diario " +
+      escapeHtml(fecha) +
+      "</title><style>" +
+      "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:2rem;}" +
+      "h1{font-size:1.2rem;}h3{margin-top:1.5rem;font-size:.95rem;}" +
+      "table{width:100%;border-collapse:collapse;margin-top:.4rem;}" +
+      "th,td{border:1px solid #ccc;padding:.4rem .5rem;font-size:.8rem;text-align:left;}" +
+      "td.num,th.num{text-align:right;}" +
+      ".totales{margin-top:1.5rem;font-size:.9rem;}" +
+      "@media print{body{padding:0;}}" +
+      "</style></head><body>" +
+      "<h1>Registro diario — " +
+      escapeHtml(formatDate(fecha)) +
+      "</h1>" +
+      filasHtml +
+      "<div class='totales'><strong>Cierre de caja:</strong> Tarjeta " +
+      money(cc) +
+      " · Efectivo " +
+      money(cash) +
+      " · Cheque " +
+      money(check) +
+      " · Total " +
+      money((parseFloat(cc) || 0) + (parseFloat(cash) || 0) + (parseFloat(check) || 0)) +
+      "</div>" +
+      "</body></html>";
+
+    openPrintWindow(html);
+  }
+
+  async function cerrarRegistroDiario() {
+    if (!state.registroDiarioId) {
+      showToast("Guarda el registro del día primero.", true);
+      return;
+    }
+    if (!(await confirmDialog("¿Cerrar este día? No se podrá editar hasta que lo reabras.", { title: "Cerrar día", okLabel: "Cerrar día" }))) return;
+    const { error } = await sb.from("registro_diario").update({ cerrado: true, cerrado_en: new Date().toISOString() }).eq("id", state.registroDiarioId);
+    if (error) {
+      showToast("No se pudo cerrar el día.", true);
+      return;
+    }
+    showToast("Día cerrado.");
+    await cargarRegistroDiario(document.getElementById("registro-fecha").value);
+  }
+
+  async function reabrirRegistroDiario() {
+    if (!(await confirmDialog("¿Reabrir este día para poder editarlo de nuevo?", { title: "Reabrir día", okLabel: "Reabrir" }))) return;
+    const { error } = await sb.from("registro_diario").update({ cerrado: false }).eq("id", state.registroDiarioId);
+    if (error) {
+      showToast("No se pudo reabrir el día.", true);
+      return;
+    }
+    showToast("Día reabierto.");
+    await cargarRegistroDiario(document.getElementById("registro-fecha").value);
+  }
+
+  function renderFotoHojaRegistro(registro) {
+    const nota = document.getElementById("registro-foto-hoja-nota");
+    const preview = document.getElementById("registro-foto-hoja-preview");
+    const label = document.getElementById("btn-subir-foto-hoja-label");
+    nota.hidden = !!(registro && registro.id);
+    label.hidden = !(registro && registro.id);
+    if (registro && registro.foto_hoja_url) {
+      preview.innerHTML =
+        '<div class="orden-fotos-grid"><div class="orden-foto-item"><img src="' +
+        escapeHtml(registro.foto_hoja_url) +
+        '" alt="Foto de la hoja del día" /><button type="button" class="orden-foto-eliminar" id="btn-eliminar-foto-hoja" title="Eliminar foto">&times;</button></div></div>';
+      const btnEliminar = document.getElementById("btn-eliminar-foto-hoja");
+      if (btnEliminar) btnEliminar.addEventListener("click", eliminarFotoHojaRegistro);
+    } else {
+      preview.innerHTML = "";
+    }
+  }
+
+  async function subirFotoHojaRegistro(file) {
+    if (!state.registroDiarioId || !file) return;
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const storagePath = "registro-" + state.registroDiarioId + "/" + crypto.randomUUID() + "." + ext;
+
+    showToast("Subiendo foto...");
+    const { error: uploadError } = await sb.storage.from("fotos-registro-diario").upload(storagePath, file);
+    if (uploadError) {
+      showToast("No se pudo subir la foto.", true);
+      return;
+    }
+    const { data: urlData } = sb.storage.from("fotos-registro-diario").getPublicUrl(storagePath);
+    const { error: updateError } = await sb
+      .from("registro_diario")
+      .update({ foto_hoja_url: urlData.publicUrl, foto_hoja_storage_path: storagePath })
+      .eq("id", state.registroDiarioId);
+    if (updateError) {
+      showToast("No se pudo guardar la foto.", true);
+      return;
+    }
+    showToast("Foto agregada.");
+    await cargarRegistroDiario(document.getElementById("registro-fecha").value);
+  }
+
+  async function eliminarFotoHojaRegistro() {
+    if (!(await confirmDialog("¿Eliminar esta foto?", { title: "Eliminar foto" }))) return;
+    if (registroDiarioActual && registroDiarioActual.foto_hoja_storage_path) {
+      await sb.storage.from("fotos-registro-diario").remove([registroDiarioActual.foto_hoja_storage_path]);
+    }
+    const { error } = await sb.from("registro_diario").update({ foto_hoja_url: null, foto_hoja_storage_path: null }).eq("id", state.registroDiarioId);
+    if (error) {
+      showToast("No se pudo eliminar la foto.", true);
+      return;
+    }
+    await cargarRegistroDiario(document.getElementById("registro-fecha").value);
+  }
+
+  async function buscarRegistroDiarioPorCarro(query) {
+    const q = query.trim();
+    if (!q) {
+      document.getElementById("registro-buscar-resultados").innerHTML = "";
+      return;
+    }
+    const { data, error } = await sb
+      .from("registro_diario_items")
+      .select("*, registro_diario(fecha), mecanicos(nombre)")
+      .ilike("carro", "%" + q + "%")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    const resultados = document.getElementById("registro-buscar-resultados");
+    if (error || !data || !data.length) {
+      resultados.innerHTML = "<p class='empty-state'>No se encontraron filas con ese carro/placa.</p>";
+      return;
+    }
+    resultados.innerHTML = data
+      .map(
+        (it) =>
+          '<div class="registro-buscar-item" data-fecha="' +
+          (it.registro_diario ? it.registro_diario.fecha : "") +
+          '"><span>' +
+          escapeHtml(formatDate(it.registro_diario ? it.registro_diario.fecha : "")) +
+          " — " +
+          escapeHtml(it.carro || "") +
+          " (" +
+          escapeHtml(it.mecanicos ? it.mecanicos.nombre : "") +
+          ")</span><span>" +
+          escapeHtml(it.descripcion || "") +
+          "</span></div>"
+      )
+      .join("");
+    resultados.querySelectorAll(".registro-buscar-item").forEach((el) => {
+      el.addEventListener("click", () => {
+        document.getElementById("registro-buscar-panel").hidden = true;
+        irAFechaRegistro(el.dataset.fecha);
+      });
+    });
+  }
+
+  async function fetchRegistroDiarioRango(desde, hasta) {
+    const { data, error } = await sb
+      .from("registro_diario_items")
+      .select("*, registro_diario!inner(fecha)")
+      .gte("registro_diario.fecha", desde)
+      .lte("registro_diario.fecha", hasta);
+    if (error) {
+      showToast("No se pudieron cargar los totales.", true);
+      return [];
+    }
+    return data;
+  }
+
+  async function calcularTotalesPorMecanico() {
+    const desde = document.getElementById("registro-totales-desde").value;
+    const hasta = document.getElementById("registro-totales-hasta").value;
+    if (!desde || !hasta) {
+      showToast("Elige las dos fechas.", true);
+      return;
+    }
+    const items = await fetchRegistroDiarioRango(desde, hasta);
+    const totales = {};
+    items.forEach((it) => {
+      if (!totales[it.mecanico_id]) totales[it.mecanico_id] = { labor: 0, piezas: 0, otro: 0 };
+      totales[it.mecanico_id].labor += Number(it.labor) || 0;
+      totales[it.mecanico_id].piezas += Number(it.piezas) || 0;
+      totales[it.mecanico_id].otro += Number(it.otro) || 0;
+    });
+    const contenedor = document.getElementById("registro-totales-mecanico-resultados");
+    const filas = state.mecanicos
+      .filter((m) => totales[m.id])
+      .map(
+        (m) =>
+          '<div class="registro-mecanico-total-row"><span>' +
+          escapeHtml(m.nombre) +
+          "</span><span>Labor " +
+          money(totales[m.id].labor) +
+          " · Piezas " +
+          money(totales[m.id].piezas) +
+          " · Otro " +
+          money(totales[m.id].otro) +
+          " · Total " +
+          money(totales[m.id].labor + totales[m.id].piezas + totales[m.id].otro) +
+          "</span></div>"
+      );
+    contenedor.innerHTML = filas.length ? filas.join("") : "<p class='empty-state'>Sin datos en ese rango de fechas.</p>";
+  }
+
+  let calendarioRegistroMesActual = null;
+
+  async function renderCalendarioRegistroDiario(mesActual) {
+    calendarioRegistroMesActual = mesActual;
+    const [anio, mes] = mesActual.split("-").map(Number);
+    document.getElementById("registro-calendario-mes-label").textContent = mesActual;
+
+    const primerDia = mesActual + "-01";
+    const ultimoDiaNum = new Date(anio, mes, 0).getDate();
+    const ultimoDia = mesActual + "-" + String(ultimoDiaNum).padStart(2, "0");
+
+    const { data, error } = await sb.from("registro_diario").select("*").gte("fecha", primerDia).lte("fecha", ultimoDia);
+    const porFecha = {};
+    if (!error && data) data.forEach((r) => (porFecha[r.fecha] = r));
+
+    const primerDiaSemana = new Date(anio, mes - 1, 1).getDay();
+    let celdas = "";
+    for (let i = 0; i < primerDiaSemana; i++) celdas += '<div class="registro-calendario-dia" style="visibility:hidden;"></div>';
+    for (let dia = 1; dia <= ultimoDiaNum; dia++) {
+      const fecha = mesActual + "-" + String(dia).padStart(2, "0");
+      const registroDelDia = porFecha[fecha];
+      const etiquetaDia = formatDate(fecha) + (registroDelDia ? (registroDelDia.cerrado ? " — día cerrado" : " — registro guardado") : "");
+      celdas +=
+        '<button type="button" class="registro-calendario-dia' +
+        (registroDelDia ? " tiene-registro" : "") +
+        (registroDelDia && registroDelDia.cerrado ? " esta-cerrado" : "") +
+        '" data-fecha="' +
+        fecha +
+        '" aria-label="' +
+        escapeHtml(etiquetaDia) +
+        '"><span class="dia-numero">' +
+        dia +
+        "</span>" +
+        (registroDelDia ? '<span class="dia-marca">' + (registroDelDia.cerrado ? "Cerrado" : "Guardado") + "</span>" : "") +
+        "</button>";
+    }
+
+    const grid = document.getElementById("registro-calendario-grid");
+    grid.innerHTML = celdas;
+    grid.querySelectorAll(".registro-calendario-dia[data-fecha]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.getElementById("registro-calendario-panel").hidden = true;
+        irAFechaRegistro(btn.dataset.fecha);
+      });
+    });
+  }
+
+  function cambiarMesCalendarioRegistro(delta) {
+    const [anio, mes] = calendarioRegistroMesActual.split("-").map(Number);
+    const d = new Date(anio, mes - 1 + delta, 1);
+    renderCalendarioRegistroDiario(d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"));
+  }
+
+  async function checkRegistroDiarioSinGuardar() {
+    const d = new Date(todayISO() + "T00:00:00");
+    d.setDate(d.getDate() - 1);
+    const fechaAyer = d.toISOString().slice(0, 10);
+    const registroAyer = await fetchRegistroDiario(fechaAyer);
+    state.registroDiarioSinGuardarAyer = registroAyer ? 0 : 1;
+    updateQuickAccessBadges();
   }
 
   // ---------------- configuración del negocio ----------------
@@ -4355,6 +5080,7 @@
     document.getElementById("config-logo-url").value = c.logo_url || "";
     document.getElementById("config-texto-adicional").value = c.texto_adicional || "";
     document.getElementById("config-tasa-impuesto-default").value = c.tasa_impuesto_default || 0;
+    document.getElementById("config-garantia-dias").value = c.garantia_dias || 90;
     document.getElementById("config-formato-fecha").value = c.formato_fecha || "MM/DD/YYYY";
     document.getElementById("config-color-acento").value = c.color_acento || "#d5601a";
     document.getElementById("config-factura-titulo").value = c.factura_titulo || "Factura";
@@ -4407,6 +5133,7 @@
       logo_url: document.getElementById("config-logo-url").value.trim(),
       texto_adicional: document.getElementById("config-texto-adicional").value.trim(),
       tasa_impuesto_default: parseFloat(document.getElementById("config-tasa-impuesto-default").value) || 0,
+      garantia_dias: parseInt(document.getElementById("config-garantia-dias").value, 10) || 90,
       formato_fecha: document.getElementById("config-formato-fecha").value,
       color_acento: document.getElementById("config-color-acento").value || "#d5601a",
       factura_titulo: document.getElementById("config-factura-titulo").value.trim() || "Factura",
@@ -4434,7 +5161,7 @@
     { view: "llamadas", icon: "phone", label: "Por llamar", badge: "warning" },
     { view: "facturas", icon: "file-text", label: "Facturas", badge: "warning" },
     { view: "estimados", icon: "clipboard", label: "Estimates", badge: "neutral" },
-    { view: "registro-diario", icon: "hash", label: "Registro diario" },
+    { view: "registro-diario", icon: "hash", label: "Registro diario", badge: "warning" },
     { view: "configuracion", icon: "settings", label: "Configuración" },
   ];
 
@@ -4464,6 +5191,7 @@
       facturas: state.facturas.filter((f) => f.estado === "pendiente").length,
       estimados: state.estimados.filter((e) => e.estado === "pendiente").length,
       llamadas: (state.llamadas || []).length,
+      "registro-diario": state.registroDiarioSinGuardarAyer || 0,
     };
     QUICK_ACCESS.forEach((q) => {
       if (!q.badge) return;
@@ -4750,11 +5478,14 @@
       if (file) subirOrdenFoto(file);
       e.target.value = "";
     });
+    document.getElementById("btn-limpiar-firma").addEventListener("click", limpiarFirma);
+    document.getElementById("btn-guardar-firma").addEventListener("click", guardarFirmaEntrega);
     document.getElementById("btn-generar-factura").addEventListener("click", generarFacturaDesdeOrden);
     document.getElementById("orden-cliente").addEventListener("change", (e) => populateOrdenVehiculoSelect(e.target.value));
     document.getElementById("orden-vehiculo").addEventListener("change", (e) => toggleOrdenVehiculoNuevo(e.target.value === "__nuevo__"));
 
     document.getElementById("form-llamada-nota").addEventListener("submit", guardarLlamadaNota);
+    document.getElementById("btn-imprimir-qr-llamame").addEventListener("click", imprimirQrLlamame);
     document.getElementById("btn-nueva-llamada").addEventListener("click", () => {
       populateClientesDatalist();
       openModal("modal-llamada-manual");
@@ -4790,6 +5521,56 @@
       const d = new Date(document.getElementById("registro-fecha").value + "T00:00:00");
       d.setDate(d.getDate() + 1);
       irAFechaRegistro(d.toISOString().slice(0, 10));
+    });
+    document.getElementById("btn-duplicar-dia-anterior").addEventListener("click", duplicarDiaAnterior);
+    document.getElementById("btn-cerrar-registro-diario").addEventListener("click", cerrarRegistroDiario);
+    document.getElementById("btn-reabrir-registro-diario").addEventListener("click", reabrirRegistroDiario);
+    document.getElementById("btn-exportar-registro-diario").addEventListener("click", exportarRegistroDiario);
+    document.getElementById("btn-imprimir-registro-diario").addEventListener("click", imprimirRegistroDiario);
+
+    document.getElementById("btn-confirmar-vinculo-factura").addEventListener("click", confirmarVinculoFactura);
+    document.getElementById("btn-quitar-vinculo-factura").addEventListener("click", quitarVinculoFactura);
+
+    document.getElementById("btn-toggle-buscar-registro").addEventListener("click", () => {
+      const panel = document.getElementById("registro-buscar-panel");
+      panel.hidden = !panel.hidden;
+      if (!panel.hidden) document.getElementById("registro-buscar-input").focus();
+    });
+    document.getElementById("btn-registro-buscar").addEventListener("click", () => {
+      buscarRegistroDiarioPorCarro(document.getElementById("registro-buscar-input").value);
+    });
+    document.getElementById("registro-buscar-input").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") buscarRegistroDiarioPorCarro(e.target.value);
+    });
+
+    document.getElementById("btn-toggle-totales-mecanico").addEventListener("click", () => {
+      const panel = document.getElementById("registro-totales-mecanico-panel");
+      panel.hidden = !panel.hidden;
+      if (!panel.hidden && !document.getElementById("registro-totales-desde").value) {
+        const hoy = todayISO();
+        document.getElementById("registro-totales-hasta").value = hoy;
+        document.getElementById("registro-totales-desde").value = hoy.slice(0, 8) + "01";
+      }
+      if (!panel.hidden) document.getElementById("registro-totales-desde").focus();
+    });
+    document.getElementById("btn-registro-totales-calcular").addEventListener("click", calcularTotalesPorMecanico);
+
+    document.getElementById("btn-toggle-calendario-registro").addEventListener("click", () => {
+      const panel = document.getElementById("registro-calendario-panel");
+      panel.hidden = !panel.hidden;
+      if (!panel.hidden) {
+        const fechaActual = document.getElementById("registro-fecha").value || todayISO();
+        renderCalendarioRegistroDiario(fechaActual.slice(0, 7));
+        document.getElementById("registro-calendario-titulo").focus();
+      }
+    });
+    document.getElementById("btn-calendario-mes-anterior").addEventListener("click", () => cambiarMesCalendarioRegistro(-1));
+    document.getElementById("btn-calendario-mes-siguiente").addEventListener("click", () => cambiarMesCalendarioRegistro(1));
+
+    document.getElementById("input-foto-hoja-registro").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) subirFotoHojaRegistro(file);
+      e.target.value = "";
     });
 
     document.getElementById("form-configuracion").addEventListener("submit", saveConfiguracion);
@@ -4900,6 +5681,7 @@
     document.getElementById("registro-fecha").value = todayISO();
     state.registroDiarioFechaActual = todayISO();
     await cargarRegistroDiario(todayISO());
+    await checkRegistroDiarioSinGuardar();
     await refreshLlamadas();
     renderDashboard();
     verificarConexionReal();

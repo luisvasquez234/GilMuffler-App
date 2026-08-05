@@ -6,7 +6,7 @@
 <title>Gil Muffler — Panel interno</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f5d92'/%3E%3Cpath d='M7 18c0-3 2-5 5-5h4.5a4.5 4.5 0 0 1 0 9H12c-3 0-5-2-5-4z' fill='none' stroke='white' stroke-width='2' stroke-linejoin='round'/%3E%3Ccircle cx='23.2' cy='18' r='1.8' fill='white'/%3E%3C/svg%3E" />
 <link rel="manifest" href="manifest.json" />
-<link rel="apple-touch-icon" href="logo-muffler.svg" />
+<link rel="apple-touch-icon" href="logo-muffler.png" />
 <meta name="theme-color" content="#d5601a" />
 <link rel="stylesheet" href="styles.css" />
 </head>
@@ -131,7 +131,7 @@
   <aside class="sidebar">
     <div class="brand">
       <div class="brand-row">
-        <span class="brand-mark-photo"><img src="logo-muffler.webp" alt="" /></span>
+        <span class="brand-mark-photo"><img src="logo-muffler.png" alt="" /></span>
         <span class="brand-name" id="sidebar-brand-nombre">GIL MUFFLER</span>
       </div>
       <span class="brand-sub">Panel interno</span>
@@ -268,7 +268,7 @@
     <section id="view-facturas" class="view" hidden>
       <header class="view-header">
         <div>
-          <h1><span class="view-title-mark"><img src="logo-muffler.webp" alt="" /></span>Facturas</h1>
+          <h1><span class="view-title-mark"><img src="logo-muffler.png" alt="" /></span>Facturas</h1>
           <p class="view-sub">Historial de facturación</p>
         </div>
         <button class="btn-primary" id="btn-nueva-factura" type="button">+ Nueva factura</button>
@@ -319,12 +319,52 @@
           <h1>Registro diario</h1>
           <p class="view-sub">Trabajo de cada mecánico y cierre de caja del día</p>
         </div>
-        <div class="toolbar" style="margin:0;">
+        <div class="toolbar" style="margin:0;flex-wrap:wrap;">
           <button class="btn-ghost" id="btn-registro-dia-anterior" type="button">&lsaquo; Día anterior</button>
           <input type="date" id="registro-fecha" />
           <button class="btn-ghost" id="btn-registro-dia-siguiente" type="button">Día siguiente &rsaquo;</button>
+          <button class="btn-ghost" id="btn-duplicar-dia-anterior" type="button">Duplicar día anterior</button>
+          <button class="btn-ghost" id="btn-toggle-buscar-registro" type="button">Buscar carro/placa</button>
+          <button class="btn-ghost" id="btn-toggle-totales-mecanico" type="button">Totales por mecánico</button>
+          <button class="btn-ghost" id="btn-toggle-calendario-registro" type="button">Ver calendario</button>
+          <button class="btn-ghost" id="btn-exportar-registro-diario" type="button">Descargar CSV</button>
+          <button class="btn-ghost" id="btn-imprimir-registro-diario" type="button">Imprimir día</button>
         </div>
       </header>
+
+      <p id="registro-cerrado-banner" class="orden-nota" hidden>Este día está cerrado. No se puede editar hasta que lo reabras.</p>
+      <p id="registro-mismatch-warning" class="orden-nota" hidden aria-live="polite" style="color:var(--danger);"></p>
+
+      <div id="registro-buscar-panel" class="table-wrap" style="padding:1.25rem 1.5rem;margin-bottom:1.25rem;" hidden>
+        <h2 style="font-size:1rem;margin-bottom:.75rem;">Buscar carro o placa entre varios días</h2>
+        <div class="field-row">
+          <div class="field"><input type="text" id="registro-buscar-input" placeholder="Escribe el carro o la placa..." autocomplete="off" /></div>
+          <button class="btn-ghost" id="btn-registro-buscar" type="button">Buscar</button>
+        </div>
+        <div id="registro-buscar-resultados"></div>
+      </div>
+
+      <div id="registro-totales-mecanico-panel" class="table-wrap" style="padding:1.25rem 1.5rem;margin-bottom:1.25rem;" hidden>
+        <h2 style="font-size:1rem;margin-bottom:.75rem;">Totales por mecánico</h2>
+        <div class="field-row">
+          <div class="field"><label>Desde</label><input type="date" id="registro-totales-desde" /></div>
+          <div class="field"><label>Hasta</label><input type="date" id="registro-totales-hasta" /></div>
+          <button class="btn-ghost" id="btn-registro-totales-calcular" type="button">Calcular</button>
+        </div>
+        <div id="registro-totales-mecanico-resultados"></div>
+      </div>
+
+      <div id="registro-calendario-panel" class="table-wrap" style="padding:1.25rem 1.5rem;margin-bottom:1.25rem;" hidden>
+        <div class="view-header" style="margin-bottom:.75rem;">
+          <h2 id="registro-calendario-titulo" tabindex="-1" style="font-size:1rem;margin:0;">Calendario del mes</h2>
+          <div class="toolbar" style="margin:0;">
+            <button class="btn-ghost" id="btn-calendario-mes-anterior" type="button" aria-label="Mes anterior">&lsaquo;</button>
+            <strong id="registro-calendario-mes-label"></strong>
+            <button class="btn-ghost" id="btn-calendario-mes-siguiente" type="button" aria-label="Mes siguiente">&rsaquo;</button>
+          </div>
+        </div>
+        <div id="registro-calendario-grid" class="registro-calendario-grid"></div>
+      </div>
 
       <div class="kpi-grid">
         <div class="kpi-card" style="--kpi-color:var(--series-1);">
@@ -347,6 +387,16 @@
 
       <div id="registro-mecanicos-container"></div>
 
+      <div class="table-wrap" style="padding:1.25rem 1.5rem;margin-bottom:1.25rem;">
+        <h2 style="font-size:1rem;margin-bottom:.75rem;">Foto de la hoja de papel (respaldo)</h2>
+        <p id="registro-foto-hoja-nota" class="orden-nota" hidden>Guarda el registro del día primero para poder subir la foto.</p>
+        <div id="registro-foto-hoja-preview"></div>
+        <label class="btn-ghost" id="btn-subir-foto-hoja-label" style="display:inline-block;cursor:pointer;">
+          + Foto de la hoja
+          <input type="file" id="input-foto-hoja-registro" accept="image/*" capture="environment" style="display:none;" />
+        </label>
+      </div>
+
       <div class="table-wrap" style="padding:1.5rem;margin-top:.5rem;max-width:22rem;margin-left:auto;">
         <h2 style="font-size:1rem;margin-bottom:1rem;">Cierre de caja del día</h2>
         <div class="field"><label>Total en tarjeta</label><input type="number" id="registro-credit-card" step="0.01" min="0" value="0" /></div>
@@ -356,7 +406,9 @@
           <label style="margin:0;">Total del día</label>
           <strong id="registro-total-dia">$0.00</strong>
         </div>
-        <footer class="modal-footer" style="padding-top:.75rem;">
+        <footer class="modal-footer" style="padding-top:.75rem;flex-wrap:wrap;">
+          <button class="btn-ghost" id="btn-cerrar-registro-diario" type="button">Cerrar día</button>
+          <button class="btn-ghost" id="btn-reabrir-registro-diario" type="button" hidden>Reabrir día</button>
           <span class="spacer"></span>
           <button class="btn-primary" id="btn-guardar-registro-diario" type="button">Guardar registro del día</button>
         </footer>
@@ -511,7 +563,10 @@
               </div>
             </div>
             <div class="field"><label>Mensaje de pie de página (sale en cada factura)</label><textarea id="config-mensaje-pie" rows="2" placeholder="¡Gracias por su preferencia!"></textarea></div>
-            <div class="field"><label>Texto adicional (términos, garantía, lo que quieras agregar)</label><textarea id="config-texto-adicional" rows="3" placeholder="Ej. Garantía de 90 días en piezas instaladas."></textarea></div>
+            <div class="field-row">
+              <div class="field" style="max-width:12rem;"><label>Garantía de piezas (días)</label><input type="number" id="config-garantia-dias" min="0" step="1" placeholder="90" /></div>
+            </div>
+            <div class="field"><label>Texto adicional (términos, lo que quieras agregar)</label><textarea id="config-texto-adicional" rows="3" placeholder="Ej. Piezas usadas sujetas a disponibilidad."></textarea></div>
             <label class="field-label-standalone">Impresión de la factura</label>
             <div class="field-row">
               <div class="field" style="max-width:9rem;">
@@ -539,7 +594,7 @@
           <div class="config-preview-card">
             <div class="config-preview-header">
               <div class="config-preview-brand">
-                <img id="preview-logo" class="config-preview-logo" src="logo-muffler.webp" alt="" hidden />
+                <img id="preview-logo" class="config-preview-logo" src="logo-muffler.png" alt="" hidden />
                 <strong id="preview-nombre">Gil Muffler</strong>
               </div>
               <span id="preview-contacto">—</span>
@@ -648,7 +703,10 @@
           <h1>Por llamar</h1>
           <p class="view-sub">Clientes a los que hay que avisar por teléfono</p>
         </div>
-        <button class="btn-primary" id="btn-nueva-llamada" type="button">+ Agregar llamada</button>
+        <div class="toolbar" style="margin:0;">
+          <button class="btn-ghost" id="btn-imprimir-qr-llamame" type="button">Imprimir QR para el mostrador</button>
+          <button class="btn-primary" id="btn-nueva-llamada" type="button">+ Agregar llamada</button>
+        </div>
       </header>
       <div class="table-wrap">
         <table class="data-table">
@@ -768,6 +826,29 @@
   </div>
 </div>
 
+<div id="modal-vincular-factura" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2>Vincular a una factura</h2>
+      <button class="icon-btn" data-close-modal="modal-vincular-factura" type="button" aria-label="Cerrar">&times;</button>
+    </header>
+    <div class="modal-body">
+      <div class="field">
+        <label>Buscar factura (cliente o número)</label>
+        <input type="text" id="vincular-factura-input" list="vincular-facturas-datalist" placeholder="Escribe el nombre del cliente o el número..." autocomplete="off" />
+        <datalist id="vincular-facturas-datalist"></datalist>
+      </div>
+      <p class="orden-nota">Elige una factura de la lista para vincularla a esta fila del registro diario.</p>
+    </div>
+    <footer class="modal-footer">
+      <button type="button" class="btn-danger" id="btn-quitar-vinculo-factura">Quitar vínculo</button>
+      <span class="spacer"></span>
+      <button type="button" class="btn-ghost" data-close-modal="modal-vincular-factura">Cancelar</button>
+      <button type="button" class="btn-primary" id="btn-confirmar-vinculo-factura">Vincular</button>
+    </footer>
+  </div>
+</div>
+
 <div id="modal-reserva" class="modal-backdrop" hidden>
   <div class="modal">
     <header class="modal-header">
@@ -877,6 +958,7 @@
       <input type="hidden" id="factura-orden-id" />
       <p id="factura-orden-nota" class="orden-nota" hidden></p>
       <p id="factura-creado-por-nota" class="orden-nota" hidden></p>
+      <p id="factura-garantia-nota" class="orden-nota" hidden></p>
       <div class="field-row">
         <div class="field">
           <label>Cliente *</label>
@@ -1143,6 +1225,19 @@
         + Subir foto
         <input type="file" id="input-orden-foto" accept="image/*" capture="environment" style="display:none;" />
       </label>
+
+      <div id="orden-firma-seccion" hidden>
+        <label class="field-label-standalone">Firma de entrega</label>
+        <div id="orden-firma-guardada" hidden></div>
+        <div id="orden-firma-captura">
+          <div class="field"><label>Nombre de quien recibe el vehículo</label><input type="text" id="orden-firma-nombre" /></div>
+          <canvas id="orden-firma-canvas" width="400" height="150" style="border:1px solid var(--border);border-radius:6px;width:100%;max-width:400px;height:150px;touch-action:none;background:#fff;"></canvas>
+          <div class="field-row" style="margin-top:.5rem;">
+            <button type="button" class="btn-ghost" id="btn-limpiar-firma">Limpiar</button>
+            <button type="button" class="btn-ghost" id="btn-guardar-firma">Guardar firma</button>
+          </div>
+        </div>
+      </div>
 
       <footer class="modal-footer">
         <button type="button" class="btn-danger" id="btn-eliminar-orden" hidden>Eliminar</button>

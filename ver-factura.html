@@ -34,7 +34,7 @@
     <p class="estado-msg">Cargando factura…</p>
   </div>
 
-  <script src="config.js"></script>
+  <script src="config.local.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script>
     function escapeHtml(s) {
@@ -75,7 +75,7 @@
       const c = cfg || {};
       const nombreNegocio = c.nombre_negocio || "Gil Muffler";
       const contacto = [c.direccion, c.telefono, c.email].filter(Boolean).join(" · ");
-      const logoSrc = c.logo_url || "logo-muffler.webp";
+      const logoSrc = c.logo_url || "logo-muffler.png";
       const clienteNombre = factura.clientes ? factura.clientes.nombre : "—";
 
       const filas = (items || [])

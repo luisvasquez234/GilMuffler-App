@@ -802,6 +802,27 @@ body.tiene-banner-offline .app{padding-top:2.7rem;}
 .registro-items-tbody input{padding:.4rem .5rem;border:1px solid var(--border);border-radius:5px;font-size:.85rem;width:100%;}
 .registro-items-tbody .item-remove{background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:1.1rem;}
 .registro-items-tbody .item-remove:hover{color:var(--danger);}
+.reg-factura-btn{background:none;border:1px solid var(--border);border-radius:5px;padding:.3rem .5rem;font-size:.78rem;cursor:pointer;white-space:nowrap;}
+.registro-col-header{cursor:grab;user-select:none;}
+.registro-col-header:active{cursor:grabbing;}
+.reg-factura-btn.is-vinculada{border-color:var(--series-1);color:var(--text);font-weight:600;}
+
+.registro-calendario-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:.4rem;}
+.registro-calendario-dia{
+  aspect-ratio:1;border:1px solid var(--border);border-radius:6px;padding:.3rem;font-size:.78rem;
+  background:none;color:var(--text);cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;
+}
+.registro-calendario-dia:disabled{opacity:.25;cursor:default;}
+.registro-calendario-dia.tiene-registro{border-color:var(--series-1);background:var(--series-1);background:color-mix(in srgb, var(--series-1) 12%, transparent);}
+.registro-calendario-dia.esta-cerrado{border-color:var(--text-faint);}
+.registro-calendario-dia .dia-numero{font-weight:700;}
+.registro-calendario-dia .dia-marca{font-size:.65rem;color:var(--text-faint);font-weight:600;margin-top:auto;}
+
+.registro-buscar-item, .registro-mecanico-total-row{
+  display:flex;justify-content:space-between;gap:1rem;padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.85rem;
+}
+.registro-buscar-item{cursor:pointer;}
+.registro-buscar-item:hover{background:color-mix(in srgb, var(--accent) 8%, transparent);}
 
 .totals{margin-top:.4rem;}
 .totals-numbers{
