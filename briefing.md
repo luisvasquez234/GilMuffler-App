@@ -252,3 +252,58 @@ En palabras simples: los únicos 2 clientes que hay registrados facturaron hace 
 
 Si quieres, te la puedo dejar guardada como un botón o una vista en la app para que la puedas correr tú mismo cuando haya más historial, en vez de tener que pedírmelo. Dime y lo armamos.
 
+## Briefing 2026-08-05
+Verifiqué 10 negocios; 5 quedaron descartados en el proceso (te digo por qué al final). Estos 3 pasaron la verificación:
+
+## Los 3 prospectos
+
+- **Pollo Tipico** (190 Lawrence St, Lawrence) — Restaurante dominicano activo, sin ninguna web propia. Solo Facebook/Instagram y fichas automáticas de terceros (Zmenu, AllMenus, Restaurantji) que ellos no controlan: el menú y los precios que aparecen ahí los puso un agregador, no el negocio. Abren 8am–10pm los 7 días y hacen delivery/takeout, pero no hay dónde ver eso oficialmente ni pedir directo — cada pedido pasa por teléfono o por una plataforma que se queda comisión. 4.1★ con ~178 reseñas, así que el negocio funciona; lo que falta es el escaparate. — contacto: (978) 975-8013
+
+- **Methuen Family Restaurant** (246 Broadway, Methuen) — Diner con 20 años largos de clientela fija. Su "web" es literalmente la página de Facebook: no hay dominio propio, ni menú publicado, ni horario en sitio propio. Abren 6am–2pm todos los días (horario de desayuno/almuerzo, dato clave para el cliente) y eso solo se descubre en Yelp o preguntando. Reseñas hasta abril 2026, 47 en Yelp. — contacto: (978) 683-7050
+
+- **Papo Stylo Barber Shop & Multi Service** (249 Park St, Lawrence) — Barbería + multiservicio (uñas, cejas, pestañas, masaje, spa). El caso más claro de los tres: como web tienen un **Linktree**, o sea una lista de enlaces a sus propias redes. Ofrecen un montón de servicios y no hay ni una lista de precios ni forma de reservar desde un sitio propio — están repartidos entre Fresha, Booksy, Facebook e Instagram sin nada que los una. Abiertos hasta las 10pm viernes y sábado. — contacto: (978) 682-3984 / Papostylobarbershopp@gmail.com
+
+## Extra ya verificado, por si alguno se cae
+
+- **Kukito Barber Shop** (586 Haverhill St, Lawrence) — Desde 2013, 4.7★ con ~140 reseñas. Sin dominio propio: su "web" es un subdominio de Booksy (`wilgstonfigueroa.booksy.com`). Tiene reservas, pero la marca del negocio no aparece en ningún lado. — contacto: (978) 397-6610
+
+## Qué descarté y por qué
+
+Esto es lo que evita que le mandes un mensaje embarazoso a alguien:
+
+- **Rega's Grill** (Lawrence) y **Evergreen Chinese** (Lawrence) — **cerrados**.
+- **La Cocina de Arismendy** (Lawrence) — **cerrado**.
+- **Dar Rafiki's** (Haverhill), **Terra Luna Cafe** (Lawrence), **Beautacious Nails** (Methuen), **Finest Cutz** (Methuen), **River Street Cafe** (Haverhill) — **ya tienen web propia** (darrafikis.com, terralunacafe.com, beautaciousnails.com, finestcutz.com, riverstpizza.com).
+
+Dos avisos sobre el método, para que sepas cuánto pesa esto:
+
+**No te fíes de Yellowpages.** Marca "Website: Yes" en casi todo, incluido Kukito, que no tiene web. Verifiqué cada uno buscando el nombre y viendo si aparecía un dominio propio, no una ficha generada. Ojo con los dominios tipo `nombre-negocio.wheree.com` o `.placejoys.com` o `.res-menu.net`: son páginas que los agregadores generan solas, no del negocio — es justo el hueco que tú llenas.
+
+**Los teléfonos varían entre directorios.** Los tres que te doy los saqué de la fuente más reciente y confirmé el de Papo Stylo y Kukito contra su ficha de reservas (Yellowpages daba otros números para ambos). Confirma al llamar.
+
+Los tres son buen encaje para tu prueba social: Gil's Muffler es un negocio de barrio de Lawrence igual que ellos, y Papo Stylo en particular tiene el mismo problema que resolviste ahí — servicios y citas dispersos sin un sistema que los junte.
+
+Sources:
+- [Pollo Tipico — Restaurantji](https://www.restaurantji.com/ma/lawrence/pollo-tipico-/)
+- [Pollo Tipico — Yelp](https://www.yelp.com/biz/pollo-tipico-lawrence)
+- [Methuen Family Restaurant — Yelp](https://www.yelp.com/biz/methuen-family-restaurant-methuen)
+- [Methuen Family Restaurant — Facebook](https://www.facebook.com/methuenfamilyrestaurant)
+- [Papo Stylo — Fresha](https://www.fresha.com/lvp/papo-stylo-barber-shop-park-street-lawrence-KkZMo7)
+- [Papo Stylo — Facebook](https://www.facebook.com/papostylobarbershop/)
+- [Kukito Barber Shop — Fresha](https://www.fresha.com/lvp/kukito-barber-shop-haverhill-street-lawrence-174Z9)
+- [Kukito Barber Shop — Yelp](https://www.yelp.com/biz/kukito-barbershop-lawrence)
+- [Rega's Grill — Yelp (cerrado)](https://www.yelp.com/biz/regas-grill-lawrence)
+- [Evergreen Chinese — Yelp (cerrado)](https://www.yelp.com/biz/evergreen-chinese-restaurant-lawrence)
+- [La Cocina de Arismendy — Yelp (cerrado)](https://www.yelp.com/biz/la-cocina-de-arismendy-lawrence)
+- [Dar Rafiki's — web propia](https://darrafikis.com/)
+- [River Street Cafe — web propia](https://riverstpizza.com/)
+
+### Clientes inactivos (Gil Muffler) — 2026-08-05
+La consulta corrió sin errores y devolvió **cero filas**.
+
+**No hay ningún cliente para contactar:** todos los clientes registrados tienen al menos una factura dentro de los últimos 90 días, y no hay clientes sin ninguna factura.
+
+Nada que hacer en este momento, Luis. Si querés, puedo:
+- Bajar el umbral (ej. clientes que no vuelven en más de 60 o 45 días), que probablemente sí devuelva nombres.
+- Verificar cuántos clientes y facturas hay en total, para confirmar que la base tiene los datos esperados y el resultado vacío es real y no un problema de datos.
+
