@@ -115,10 +115,10 @@
   <form id="login-form" class="login-card">
     <h1 id="login-brand-nombre">Gil Muffler</h1>
     <p class="login-sub">Panel interno — acceso de empleados</p>
-    <input type="email" id="login-email" placeholder="Email" autocomplete="username" required />
-    <input type="password" id="login-password" placeholder="Contraseña" autocomplete="current-password" required />
+    <input type="email" id="login-email" placeholder="Email" aria-label="Email" autocomplete="username" required aria-describedby="login-error" />
+    <input type="password" id="login-password" placeholder="Contraseña" aria-label="Contraseña" autocomplete="current-password" required aria-describedby="login-error" />
     <button type="submit">Entrar</button>
-    <p id="login-error" class="login-error" hidden>Email o contraseña incorrectos.</p>
+    <p id="login-error" class="login-error" role="alert" hidden>Email o contraseña incorrectos.</p>
   </form>
 </div>
 
@@ -243,7 +243,7 @@
         <button class="btn-primary" id="btn-nuevo-cliente" type="button">+ Nuevo cliente</button>
       </header>
       <div class="toolbar">
-        <input type="search" id="clientes-search" placeholder="Buscar por nombre, teléfono o placa..." />
+        <input type="search" id="clientes-search" placeholder="Buscar por nombre, teléfono o placa..." aria-label="Buscar clientes" />
         <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:var(--text-dim);white-space:nowrap;">
           <input type="checkbox" id="clientes-filter-inactivos" />
           Solo inactivos (90+ días sin factura)
@@ -285,7 +285,7 @@
         <button type="button" class="btn-ghost" id="btn-bulk-cancelar">Cancelar</button>
       </div>
       <div class="toolbar">
-        <input type="search" id="facturas-search" placeholder="Buscar por cliente o número..." />
+        <input type="search" id="facturas-search" placeholder="Buscar por cliente o número..." aria-label="Buscar facturas" />
         <select id="facturas-filter-estado">
           <option value="">Todos los estados</option>
           <option value="pendiente">Sin pagar</option>
@@ -383,7 +383,7 @@
         <button class="btn-primary" id="btn-nuevo-estimado" type="button">+ Nuevo presupuesto</button>
       </header>
       <div class="toolbar">
-        <input type="search" id="estimados-search" placeholder="Buscar por cliente o número..." />
+        <input type="search" id="estimados-search" placeholder="Buscar por cliente o número..." aria-label="Buscar presupuestos" />
         <select id="estimados-filter-estado">
           <option value="">Todos los estados</option>
           <option value="pendiente">Pendiente</option>
@@ -605,7 +605,7 @@
         <button class="btn-primary" id="btn-nueva-orden" type="button">+ Nueva orden</button>
       </header>
       <div class="toolbar">
-        <input type="search" id="ordenes-search" placeholder="Buscar por cliente, vehículo o número..." />
+        <input type="search" id="ordenes-search" placeholder="Buscar por cliente, vehículo o número..." aria-label="Buscar órdenes" />
       </div>
       <div class="kanban" id="ordenes-kanban"></div>
     </section>
@@ -624,7 +624,7 @@
         </div>
       </header>
       <div class="toolbar">
-        <input type="search" id="piezas-search" placeholder="Buscar por nombre o SKU..." />
+        <input type="search" id="piezas-search" placeholder="Buscar por nombre o SKU..." aria-label="Buscar piezas" />
       </div>
       <div class="table-wrap">
         <table class="data-table">
@@ -665,12 +665,16 @@
   <div class="modal">
     <header class="modal-header">
       <h2>Nueva llamada pendiente</h2>
-      <button class="icon-btn" data-close-modal="modal-llamada-manual" type="button">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-llamada-manual" type="button" aria-label="Cerrar">&times;</button>
     </header>
     <form id="form-llamada-manual" class="modal-body">
       <div class="field">
         <label>Cliente *</label>
         <input type="text" id="llamada-manual-cliente" list="clientes-datalist" placeholder="Escribe el nombre del cliente..." required autocomplete="off" />
+      </div>
+      <div class="field">
+        <label>Teléfono adicional (opcional)</label>
+        <input type="tel" id="llamada-manual-telefono" placeholder="Si tiene otro número además del que ya está guardado" />
       </div>
       <div class="field-row">
         <div class="field"><label>Carro</label><input type="text" id="llamada-manual-carro" /></div>
@@ -691,7 +695,7 @@
   <div class="modal">
     <header class="modal-header">
       <h2>Marcar llamada hecha</h2>
-      <button class="icon-btn" data-close-modal="modal-llamada-nota" type="button">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-llamada-nota" type="button" aria-label="Cerrar">&times;</button>
     </header>
     <form id="form-llamada-nota" class="modal-body">
       <input type="hidden" id="llamada-nota-id" />
@@ -709,7 +713,7 @@
   <div class="modal">
     <header class="modal-header">
       <h2 id="modal-cliente-title">Nuevo cliente</h2>
-      <button class="icon-btn" data-close-modal="modal-cliente" type="button">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-cliente" type="button" aria-label="Cerrar">&times;</button>
     </header>
     <form id="form-cliente" class="modal-body">
       <input type="hidden" id="cliente-id" />
@@ -748,7 +752,7 @@
   <div class="modal">
     <header class="modal-header">
       <h2>Agregar empleado</h2>
-      <button class="icon-btn" data-close-modal="modal-empleado" type="button">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-empleado" type="button" aria-label="Cerrar">&times;</button>
     </header>
     <form id="form-empleado" class="modal-body">
       <div class="field"><label>Nombre *</label><input type="text" id="empleado-nombre" required /></div>
@@ -768,7 +772,7 @@
   <div class="modal">
     <header class="modal-header">
       <h2 id="modal-reserva-title">Nueva reserva</h2>
-      <button class="icon-btn" data-close-modal="modal-reserva" type="button">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-reserva" type="button" aria-label="Cerrar">&times;</button>
     </header>
     <form id="form-reserva" class="modal-body">
       <input type="hidden" id="reserva-id" />
@@ -810,7 +814,7 @@
   <div class="modal modal-wide">
     <header class="modal-header">
       <h2 id="modal-estimado-title">Nuevo presupuesto</h2>
-      <button class="icon-btn" data-close-modal="modal-estimado" type="button">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-estimado" type="button" aria-label="Cerrar">&times;</button>
     </header>
     <form id="form-estimado" class="modal-body">
       <input type="hidden" id="estimado-id" />
@@ -866,7 +870,7 @@
   <div class="modal modal-wide">
     <header class="modal-header">
       <h2 id="modal-factura-title">Nueva factura</h2>
-      <button class="icon-btn" data-close-modal="modal-factura" type="button">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-factura" type="button" aria-label="Cerrar">&times;</button>
     </header>
     <form id="form-factura" class="modal-body">
       <input type="hidden" id="factura-id" />
@@ -936,7 +940,7 @@
   <div class="modal">
     <header class="modal-header">
       <h2>Rotación de inventario</h2>
-      <button class="icon-btn" data-close-modal="modal-rotacion" type="button">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-rotacion" type="button" aria-label="Cerrar">&times;</button>
     </header>
     <div class="modal-body">
       <p class="view-sub" style="margin-top:0;">Piezas usadas en órdenes de servicio, de más a menos.</p>
@@ -954,7 +958,7 @@
   <div class="modal">
     <header class="modal-header">
       <h2>Historial de precios</h2>
-      <button class="icon-btn" data-close-modal="modal-historial-precios" type="button">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-historial-precios" type="button" aria-label="Cerrar">&times;</button>
     </header>
     <div class="modal-body">
       <p class="view-sub" style="margin-top:0;">Cada vez que guardas un cambio de costo o precio de venta en una pieza, queda registrado aquí.</p>
@@ -972,7 +976,7 @@
   <div class="modal">
     <header class="modal-header">
       <h2>Piezas para reordenar</h2>
-      <button class="icon-btn" data-close-modal="modal-reordenar" type="button">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-reordenar" type="button" aria-label="Cerrar">&times;</button>
     </header>
     <div class="modal-body">
       <p class="view-sub" style="margin-top:0;">Piezas con stock igual o por debajo del mínimo, con una sugerencia de cuánto pedir.</p>
@@ -990,7 +994,7 @@
   <div class="modal">
     <header class="modal-header">
       <h2 id="modal-pieza-title">Nueva pieza</h2>
-      <button class="icon-btn" data-close-modal="modal-pieza" type="button">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-pieza" type="button" aria-label="Cerrar">&times;</button>
     </header>
     <form id="form-pieza" class="modal-body">
       <input type="hidden" id="pieza-id" />
@@ -1023,7 +1027,7 @@
   <div class="modal">
     <header class="modal-header">
       <h2 id="modal-vehiculo-title">Nuevo vehículo</h2>
-      <button class="icon-btn" data-close-modal="modal-vehiculo" type="button">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-vehiculo" type="button" aria-label="Cerrar">&times;</button>
     </header>
     <form id="form-vehiculo" class="modal-body">
       <input type="hidden" id="vehiculo-id" />
@@ -1069,7 +1073,7 @@
   <div class="modal">
     <header class="modal-header">
       <h2>Escanear VIN</h2>
-      <button class="icon-btn" data-close-modal="modal-escaner-vin" type="button">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-escaner-vin" type="button" aria-label="Cerrar">&times;</button>
     </header>
     <div class="modal-body">
       <p class="view-sub" style="margin-top:0;">Apunta la cámara al código de barras del VIN (suele estar en la puerta del conductor o el parabrisas).</p>
@@ -1083,7 +1087,7 @@
   <div class="modal modal-wide">
     <header class="modal-header">
       <h2 id="modal-orden-title">Nueva orden de servicio</h2>
-      <button class="icon-btn" data-close-modal="modal-orden" type="button">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-orden" type="button" aria-label="Cerrar">&times;</button>
     </header>
     <form id="form-orden" class="modal-body">
       <input type="hidden" id="orden-id" />
@@ -1157,7 +1161,7 @@
   <div class="modal">
     <header class="modal-header">
       <h2 id="modal-gasto-title">Nuevo gasto</h2>
-      <button class="icon-btn" data-close-modal="modal-gasto" type="button">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-gasto" type="button" aria-label="Cerrar">&times;</button>
     </header>
     <form id="form-gasto" class="modal-body">
       <input type="hidden" id="gasto-id" />
@@ -1190,10 +1194,22 @@
   <div class="modal modal-wide">
     <header class="modal-header">
       <h2 id="modal-cliente-detalle-title">Cliente</h2>
-      <button class="icon-btn" data-close-modal="modal-cliente-detalle" type="button">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-cliente-detalle" type="button" aria-label="Cerrar">&times;</button>
     </header>
     <div class="modal-body">
       <div id="cliente-detalle-info" class="cliente-detalle-info"></div>
+
+      <h3 class="detalle-subtitle">
+        Teléfonos
+        <button type="button" class="btn-ghost" id="btn-detalle-agregar-telefono" style="margin-left:.75rem;">+ Agregar teléfono</button>
+      </h3>
+      <div id="cliente-detalle-telefonos" class="detalle-list"></div>
+      <div id="cliente-detalle-telefono-form" class="field-row" style="margin-top:.5rem;" hidden>
+        <div class="field" style="flex:1;">
+          <input type="tel" id="cliente-detalle-telefono-nuevo" placeholder="Número de teléfono" aria-label="Número de teléfono" />
+        </div>
+        <button type="button" class="btn-primary" id="btn-guardar-telefono-nuevo">Guardar</button>
+      </div>
 
       <div class="config-tabs">
         <button type="button" class="config-tab is-active" data-detalle-tab="vehiculos">Vehículos</button>
@@ -1211,7 +1227,7 @@
 
       <div id="detalle-tab-historial" class="config-tab-panel" hidden>
         <div class="toolbar" style="margin-top:0;">
-          <input type="search" id="cliente-detalle-historial-search" placeholder="Buscar en el historial..." />
+          <input type="search" id="cliente-detalle-historial-search" placeholder="Buscar en el historial..." aria-label="Buscar en el historial" />
         </div>
         <div id="cliente-detalle-historial" class="detalle-list"></div>
       </div>
@@ -1241,8 +1257,8 @@
   <div class="modal modal-wide search-modal">
     <div class="search-input-row">
       <svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg>
-      <input type="text" id="global-search-input" placeholder="Buscar clientes, órdenes o facturas..." autocomplete="off" />
-      <button class="icon-btn" data-close-modal="modal-global-search" type="button">&times;</button>
+      <input type="text" id="global-search-input" placeholder="Buscar clientes, órdenes o facturas..." aria-label="Buscar clientes, órdenes o facturas" autocomplete="off" />
+      <button class="icon-btn" data-close-modal="modal-global-search" type="button" aria-label="Cerrar">&times;</button>
     </div>
     <div id="global-search-results" class="search-results"></div>
   </div>
@@ -1252,7 +1268,7 @@
   <div class="modal">
     <header class="modal-header">
       <h2>Atajos de teclado</h2>
-      <button class="icon-btn" data-close-modal="modal-shortcuts" type="button">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-shortcuts" type="button" aria-label="Cerrar">&times;</button>
     </header>
     <div class="modal-body">
       <div class="shortcut-row"><kbd>Ctrl</kbd> + <kbd>K</kbd><span>Buscar en todo el sistema</span></div>
@@ -1272,7 +1288,7 @@
   <div class="modal">
     <header class="modal-header">
       <h2 id="confirm-title">Confirmar</h2>
-      <button class="icon-btn" data-close-modal="modal-confirm" type="button">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-confirm" type="button" aria-label="Cerrar">&times;</button>
     </header>
     <div class="modal-body">
       <p id="confirm-message"></p>

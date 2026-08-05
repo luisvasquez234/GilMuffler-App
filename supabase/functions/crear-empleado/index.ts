@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -20,6 +21,18 @@ Deno.serve(async (req: Request) => {
   }
   if (req.method !== "POST") {
     return json({ error: "Method not allowed" }, { status: 405 });
+  }
+
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) {
+    return json({ error: "No autorizado" }, { status: 401 });
+  }
+  const callerClient = createClient(SUPABASE_URL, ANON_KEY, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: callerData, error: callerError } = await callerClient.auth.getUser();
+  if (callerError || !callerData.user) {
+    return json({ error: "No autorizado" }, { status: 401 });
   }
 
   const { email, password, nombre } = await req.json();
