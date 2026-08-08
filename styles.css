@@ -170,6 +170,17 @@ button{font-family:inherit;}
   cursor:pointer;
 }
 .login-card button:hover{background:var(--accent-hover);}
+.login-card .idioma-toggle-btn{
+  background:none;
+  color:var(--text-dim);
+  border:1px solid var(--border);
+  padding:.3rem .7rem;
+  border-radius:999px;
+  font-size:.75rem;
+  font-weight:600;
+  width:auto;
+}
+.login-card .idioma-toggle-btn:hover{background:var(--bg);color:var(--text);}
 .login-error{color:var(--danger);font-size:.85rem;margin-top:.6rem;}
 
 /* ---------- app shell ---------- */
@@ -461,6 +472,20 @@ body.tiene-banner-offline .app{padding-top:2.7rem;}
 .btn-danger{background:var(--danger-soft);color:var(--danger);}
 .btn-danger:hover{filter:brightness(0.94);}
 
+.metodo-pago-opciones{display:flex;gap:.6rem;margin-top:1rem;}
+.btn-metodo-pago{
+  flex:1;
+  padding:.9rem .6rem;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  color:var(--text);
+  font-size:.9rem;
+  font-weight:600;
+  cursor:pointer;
+}
+.btn-metodo-pago:hover{background:var(--accent-soft,var(--bg));border-color:var(--accent);color:var(--accent);}
+
 .quick-access-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(9.5rem,1fr));
@@ -693,6 +718,9 @@ body.tiene-banner-offline .app{padding-top:2.7rem;}
 .pill-aprobado{background:var(--success-soft);color:var(--success);}
 .pill-rechazado{background:var(--danger-soft);color:var(--danger);}
 .pill-convertido{background:var(--surface-alt);color:var(--text-dim);}
+.pill-vencida{background:var(--danger-soft);color:var(--danger);}
+.metodo-pago-tag{font-size:.78rem;color:var(--text-dim);}
+tr.is-vencida td:first-child{box-shadow:inset 3px 0 0 var(--danger);}
 
 /* ---------- modals ---------- */
 .modal-backdrop[hidden]{display:none;}
@@ -802,6 +830,7 @@ body.tiene-banner-offline .app{padding-top:2.7rem;}
 .registro-items-tbody input{padding:.4rem .5rem;border:1px solid var(--border);border-radius:5px;font-size:.85rem;width:100%;}
 .registro-items-tbody .item-remove{background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:1.1rem;}
 .registro-items-tbody .item-remove:hover{color:var(--danger);}
+.registro-items-tbody .item-ticket{background:none;border:none;cursor:pointer;font-size:.95rem;margin-right:.3rem;}
 .reg-factura-btn{background:none;border:1px solid var(--border);border-radius:5px;padding:.3rem .5rem;font-size:.78rem;cursor:pointer;white-space:nowrap;}
 .registro-col-header{cursor:grab;user-select:none;}
 .registro-col-header:active{cursor:grabbing;}
@@ -1116,6 +1145,7 @@ body.tiene-banner-offline .app{padding-top:2.7rem;}
 }
 .cliente-detalle-info div{display:flex;flex-direction:column;gap:.15rem;}
 .cliente-detalle-info span{font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:var(--text-faint);}
+.saldo-pendiente{color:var(--warning);}
 .detalle-subtitle{font-size:.9rem;margin:0 0 .6rem;}
 .detalle-list{margin-bottom:1.5rem;}
 .detalle-list-item{

@@ -3,11 +3,12 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Pide que te llamemos</title>
+<title data-i18n="llamame_titulo">Pide que te llamemos</title>
 <style>
   body{position:relative;font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:1.5rem;max-width:26rem;margin:0 auto;background:#f6f7f9;}
   .watermark{position:absolute;top:45%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);font-size:2.4rem;font-weight:800;color:rgba(0,0,0,0.055);white-space:nowrap;z-index:0;pointer-events:none;}
   .card{position:relative;overflow:hidden;background:#fff;border-radius:12px;padding:1.75rem;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-top:2rem;}
+  .idioma-toggle{position:absolute;top:.9rem;right:.9rem;width:auto;margin:0;padding:.3rem .7rem;font-size:.75rem;font-weight:600;border-radius:999px;background:#f0f1f3;color:#68707e;border:1px solid #d7dade;cursor:pointer;}
   .header{border-bottom:3px solid #d5601a;padding-bottom:1rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:.8rem;}
   .header img{height:3rem;width:3rem;object-fit:cover;object-position:68% 55%;border-radius:8px;flex:none;}
   .header h1{font-size:1.2rem;margin:0;color:#d5601a;}
@@ -25,28 +26,30 @@
 </head>
 <body>
   <div class="card" id="contenido">
+    <button type="button" class="idioma-toggle" id="idioma-toggle" data-i18n-toggle-label>English</button>
     <div class="watermark" id="watermark-texto"></div>
     <div class="header">
       <img id="logo-img" src="logo-muffler.png" alt="" />
       <h1 id="nombre-negocio">Gil Muffler</h1>
     </div>
-    <p class="sub">Déjanos tus datos y te llamamos en cuanto revisemos tu caso.</p>
+    <p class="sub" data-i18n="llamame_sub">Déjanos tus datos y te llamamos en cuanto revisemos tu caso.</p>
     <form id="form-llamame">
-      <label for="nombre">Tu nombre</label>
+      <label for="nombre" data-i18n="llamame_nombre_label">Tu nombre</label>
       <input type="text" id="nombre" required autocomplete="name" />
-      <label for="telefono">Tu teléfono</label>
+      <label for="telefono" data-i18n="llamame_telefono_label">Tu teléfono</label>
       <input type="tel" id="telefono" required autocomplete="tel" />
-      <label>Tu carro</label>
+      <label data-i18n="llamame_carro_label">Tu carro</label>
       <div class="field-row">
-        <div><input type="text" id="marca" placeholder="Marca" /></div>
-        <div><input type="text" id="modelo" placeholder="Modelo" /></div>
-        <div><input type="text" id="anio" placeholder="Año" /></div>
+        <div><input type="text" id="marca" placeholder="Marca" data-i18n-placeholder="campo_marca" /></div>
+        <div><input type="text" id="modelo" placeholder="Modelo" data-i18n-placeholder="campo_modelo" /></div>
+        <div><input type="text" id="anio" placeholder="Año" data-i18n-placeholder="campo_anio" /></div>
       </div>
       <p class="error-msg" id="error-msg" hidden></p>
-      <button type="submit" id="btn-enviar">Enviar</button>
+      <button type="submit" id="btn-enviar" data-i18n="enviar">Enviar</button>
     </form>
   </div>
 
+  <script src="i18n.js"></script>
   <script src="config.local.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script>
@@ -78,7 +81,7 @@
 
       const btn = document.getElementById("btn-enviar");
       btn.disabled = true;
-      btn.textContent = "Enviando...";
+      btn.textContent = t("enviando");
 
       const { error } = await sb.from("llamadas_ordenes").insert({
         nombre_contacto: nombre,
@@ -91,10 +94,10 @@
       });
 
       if (error) {
-        errorMsg.textContent = "No se pudo enviar, intenta de nuevo.";
+        errorMsg.textContent = t("llamame_error");
         errorMsg.hidden = false;
         btn.disabled = false;
-        btn.textContent = "Enviar";
+        btn.textContent = t("enviar");
         return;
       }
 
@@ -103,11 +106,15 @@
       document.getElementById("contenido").innerHTML =
         '<div class="watermark">' + nombreNegocio + "</div>" +
         '<div class="header"><img src="' + logoSrc + '" alt="" /><h1>' + nombreNegocio + "</h1></div>" +
-        '<div class="respuesta-msg">¡Listo! Ya recibimos tus datos.' +
-        "<p>Te llamamos en cuanto revisemos tu caso, y te llamamos otra vez cuando esté todo listo para que vengas a recoger tu carro.</p>" +
+        '<div class="respuesta-msg">' + t("llamame_exito_titulo") +
+        "<p>" + t("llamame_exito_texto") + "</p>" +
         "</div>";
     });
 
+    document.getElementById("idioma-toggle").addEventListener("click", () => {
+      setIdioma(getIdioma() === "es" ? "en" : "es");
+    });
+    aplicarIdioma();
     cargarConfigNegocio();
   </script>
 </body>

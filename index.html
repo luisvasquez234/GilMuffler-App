@@ -102,6 +102,9 @@
   <symbol id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
   </symbol>
+  <symbol id="icon-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/>
+  </symbol>
   <symbol id="icon-muffler" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M0 12h5"/>
     <rect x="5" y="7.5" width="13" height="9" rx="4.5"/>
@@ -113,18 +116,22 @@
 
 <div id="login-gate" class="login-gate">
   <form id="login-form" class="login-card">
+    <button type="button" class="idioma-toggle-btn link-btn" id="idioma-toggle-login" style="align-self:flex-end;margin-bottom:.5rem;">
+      <svg class="icon" aria-hidden="true"><use href="#icon-globe"></use></svg>
+      <span data-i18n-toggle-label>English</span>
+    </button>
     <h1 id="login-brand-nombre">Gil Muffler</h1>
-    <p class="login-sub">Panel interno — acceso de empleados</p>
-    <input type="email" id="login-email" placeholder="Email" aria-label="Email" autocomplete="username" required aria-describedby="login-error" />
-    <input type="password" id="login-password" placeholder="Contraseña" aria-label="Contraseña" autocomplete="current-password" required aria-describedby="login-error" />
-    <button type="submit">Entrar</button>
-    <p id="login-error" class="login-error" role="alert" hidden>Email o contraseña incorrectos.</p>
+    <p class="login-sub" data-i18n="login_sub">Panel interno — acceso de empleados</p>
+    <input type="email" id="login-email" placeholder="Email" aria-label="Email" data-i18n-placeholder="campo_email" data-i18n-aria-label="campo_email" autocomplete="username" required aria-describedby="login-error" />
+    <input type="password" id="login-password" placeholder="Contraseña" aria-label="Contraseña" data-i18n-placeholder="campo_contrasena" data-i18n-aria-label="campo_contrasena" autocomplete="current-password" required aria-describedby="login-error" />
+    <button type="submit" data-i18n="btn_entrar">Entrar</button>
+    <p id="login-error" class="login-error" role="alert" hidden data-i18n="login_error">Email o contraseña incorrectos.</p>
   </form>
 </div>
 
 <div id="offline-banner" class="offline-banner" hidden>
   <svg class="icon" aria-hidden="true"><use href="#icon-alert-circle"></use></svg>
-  <span id="offline-banner-texto">Sin conexión.</span>
+  <span id="offline-banner-texto" data-i18n="offline_banner_texto">Sin conexión.</span>
 </div>
 
 <div id="app" class="app" hidden>
@@ -134,43 +141,47 @@
         <span class="brand-mark-photo"><img src="logo-muffler.png" alt="" /></span>
         <span class="brand-name" id="sidebar-brand-nombre">GIL MUFFLER</span>
       </div>
-      <span class="brand-sub">Panel interno</span>
+      <span class="brand-sub" data-i18n="panel_interno_label">Panel interno</span>
     </div>
     <button id="btn-open-search" class="search-trigger" type="button">
       <svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg>
-      <span>Buscar...</span>
+      <span data-i18n="buscar_placeholder">Buscar...</span>
       <span class="search-trigger-kbd">Ctrl K</span>
     </button>
     <nav class="nav">
       <button class="nav-item is-active" data-view="dashboard"><svg class="icon" aria-hidden="true"><use href="#icon-home"></use></svg><span id="nav-dashboard-label">Gil's Muffler Inc</span></button>
-      <button class="nav-item" data-view="clientes"><svg class="icon" aria-hidden="true"><use href="#icon-user"></use></svg>Clientes</button>
-      <button class="nav-item" data-view="reservas"><svg class="icon" aria-hidden="true"><use href="#icon-calendar"></use></svg>Bookings</button>
-      <button class="nav-item" data-view="ordenes"><svg class="icon" aria-hidden="true"><use href="#icon-wrench"></use></svg>Órdenes de servicio</button>
-      <button class="nav-item" data-view="inventario"><svg class="icon" aria-hidden="true"><use href="#icon-box"></use></svg>Inventario</button>
-      <button class="nav-item" data-view="llamadas"><svg class="icon" aria-hidden="true"><use href="#icon-phone"></use></svg>Por llamar</button>
-      <button class="nav-item" data-view="facturas"><svg class="icon" aria-hidden="true"><use href="#icon-file-text"></use></svg>Facturas</button>
-      <button class="nav-item" data-view="estimados"><svg class="icon" aria-hidden="true"><use href="#icon-clipboard"></use></svg>Estimates</button>
-      <button class="nav-item" data-view="registro-diario"><svg class="icon" aria-hidden="true"><use href="#icon-hash"></use></svg>Registro diario</button>
-      <button class="nav-item" data-view="configuracion"><svg class="icon" aria-hidden="true"><use href="#icon-settings"></use></svg>Configuración</button>
+      <button class="nav-item" data-view="clientes"><svg class="icon" aria-hidden="true"><use href="#icon-user"></use></svg><span data-i18n="nav_clientes">Clientes</span></button>
+      <button class="nav-item" data-view="reservas"><svg class="icon" aria-hidden="true"><use href="#icon-calendar"></use></svg><span data-i18n="nav_reservas">Reservas</span></button>
+      <button class="nav-item" data-view="ordenes"><svg class="icon" aria-hidden="true"><use href="#icon-wrench"></use></svg><span data-i18n="nav_ordenes">Órdenes de servicio</span></button>
+      <button class="nav-item" data-view="inventario"><svg class="icon" aria-hidden="true"><use href="#icon-box"></use></svg><span data-i18n="nav_inventario">Inventario</span></button>
+      <button class="nav-item" data-view="llamadas"><svg class="icon" aria-hidden="true"><use href="#icon-phone"></use></svg><span data-i18n="nav_llamadas">Por llamar</span></button>
+      <button class="nav-item" data-view="facturas"><svg class="icon" aria-hidden="true"><use href="#icon-file-text"></use></svg><span data-i18n="nav_facturas">Facturas</span></button>
+      <button class="nav-item" data-view="estimados"><svg class="icon" aria-hidden="true"><use href="#icon-clipboard"></use></svg><span data-i18n="nav_estimados">Presupuestos</span></button>
+      <button class="nav-item" data-view="registro-diario"><svg class="icon" aria-hidden="true"><use href="#icon-hash"></use></svg><span data-i18n="nav_registro_diario">Registro diario</span></button>
+      <button class="nav-item" data-view="configuracion"><svg class="icon" aria-hidden="true"><use href="#icon-settings"></use></svg><span data-i18n="nav_configuracion">Configuración</span></button>
     </nav>
     <div class="sidebar-footer">
+      <button id="idioma-toggle" class="idioma-toggle-btn link-btn" type="button">
+        <svg class="icon" aria-hidden="true"><use href="#icon-globe"></use></svg>
+        <span data-i18n-toggle-label>English</span>
+      </button>
       <button id="theme-toggle" class="link-btn" type="button">
         <svg class="icon" aria-hidden="true"><use id="theme-toggle-icon" href="#icon-moon"></use></svg>
-        <span id="theme-toggle-label">Modo oscuro</span>
+        <span id="theme-toggle-label" data-i18n="modo_oscuro">Modo oscuro</span>
       </button>
       <button id="btn-shortcuts-help" class="link-btn" type="button">
         <svg class="icon" aria-hidden="true"><use href="#icon-help-circle"></use></svg>
-        <span>Atajos de teclado</span>
+        <span data-i18n="atajos_teclado">Atajos de teclado</span>
       </button>
-      <button id="logout-btn" class="link-btn" type="button">Cerrar sesión</button>
+      <button id="logout-btn" class="link-btn" type="button" data-i18n="cerrar_sesion">Cerrar sesión</button>
     </div>
   </aside>
 
   <main class="main">
     <section id="view-setup" class="view" hidden>
       <div class="table-wrap" style="padding:2rem;max-width:34rem;">
-        <h1 style="margin-bottom:.6rem;">Falta conectar la base de datos</h1>
-        <p class="view-sub" style="margin-bottom:1rem;">
+        <h1 style="margin-bottom:.6rem;" data-i18n="setup_titulo">Falta conectar la base de datos</h1>
+        <p class="view-sub" style="margin-bottom:1rem;" data-i18n-html="setup_texto">
           Abre el archivo <code>config.js</code> y reemplaza <code>SUPABASE_URL</code> y
           <code>SUPABASE_ANON_KEY</code> con los datos de tu proyecto de Supabase
           (Project Settings → API). Luego recarga esta página.
@@ -182,39 +193,39 @@
       <header class="view-header">
         <div>
           <h1 id="dashboard-titulo">Gil's Muffler Inc</h1>
-          <p class="view-sub">Resumen general del taller</p>
+          <p class="view-sub" data-i18n="dashboard_subtitulo">Resumen general del taller</p>
         </div>
       </header>
       <div class="quick-access-grid" id="dashboard-quick-access"></div>
       <div class="kpi-grid">
         <div class="kpi-card is-clickable" id="kpi-card-ingresos" data-goto="finanzas" role="button" tabindex="0">
-          <span class="kpi-label">Ingresos este mes</span>
+          <span class="kpi-label" data-i18n="kpi_ingresos_mes">Ingresos este mes</span>
           <strong class="kpi-value" id="kpi-ingresos">$0.00</strong>
           <span class="kpi-sub" id="kpi-ingresos-comparacion" hidden></span>
         </div>
         <div class="kpi-card is-clickable" id="kpi-card-facturas-pendientes" data-goto="facturas" data-goto-filter="pendiente" role="button" tabindex="0">
-          <span class="kpi-label">Facturas pendientes</span>
+          <span class="kpi-label" data-i18n="kpi_facturas_pendientes">Facturas pendientes</span>
           <strong class="kpi-value" id="kpi-facturas-pendientes">0</strong>
           <span class="kpi-sub" id="kpi-facturas-pendientes-monto">$0.00</span>
         </div>
         <div class="kpi-card is-clickable" id="kpi-card-ordenes-activas" data-goto="ordenes" role="button" tabindex="0">
-          <span class="kpi-label">Órdenes activas</span>
+          <span class="kpi-label" data-i18n="kpi_ordenes_activas">Órdenes activas</span>
           <strong class="kpi-value" id="kpi-ordenes-activas">0</strong>
         </div>
         <div class="kpi-card is-clickable" id="kpi-card-stock-bajo" data-goto="inventario" role="button" tabindex="0">
-          <span class="kpi-label">Piezas con stock bajo</span>
+          <span class="kpi-label" data-i18n="kpi_stock_bajo">Piezas con stock bajo</span>
           <strong class="kpi-value" id="kpi-stock-bajo">0</strong>
         </div>
       </div>
       <div class="table-wrap chart-wrap">
-        <h2 class="chart-title">Ingresos de los últimos 6 meses</h2>
-        <canvas id="dashboard-chart" width="600" height="180" role="img" aria-label="Gráfica de ingresos de los últimos 6 meses"></canvas>
+        <h2 class="chart-title" data-i18n="chart_ingresos_titulo">Ingresos de los últimos 6 meses</h2>
+        <canvas id="dashboard-chart" width="600" height="180" role="img" aria-label="Gráfica de ingresos de los últimos 6 meses" data-i18n-aria-label="chart_ingresos_titulo"></canvas>
       </div>
       <div class="pago-panels">
         <div class="pago-panel is-danger">
           <div class="pago-panel-header">
             <svg class="icon" aria-hidden="true"><use href="#icon-alert-circle"></use></svg>
-            <span>Sin pagar</span>
+            <span data-i18n="estado_pendiente">Sin pagar</span>
             <span class="pago-panel-count" id="pago-panel-pendientes-count">0</span>
           </div>
           <div class="pago-panel-body" id="pago-panel-pendientes"></div>
@@ -222,14 +233,14 @@
         <div class="pago-panel is-success">
           <div class="pago-panel-header">
             <svg class="icon" aria-hidden="true"><use href="#icon-check-circle"></use></svg>
-            <span>Pagadas</span>
+            <span data-i18n="estado_pagada">Pagadas</span>
             <span class="pago-panel-count" id="pago-panel-pagadas-count">0</span>
           </div>
           <div class="pago-panel-body" id="pago-panel-pagadas"></div>
         </div>
       </div>
       <div class="table-wrap" style="padding:1.5rem;">
-        <h2 style="font-size:1.05rem;margin-bottom:1rem;">Órdenes por etapa</h2>
+        <h2 style="font-size:1.05rem;margin-bottom:1rem;" data-i18n="ordenes_por_etapa_titulo">Órdenes por etapa</h2>
         <div class="etapa-counts" id="dashboard-etapa-counts"></div>
       </div>
     </section>
@@ -237,26 +248,26 @@
     <section id="view-clientes" class="view" hidden>
       <header class="view-header">
         <div>
-          <h1>Clientes</h1>
-          <p class="view-sub">Directorio de clientes del taller</p>
+          <h1 data-i18n="nav_clientes">Clientes</h1>
+          <p class="view-sub" data-i18n="clientes_subtitulo">Directorio de clientes del taller</p>
         </div>
-        <button class="btn-primary" id="btn-nuevo-cliente" type="button">+ Nuevo cliente</button>
+        <button class="btn-primary" id="btn-nuevo-cliente" type="button" data-i18n="btn_nuevo_cliente">+ Nuevo cliente</button>
       </header>
       <div class="toolbar">
-        <input type="search" id="clientes-search" placeholder="Buscar por nombre, teléfono o placa..." aria-label="Buscar clientes" />
+        <input type="search" id="clientes-search" placeholder="Buscar por nombre, teléfono o placa..." aria-label="Buscar clientes" data-i18n-placeholder="clientes_buscar_placeholder" data-i18n-aria-label="clientes_buscar_placeholder" />
         <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:var(--text-dim);white-space:nowrap;">
           <input type="checkbox" id="clientes-filter-inactivos" />
-          Solo inactivos (90+ días sin factura)
+          <span data-i18n="clientes_solo_inactivos">Solo inactivos (90+ días sin factura)</span>
         </label>
       </div>
       <div class="table-wrap">
         <table class="data-table">
           <thead><tr>
-            <th data-sort-key="nombre" class="is-sortable">Nombre</th>
-            <th data-sort-key="telefono" class="is-sortable">Teléfono</th>
-            <th data-sort-key="vehiculo" class="is-sortable">Vehículo</th>
-            <th data-sort-key="vehiculo_placa" class="is-sortable">Placa</th>
-            <th>Última factura</th>
+            <th data-sort-key="nombre" class="is-sortable" data-i18n="col_nombre">Nombre</th>
+            <th data-sort-key="telefono" class="is-sortable" data-i18n="col_telefono">Teléfono</th>
+            <th data-sort-key="vehiculo" class="is-sortable" data-i18n="col_vehiculo">Vehículo</th>
+            <th data-sort-key="vehiculo_placa" class="is-sortable" data-i18n="col_placa">Placa</th>
+            <th data-i18n="col_ultima_factura">Última factura</th>
             <th></th>
           </tr></thead>
           <tbody id="clientes-tbody"></tbody>
@@ -268,43 +279,49 @@
     <section id="view-facturas" class="view" hidden>
       <header class="view-header">
         <div>
-          <h1><span class="view-title-mark"><img src="logo-muffler.png" alt="" /></span>Facturas</h1>
-          <p class="view-sub">Historial de facturación</p>
+          <h1><span class="view-title-mark"><img src="logo-muffler.png" alt="" /></span><span data-i18n="nav_facturas">Facturas</span></h1>
+          <p class="view-sub" data-i18n="facturas_subtitulo">Historial de facturación</p>
         </div>
-        <button class="btn-primary" id="btn-nueva-factura" type="button">+ Nueva factura</button>
+        <button class="btn-primary" id="btn-nueva-factura" type="button" data-i18n="btn_nueva_factura">+ Nueva factura</button>
       </header>
       <div class="bulk-bar" id="facturas-bulk-bar" hidden>
         <span id="facturas-bulk-count">0 seleccionadas</span>
         <span class="spacer"></span>
         <button type="button" class="btn-ghost" id="btn-bulk-pagadas">
-          <svg class="icon" aria-hidden="true"><use href="#icon-check-circle"></use></svg>Marcar pagadas
+          <svg class="icon" aria-hidden="true"><use href="#icon-check-circle"></use></svg><span data-i18n="btn_marcar_pagadas">Marcar pagadas</span>
         </button>
         <button type="button" class="btn-danger" id="btn-bulk-eliminar">
-          <svg class="icon" aria-hidden="true"><use href="#icon-trash"></use></svg>Eliminar
+          <svg class="icon" aria-hidden="true"><use href="#icon-trash"></use></svg><span data-i18n="btn_eliminar">Eliminar</span>
         </button>
-        <button type="button" class="btn-ghost" id="btn-bulk-cancelar">Cancelar</button>
+        <button type="button" class="btn-ghost" id="btn-bulk-cancelar" data-i18n="btn_cancelar">Cancelar</button>
       </div>
       <div class="toolbar">
-        <input type="search" id="facturas-search" placeholder="Buscar por cliente o número..." aria-label="Buscar facturas" />
+        <input type="search" id="facturas-search" placeholder="Buscar por cliente o número..." aria-label="Buscar facturas" data-i18n-placeholder="facturas_buscar_placeholder" data-i18n-aria-label="facturas_buscar_placeholder" />
         <select id="facturas-filter-estado">
-          <option value="">Todos los estados</option>
-          <option value="pendiente">Sin pagar</option>
-          <option value="pagada">Pagada</option>
-          <option value="cancelada">Cancelada</option>
+          <option value="" data-i18n="facturas_todos_estados">Todos los estados</option>
+          <option value="pendiente" data-i18n="estado_pendiente">Sin pagar</option>
+          <option value="pagada" data-i18n="estado_pagada">Pagada</option>
+          <option value="cancelada" data-i18n="estado_cancelada">Cancelada</option>
         </select>
-        <input type="date" id="facturas-filter-desde" title="Desde" />
-        <input type="date" id="facturas-filter-hasta" title="Hasta" />
+        <select id="facturas-filter-metodo-pago">
+          <option value="" data-i18n="facturas_todos_metodos">Todos los métodos de pago</option>
+          <option value="efectivo" data-i18n="metodo_efectivo">Efectivo</option>
+          <option value="tarjeta" data-i18n="metodo_tarjeta">Tarjeta</option>
+          <option value="cheque" data-i18n="metodo_cheque">Cheque</option>
+        </select>
+        <input type="date" id="facturas-filter-desde" title="Desde" data-i18n-title="label_desde" />
+        <input type="date" id="facturas-filter-hasta" title="Hasta" data-i18n-title="label_hasta" />
       </div>
       <div class="filter-chips" id="facturas-filter-chips"></div>
       <div class="table-wrap">
         <table class="data-table">
           <thead><tr>
-            <th style="width:2rem;"><input type="checkbox" id="facturas-select-all" title="Seleccionar todas" /></th>
-            <th data-sort-key="numero" class="is-sortable">N.º</th>
-            <th data-sort-key="cliente" class="is-sortable">Cliente</th>
-            <th data-sort-key="fecha" class="is-sortable">Fecha</th>
-            <th data-sort-key="total" class="is-sortable">Total</th>
-            <th data-sort-key="estado" class="is-sortable">Estado</th>
+            <th style="width:2rem;"><input type="checkbox" id="facturas-select-all" title="Seleccionar todas" data-i18n-title="seleccionar_todas" /></th>
+            <th data-sort-key="numero" class="is-sortable" data-i18n="col_numero">N.º</th>
+            <th data-sort-key="cliente" class="is-sortable" data-i18n="col_cliente">Cliente</th>
+            <th data-sort-key="fecha" class="is-sortable" data-i18n="col_fecha">Fecha</th>
+            <th data-sort-key="total" class="is-sortable" data-i18n="col_total">Total</th>
+            <th data-sort-key="estado" class="is-sortable" data-i18n="col_estado">Estado</th>
             <th></th>
           </tr></thead>
           <tbody id="facturas-tbody"></tbody>
@@ -316,51 +333,51 @@
     <section id="view-registro-diario" class="view" hidden>
       <header class="view-header">
         <div>
-          <h1>Registro diario</h1>
-          <p class="view-sub">Trabajo de cada mecánico y cierre de caja del día</p>
+          <h1 data-i18n="nav_registro_diario">Registro diario</h1>
+          <p class="view-sub" data-i18n="registro_subtitulo">Trabajo de cada mecánico y cierre de caja del día</p>
         </div>
         <div class="toolbar" style="margin:0;flex-wrap:wrap;">
-          <button class="btn-ghost" id="btn-registro-dia-anterior" type="button">&lsaquo; Día anterior</button>
+          <button class="btn-ghost" id="btn-registro-dia-anterior" type="button" data-i18n="btn_dia_anterior">&lsaquo; Día anterior</button>
           <input type="date" id="registro-fecha" />
-          <button class="btn-ghost" id="btn-registro-dia-siguiente" type="button">Día siguiente &rsaquo;</button>
-          <button class="btn-ghost" id="btn-duplicar-dia-anterior" type="button">Duplicar día anterior</button>
-          <button class="btn-ghost" id="btn-toggle-buscar-registro" type="button">Buscar carro/placa</button>
-          <button class="btn-ghost" id="btn-toggle-totales-mecanico" type="button">Totales por mecánico</button>
-          <button class="btn-ghost" id="btn-toggle-calendario-registro" type="button">Ver calendario</button>
-          <button class="btn-ghost" id="btn-exportar-registro-diario" type="button">Descargar CSV</button>
-          <button class="btn-ghost" id="btn-imprimir-registro-diario" type="button">Imprimir día</button>
+          <button class="btn-ghost" id="btn-registro-dia-siguiente" type="button" data-i18n="btn_dia_siguiente">Día siguiente &rsaquo;</button>
+          <button class="btn-ghost" id="btn-duplicar-dia-anterior" type="button" data-i18n="btn_duplicar_dia">Duplicar día anterior</button>
+          <button class="btn-ghost" id="btn-toggle-buscar-registro" type="button" data-i18n="btn_buscar_carro_placa">Buscar carro/placa</button>
+          <button class="btn-ghost" id="btn-toggle-totales-mecanico" type="button" data-i18n="btn_totales_mecanico">Totales por mecánico</button>
+          <button class="btn-ghost" id="btn-toggle-calendario-registro" type="button" data-i18n="btn_ver_calendario">Ver calendario</button>
+          <button class="btn-ghost" id="btn-exportar-registro-diario" type="button" data-i18n="btn_descargar_csv">Descargar CSV</button>
+          <button class="btn-ghost" id="btn-imprimir-registro-diario" type="button" data-i18n="btn_imprimir_dia">Imprimir día</button>
         </div>
       </header>
 
-      <p id="registro-cerrado-banner" class="orden-nota" hidden>Este día está cerrado. No se puede editar hasta que lo reabras.</p>
+      <p id="registro-cerrado-banner" class="orden-nota" hidden data-i18n="registro_cerrado_banner">Este día está cerrado. No se puede editar hasta que lo reabras.</p>
       <p id="registro-mismatch-warning" class="orden-nota" hidden aria-live="polite" style="color:var(--danger);"></p>
 
       <div id="registro-buscar-panel" class="table-wrap" style="padding:1.25rem 1.5rem;margin-bottom:1.25rem;" hidden>
-        <h2 style="font-size:1rem;margin-bottom:.75rem;">Buscar carro o placa entre varios días</h2>
+        <h2 style="font-size:1rem;margin-bottom:.75rem;" data-i18n="registro_buscar_titulo">Buscar carro o placa entre varios días</h2>
         <div class="field-row">
-          <div class="field"><input type="text" id="registro-buscar-input" placeholder="Escribe el carro o la placa..." autocomplete="off" /></div>
-          <button class="btn-ghost" id="btn-registro-buscar" type="button">Buscar</button>
+          <div class="field"><input type="text" id="registro-buscar-input" placeholder="Escribe el carro o la placa..." autocomplete="off" data-i18n-placeholder="registro_buscar_input_placeholder" /></div>
+          <button class="btn-ghost" id="btn-registro-buscar" type="button" data-i18n="btn_buscar">Buscar</button>
         </div>
         <div id="registro-buscar-resultados"></div>
       </div>
 
       <div id="registro-totales-mecanico-panel" class="table-wrap" style="padding:1.25rem 1.5rem;margin-bottom:1.25rem;" hidden>
-        <h2 style="font-size:1rem;margin-bottom:.75rem;">Totales por mecánico</h2>
+        <h2 style="font-size:1rem;margin-bottom:.75rem;" data-i18n="btn_totales_mecanico">Totales por mecánico</h2>
         <div class="field-row">
-          <div class="field"><label>Desde</label><input type="date" id="registro-totales-desde" /></div>
-          <div class="field"><label>Hasta</label><input type="date" id="registro-totales-hasta" /></div>
-          <button class="btn-ghost" id="btn-registro-totales-calcular" type="button">Calcular</button>
+          <div class="field"><label for="registro-totales-desde" data-i18n="label_desde">Desde</label><input type="date" id="registro-totales-desde" /></div>
+          <div class="field"><label for="registro-totales-hasta" data-i18n="label_hasta">Hasta</label><input type="date" id="registro-totales-hasta" /></div>
+          <button class="btn-ghost" id="btn-registro-totales-calcular" type="button" data-i18n="btn_calcular">Calcular</button>
         </div>
         <div id="registro-totales-mecanico-resultados"></div>
       </div>
 
       <div id="registro-calendario-panel" class="table-wrap" style="padding:1.25rem 1.5rem;margin-bottom:1.25rem;" hidden>
         <div class="view-header" style="margin-bottom:.75rem;">
-          <h2 id="registro-calendario-titulo" tabindex="-1" style="font-size:1rem;margin:0;">Calendario del mes</h2>
+          <h2 id="registro-calendario-titulo" tabindex="-1" style="font-size:1rem;margin:0;" data-i18n="calendario_mes_titulo">Calendario del mes</h2>
           <div class="toolbar" style="margin:0;">
-            <button class="btn-ghost" id="btn-calendario-mes-anterior" type="button" aria-label="Mes anterior">&lsaquo;</button>
+            <button class="btn-ghost" id="btn-calendario-mes-anterior" type="button" aria-label="Mes anterior" data-i18n-aria-label="mes_anterior">&lsaquo;</button>
             <strong id="registro-calendario-mes-label"></strong>
-            <button class="btn-ghost" id="btn-calendario-mes-siguiente" type="button" aria-label="Mes siguiente">&rsaquo;</button>
+            <button class="btn-ghost" id="btn-calendario-mes-siguiente" type="button" aria-label="Mes siguiente" data-i18n-aria-label="mes_siguiente">&rsaquo;</button>
           </div>
         </div>
         <div id="registro-calendario-grid" class="registro-calendario-grid"></div>
@@ -368,19 +385,19 @@
 
       <div class="kpi-grid">
         <div class="kpi-card" style="--kpi-color:var(--series-1);">
-          <span class="kpi-label">Labor del día</span>
+          <span class="kpi-label" data-i18n="kpi_labor_dia">Labor del día</span>
           <strong class="kpi-value" id="registro-resumen-labor">$0.00</strong>
         </div>
         <div class="kpi-card" style="--kpi-color:var(--series-4);">
-          <span class="kpi-label">Piezas del día</span>
+          <span class="kpi-label" data-i18n="kpi_piezas_dia">Piezas del día</span>
           <strong class="kpi-value" id="registro-resumen-piezas">$0.00</strong>
         </div>
         <div class="kpi-card" style="--kpi-color:var(--series-3);">
-          <span class="kpi-label">Otro trabajo</span>
+          <span class="kpi-label" data-i18n="kpi_otro_trabajo">Otro trabajo</span>
           <strong class="kpi-value" id="registro-resumen-otro">$0.00</strong>
         </div>
         <div class="kpi-card" style="--kpi-color:var(--series-8);">
-          <span class="kpi-label">Dinero de salida</span>
+          <span class="kpi-label" data-i18n="kpi_dinero_salida">Dinero de salida</span>
           <strong class="kpi-value" id="registro-resumen-dinero-salida">$0.00</strong>
         </div>
       </div>
@@ -388,29 +405,29 @@
       <div id="registro-mecanicos-container"></div>
 
       <div class="table-wrap" style="padding:1.25rem 1.5rem;margin-bottom:1.25rem;">
-        <h2 style="font-size:1rem;margin-bottom:.75rem;">Foto de la hoja de papel (respaldo)</h2>
-        <p id="registro-foto-hoja-nota" class="orden-nota" hidden>Guarda el registro del día primero para poder subir la foto.</p>
+        <h2 style="font-size:1rem;margin-bottom:.75rem;" data-i18n="foto_hoja_titulo">Foto de la hoja de papel (respaldo)</h2>
+        <p id="registro-foto-hoja-nota" class="orden-nota" hidden data-i18n="foto_hoja_nota">Guarda el registro del día primero para poder subir la foto.</p>
         <div id="registro-foto-hoja-preview"></div>
         <label class="btn-ghost" id="btn-subir-foto-hoja-label" style="display:inline-block;cursor:pointer;">
-          + Foto de la hoja
+          <span data-i18n="btn_foto_hoja">+ Foto de la hoja</span>
           <input type="file" id="input-foto-hoja-registro" accept="image/*" capture="environment" style="display:none;" />
         </label>
       </div>
 
       <div class="table-wrap" style="padding:1.5rem;margin-top:.5rem;max-width:22rem;margin-left:auto;">
-        <h2 style="font-size:1rem;margin-bottom:1rem;">Cierre de caja del día</h2>
-        <div class="field"><label>Total en tarjeta</label><input type="number" id="registro-credit-card" step="0.01" min="0" value="0" /></div>
-        <div class="field"><label>Total en efectivo</label><input type="number" id="registro-cash" step="0.01" min="0" value="0" /></div>
-        <div class="field"><label>Total en cheque</label><input type="number" id="registro-check" step="0.01" min="0" value="0" /></div>
+        <h2 style="font-size:1rem;margin-bottom:1rem;" data-i18n="cierre_caja_titulo">Cierre de caja del día</h2>
+        <div class="field"><label for="registro-credit-card" data-i18n="total_tarjeta_label">Total en tarjeta</label><input type="number" id="registro-credit-card" step="0.01" min="0" value="0" /></div>
+        <div class="field"><label for="registro-cash" data-i18n="total_efectivo_label">Total en efectivo</label><input type="number" id="registro-cash" step="0.01" min="0" value="0" /></div>
+        <div class="field"><label for="registro-check" data-i18n="total_cheque_label">Total en cheque</label><input type="number" id="registro-check" step="0.01" min="0" value="0" /></div>
         <div class="field" style="display:flex;justify-content:space-between;align-items:center;">
-          <label style="margin:0;">Total del día</label>
+          <label style="margin:0;" data-i18n="total_dia_label">Total del día</label>
           <strong id="registro-total-dia">$0.00</strong>
         </div>
         <footer class="modal-footer" style="padding-top:.75rem;flex-wrap:wrap;">
-          <button class="btn-ghost" id="btn-cerrar-registro-diario" type="button">Cerrar día</button>
-          <button class="btn-ghost" id="btn-reabrir-registro-diario" type="button" hidden>Reabrir día</button>
+          <button class="btn-ghost" id="btn-cerrar-registro-diario" type="button" data-i18n="btn_cerrar_dia">Cerrar día</button>
+          <button class="btn-ghost" id="btn-reabrir-registro-diario" type="button" hidden data-i18n="btn_reabrir_dia">Reabrir día</button>
           <span class="spacer"></span>
-          <button class="btn-primary" id="btn-guardar-registro-diario" type="button">Guardar registro del día</button>
+          <button class="btn-primary" id="btn-guardar-registro-diario" type="button" data-i18n="btn_guardar_registro">Guardar registro del día</button>
         </footer>
       </div>
     </section>
@@ -418,10 +435,10 @@
     <section id="view-reservas" class="view" hidden>
       <header class="view-header">
         <div>
-          <h1>Bookings</h1>
-          <p class="view-sub">Agenda de citas próximas</p>
+          <h1 data-i18n="nav_reservas">Reservas</h1>
+          <p class="view-sub" data-i18n="reservas_subtitulo">Agenda de citas próximas</p>
         </div>
-        <button class="btn-primary" id="btn-nueva-reserva" type="button">+ Nueva reserva</button>
+        <button class="btn-primary" id="btn-nueva-reserva" type="button" data-i18n="btn_nueva_reserva">+ Nueva reserva</button>
       </header>
       <div id="reservas-groups"></div>
     </section>
@@ -429,51 +446,51 @@
     <section id="view-estimados" class="view" hidden>
       <header class="view-header">
         <div>
-          <h1>Estimates</h1>
-          <p class="view-sub">Presupuestos que el cliente puede aprobar o rechazar</p>
+          <h1 data-i18n="nav_estimados">Presupuestos</h1>
+          <p class="view-sub" data-i18n="estimados_subtitulo">Presupuestos que el cliente puede aprobar o rechazar</p>
         </div>
-        <button class="btn-primary" id="btn-nuevo-estimado" type="button">+ Nuevo presupuesto</button>
+        <button class="btn-primary" id="btn-nuevo-estimado" type="button" data-i18n="btn_nuevo_estimado">+ Nuevo presupuesto</button>
       </header>
       <div class="toolbar">
-        <input type="search" id="estimados-search" placeholder="Buscar por cliente o número..." aria-label="Buscar presupuestos" />
+        <input type="search" id="estimados-search" placeholder="Buscar por cliente o número..." aria-label="Buscar presupuestos" data-i18n-placeholder="estimados_buscar_placeholder" data-i18n-aria-label="estimados_buscar_placeholder" />
         <select id="estimados-filter-estado">
-          <option value="">Todos los estados</option>
-          <option value="pendiente">Pendiente</option>
-          <option value="aprobado">Aprobado</option>
-          <option value="rechazado">Rechazado</option>
-          <option value="convertido">Convertido a factura</option>
+          <option value="" data-i18n="facturas_todos_estados">Todos los estados</option>
+          <option value="pendiente" data-i18n="estado_estim_pendiente">Pendiente</option>
+          <option value="aprobado" data-i18n="estado_estim_aprobado">Aprobado</option>
+          <option value="rechazado" data-i18n="estado_estim_rechazado">Rechazado</option>
+          <option value="convertido" data-i18n="estado_estim_convertido_a">Convertido a factura</option>
         </select>
       </div>
       <div class="table-wrap">
         <table class="data-table">
-          <thead><tr><th>N.º</th><th>Cliente</th><th>Fecha</th><th>Total</th><th>Estado</th><th></th></tr></thead>
+          <thead><tr><th data-i18n="col_numero">N.º</th><th data-i18n="col_cliente">Cliente</th><th data-i18n="col_fecha">Fecha</th><th data-i18n="col_total">Total</th><th data-i18n="col_estado">Estado</th><th></th></tr></thead>
           <tbody id="estimados-tbody"></tbody>
         </table>
-        <p id="estimados-empty" class="empty-state" hidden>Todavía no hay presupuestos registrados.</p>
+        <p id="estimados-empty" class="empty-state" hidden data-i18n="estimados_vacio">Todavía no hay presupuestos registrados.</p>
       </div>
     </section>
 
     <section id="view-configuracion" class="view" hidden>
       <header class="view-header">
         <div>
-          <h1><svg class="icon" style="width:1.3rem;height:1.3rem;vertical-align:-3px;margin-right:.4rem;" aria-hidden="true"><use href="#icon-settings"></use></svg>Configuración</h1>
-          <p class="view-sub">Estos datos son la identidad de tu negocio en cada factura</p>
+          <h1><svg class="icon" style="width:1.3rem;height:1.3rem;vertical-align:-3px;margin-right:.4rem;" aria-hidden="true"><use href="#icon-settings"></use></svg><span data-i18n="nav_configuracion">Configuración</span></h1>
+          <p class="view-sub" data-i18n="configuracion_subtitulo">Estos datos son la identidad de tu negocio en cada factura</p>
         </div>
       </header>
 
       <div class="config-tabs">
-        <button type="button" class="config-tab is-active" data-config-tab="negocio">Negocio</button>
-        <button type="button" class="config-tab" data-config-tab="mecanicos">Mecánicos</button>
-        <button type="button" class="config-tab" data-config-tab="finanzas">Finanzas</button>
-        <button type="button" class="config-tab" data-config-tab="export">Export</button>
-        <button type="button" class="config-tab" data-config-tab="cuenta">My Account</button>
+        <button type="button" class="config-tab is-active" data-config-tab="negocio" data-i18n="tab_negocio">Negocio</button>
+        <button type="button" class="config-tab" data-config-tab="mecanicos" data-i18n="tab_mecanicos">Mecánicos</button>
+        <button type="button" class="config-tab" data-config-tab="finanzas" data-i18n="tab_finanzas">Finanzas</button>
+        <button type="button" class="config-tab" data-config-tab="export" data-i18n="tab_export">Export</button>
+        <button type="button" class="config-tab" data-config-tab="cuenta" data-i18n="tab_cuenta">My Account</button>
       </div>
 
       <div id="config-tab-finanzas" class="config-tab-panel" hidden>
         <header class="view-header">
           <div>
-            <h2 style="font-size:1.1rem;margin:0;">Finanzas</h2>
-            <p class="view-sub">Ingresos, gastos y ganancias por mes</p>
+            <h2 style="font-size:1.1rem;margin:0;" data-i18n="tab_finanzas">Finanzas</h2>
+            <p class="view-sub" data-i18n="finanzas_subtitulo">Ingresos, gastos y ganancias por mes</p>
           </div>
           <div class="toolbar" style="margin:0;">
             <select id="finanzas-anio"></select>
@@ -482,58 +499,58 @@
 
         <div class="table-wrap" style="margin-bottom:1.75rem;">
           <table class="data-table">
-            <thead><tr><th>Mes</th><th>Ingresos</th><th>Gastos</th><th>Ganancia neta</th></tr></thead>
+            <thead><tr><th data-i18n="col_mes">Mes</th><th data-i18n="col_ingresos">Ingresos</th><th data-i18n="col_gastos">Gastos</th><th data-i18n="col_ganancia_neta">Ganancia neta</th></tr></thead>
             <tbody id="finanzas-meses-tbody"></tbody>
           </table>
         </div>
 
         <header class="view-header">
           <div>
-            <h2 style="font-size:1.1rem;">Gastos</h2>
-            <p class="view-sub">Registro de gastos del negocio</p>
+            <h2 style="font-size:1.1rem;" data-i18n="col_gastos">Gastos</h2>
+            <p class="view-sub" data-i18n="gastos_subtitulo">Registro de gastos del negocio</p>
           </div>
-          <button class="btn-primary" id="btn-nuevo-gasto" type="button">+ Nuevo gasto</button>
+          <button class="btn-primary" id="btn-nuevo-gasto" type="button" data-i18n="btn_nuevo_gasto">+ Nuevo gasto</button>
         </header>
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Monto</th><th></th></tr></thead>
+            <thead><tr><th data-i18n="col_fecha">Fecha</th><th data-i18n="col_categoria">Categoría</th><th data-i18n="col_descripcion">Descripción</th><th data-i18n="col_monto">Monto</th><th></th></tr></thead>
             <tbody id="gastos-tbody"></tbody>
           </table>
-          <p id="gastos-empty" class="empty-state" hidden>Todavía no hay gastos registrados.</p>
+          <p id="gastos-empty" class="empty-state" hidden data-i18n="gastos_vacio">Todavía no hay gastos registrados.</p>
         </div>
       </div>
 
       <div id="config-tab-export" class="config-tab-panel" hidden>
         <header class="view-header">
           <div>
-            <h2 style="font-size:1.1rem;margin:0;">Export</h2>
-            <p class="view-sub">Descarga tus datos en CSV (se abren en Excel/Google Sheets)</p>
+            <h2 style="font-size:1.1rem;margin:0;" data-i18n="tab_export">Export</h2>
+            <p class="view-sub" data-i18n="export_subtitulo">Descarga tus datos en CSV (se abren en Excel/Google Sheets)</p>
           </div>
         </header>
         <div class="export-grid">
           <div class="export-card">
             <svg class="icon" aria-hidden="true"><use href="#icon-user"></use></svg>
-            <h2>Clientes</h2>
-            <p>Nombre, apellido, teléfono, email, dirección.</p>
-            <button class="btn-primary" type="button" data-export="clientes">Descargar CSV</button>
+            <h2 data-i18n="nav_clientes">Clientes</h2>
+            <p data-i18n="export_clientes_desc">Nombre, apellido, teléfono, email, dirección.</p>
+            <button class="btn-primary" type="button" data-export="clientes" data-i18n="btn_descargar_csv">Descargar CSV</button>
           </div>
           <div class="export-card">
             <svg class="icon" aria-hidden="true"><use href="#icon-car"></use></svg>
-            <h2>Vehículos</h2>
-            <p>Marca, modelo, año, placa, VIN, kilometraje.</p>
-            <button class="btn-primary" type="button" data-export="vehiculos">Descargar CSV</button>
+            <h2 data-i18n="export_vehiculos_titulo">Vehículos</h2>
+            <p data-i18n="export_vehiculos_desc">Marca, modelo, año, placa, VIN, kilometraje.</p>
+            <button class="btn-primary" type="button" data-export="vehiculos" data-i18n="btn_descargar_csv">Descargar CSV</button>
           </div>
           <div class="export-card">
             <svg class="icon" aria-hidden="true"><use href="#icon-file-text"></use></svg>
-            <h2>Facturas</h2>
-            <p>Número, fecha, estado, subtotal, impuesto, total.</p>
-            <button class="btn-primary" type="button" data-export="facturas">Descargar CSV</button>
+            <h2 data-i18n="nav_facturas">Facturas</h2>
+            <p data-i18n="export_facturas_desc">Número, fecha, estado, subtotal, impuesto, total.</p>
+            <button class="btn-primary" type="button" data-export="facturas" data-i18n="btn_descargar_csv">Descargar CSV</button>
           </div>
           <div class="export-card">
             <svg class="icon" aria-hidden="true"><use href="#icon-wrench"></use></svg>
-            <h2>Órdenes de servicio</h2>
-            <p>Etapa, vehículo, diagnóstico, fechas.</p>
-            <button class="btn-primary" type="button" data-export="ordenes">Descargar CSV</button>
+            <h2 data-i18n="nav_ordenes">Órdenes de servicio</h2>
+            <p data-i18n="export_ordenes_desc">Etapa, vehículo, diagnóstico, fechas.</p>
+            <button class="btn-primary" type="button" data-export="ordenes" data-i18n="btn_descargar_csv">Descargar CSV</button>
           </div>
         </div>
       </div>
@@ -542,55 +559,57 @@
       <div class="config-layout">
         <div class="table-wrap" style="padding:1.75rem;">
           <form id="form-configuracion" class="modal-body">
-            <div class="field"><label>Nombre del negocio</label><input type="text" id="config-nombre" placeholder="Gil Muffler" /></div>
-            <div class="field"><label>Dirección</label><input type="text" id="config-direccion" placeholder="Lawrence, MA" /></div>
+            <div class="field"><label for="config-nombre" data-i18n="config_nombre_negocio">Nombre del negocio</label><input type="text" id="config-nombre" placeholder="Gil Muffler" /></div>
+            <div class="field"><label for="config-direccion" data-i18n="config_direccion">Dirección</label><input type="text" id="config-direccion" placeholder="Lawrence, MA" /></div>
             <div class="field-row">
-              <div class="field"><label>Teléfono</label><input type="text" id="config-telefono" /></div>
-              <div class="field"><label>Email</label><input type="email" id="config-email" /></div>
+              <div class="field"><label for="config-telefono" data-i18n="col_telefono">Teléfono</label><input type="text" id="config-telefono" /></div>
+              <div class="field"><label for="config-email" data-i18n="campo_email">Email</label><input type="email" id="config-email" /></div>
             </div>
             <div class="field">
-              <label>Logo (URL de una imagen de internet)</label>
+              <label for="config-logo-url" data-i18n="config_logo_url">Logo (URL de una imagen de internet)</label>
               <input type="url" id="config-logo-url" placeholder="https://..." />
             </div>
             <div class="field-row">
-              <div class="field"><label>Tasa de impuesto por defecto (%)</label><input type="number" id="config-tasa-impuesto-default" step="0.01" min="0" placeholder="0" /></div>
+              <div class="field"><label for="config-tasa-impuesto-default" data-i18n="config_tasa_impuesto">Tasa de impuesto por defecto (%)</label><input type="number" id="config-tasa-impuesto-default" step="0.01" min="0" placeholder="0" /></div>
               <div class="field">
-                <label>Formato de fecha</label>
+                <label for="config-formato-fecha" data-i18n="config_formato_fecha">Formato de fecha</label>
                 <select id="config-formato-fecha">
-                  <option value="MM/DD/YYYY">MM/DD/YYYY (mes/día/año)</option>
-                  <option value="DD/MM/YYYY">DD/MM/YYYY (día/mes/año)</option>
+                  <option value="MM/DD/YYYY" data-i18n="config_formato_mdy">MM/DD/YYYY (mes/día/año)</option>
+                  <option value="DD/MM/YYYY" data-i18n="config_formato_dmy">DD/MM/YYYY (día/mes/año)</option>
                 </select>
               </div>
             </div>
-            <div class="field"><label>Mensaje de pie de página (sale en cada factura)</label><textarea id="config-mensaje-pie" rows="2" placeholder="¡Gracias por su preferencia!"></textarea></div>
+            <div class="field"><label for="config-mensaje-pie" data-i18n="config_mensaje_pie">Mensaje de pie de página (sale en cada factura)</label><textarea id="config-mensaje-pie" rows="2" placeholder="¡Gracias por su preferencia!"></textarea></div>
             <div class="field-row">
-              <div class="field" style="max-width:12rem;"><label>Garantía de piezas (días)</label><input type="number" id="config-garantia-dias" min="0" step="1" placeholder="90" /></div>
+              <div class="field" style="max-width:12rem;"><label for="config-garantia-labor-dias" data-i18n="config_garantia_labor_dias">Garantía de mano de obra (días)</label><input type="number" id="config-garantia-labor-dias" min="0" step="1" placeholder="45" /></div>
+              <div class="field" style="max-width:12rem;"><label for="config-garantia-dias" data-i18n="config_garantia_dias">Garantía de piezas (días)</label><input type="number" id="config-garantia-dias" min="0" step="1" placeholder="90" /></div>
             </div>
-            <div class="field"><label>Texto adicional (términos, lo que quieras agregar)</label><textarea id="config-texto-adicional" rows="3" placeholder="Ej. Piezas usadas sujetas a disponibilidad."></textarea></div>
-            <label class="field-label-standalone">Impresión de la factura</label>
+            <div class="field" style="max-width:16rem;"><label for="config-numero-fiscal" data-i18n="config_numero_fiscal">Número fiscal / Tax ID (opcional)</label><input type="text" id="config-numero-fiscal" placeholder="Ej. 12-3456789" /></div>
+            <div class="field"><label for="config-texto-adicional" data-i18n="config_texto_adicional">Texto adicional (términos, lo que quieras agregar)</label><textarea id="config-texto-adicional" rows="3" placeholder="Ej. Piezas usadas sujetas a disponibilidad."></textarea></div>
+            <label class="field-label-standalone" data-i18n="config_impresion_titulo">Impresión de la factura</label>
             <div class="field-row">
               <div class="field" style="max-width:9rem;">
-                <label>Color de acento</label>
+                <label for="config-color-acento" data-i18n="config_color_acento">Color de acento</label>
                 <input type="color" id="config-color-acento" value="#d5601a" />
               </div>
               <div class="field">
-                <label>Título del documento</label>
+                <label for="config-factura-titulo" data-i18n="config_titulo_documento">Título del documento</label>
                 <input type="text" id="config-factura-titulo" placeholder="Factura" />
               </div>
             </div>
             <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;margin-top:.2rem;">
               <input type="checkbox" id="config-mostrar-qr" checked />
-              Incluir código QR (enlace a la factura en línea) al pie de la factura impresa
+              <span data-i18n="config_mostrar_qr">Incluir código QR (enlace a la factura en línea) al pie de la factura impresa</span>
             </label>
             <footer class="modal-footer" style="padding-top:.5rem;">
               <span class="spacer"></span>
-              <button type="submit" class="btn-primary">Guardar</button>
+              <button type="submit" class="btn-primary" data-i18n="btn_guardar">Guardar</button>
             </footer>
           </form>
         </div>
 
         <div class="config-preview">
-          <span class="config-preview-label">Así se ve en la factura</span>
+          <span class="config-preview-label" data-i18n="config_preview_label">Así se ve en la factura</span>
           <div class="config-preview-card">
             <div class="config-preview-header">
               <div class="config-preview-brand">
@@ -614,17 +633,17 @@
       <div id="config-tab-mecanicos" class="config-tab-panel" hidden>
         <header class="view-header" style="margin-bottom:1.25rem;">
           <div>
-            <h2 style="font-size:1.1rem;margin:0;">Mecánicos</h2>
-            <p class="view-sub">Los nombres que aparecen en el Registro diario</p>
+            <h2 style="font-size:1.1rem;margin:0;" data-i18n="tab_mecanicos">Mecánicos</h2>
+            <p class="view-sub" data-i18n="mecanicos_subtitulo">Los nombres que aparecen en el Registro diario</p>
           </div>
         </header>
         <form id="form-nuevo-mecanico" class="field-row" style="align-items:flex-end;max-width:26rem;margin-bottom:1.5rem;">
-          <div class="field" style="flex:1;"><label>Nombre del mecánico</label><input type="text" id="nuevo-mecanico-nombre" placeholder="Ej. Ysidro" required /></div>
-          <button type="submit" class="btn-primary">+ Agregar</button>
+          <div class="field" style="flex:1;"><label for="nuevo-mecanico-nombre" data-i18n="nombre_mecanico_label">Nombre del mecánico</label><input type="text" id="nuevo-mecanico-nombre" placeholder="Ej. Ysidro" required /></div>
+          <button type="submit" class="btn-primary" data-i18n="btn_agregar">+ Agregar</button>
         </form>
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th>Nombre</th><th>Estado</th><th></th></tr></thead>
+            <thead><tr><th data-i18n="col_nombre">Nombre</th><th data-i18n="col_estado">Estado</th><th></th></tr></thead>
             <tbody id="mecanicos-tbody"></tbody>
           </table>
         </div>
@@ -633,18 +652,18 @@
       <div id="config-tab-cuenta" class="config-tab-panel" hidden>
         <header class="view-header" style="margin-bottom:1.25rem;">
           <div>
-            <h2 style="font-size:1.1rem;margin:0;">My Account</h2>
-            <p class="view-sub">Tu sesión y los empleados con acceso al panel</p>
+            <h2 style="font-size:1.1rem;margin:0;" data-i18n="tab_cuenta">My Account</h2>
+            <p class="view-sub" data-i18n="cuenta_subtitulo">Tu sesión y los empleados con acceso al panel</p>
           </div>
-          <button class="btn-primary" id="btn-nuevo-empleado" type="button">+ Agregar empleado</button>
+          <button class="btn-primary" id="btn-nuevo-empleado" type="button" data-i18n="btn_agregar_empleado">+ Agregar empleado</button>
         </header>
         <div class="export-card" style="max-width:22rem;margin-bottom:1.5rem;">
-          <h2>Sesión actual</h2>
+          <h2 data-i18n="sesion_actual_titulo">Sesión actual</h2>
           <p id="cuenta-email-actual">—</p>
         </div>
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th>Nombre</th><th>Email</th><th>Estado</th></tr></thead>
+            <thead><tr><th data-i18n="col_nombre">Nombre</th><th data-i18n="campo_email">Email</th><th data-i18n="col_estado">Estado</th></tr></thead>
             <tbody id="empleados-tbody"></tbody>
           </table>
         </div>
@@ -654,13 +673,13 @@
     <section id="view-ordenes" class="view" hidden>
       <header class="view-header">
         <div>
-          <h1>Órdenes de servicio</h1>
-          <p class="view-sub">Seguimiento del trabajo en el taller</p>
+          <h1 data-i18n="nav_ordenes">Órdenes de servicio</h1>
+          <p class="view-sub" data-i18n="ordenes_subtitulo">Seguimiento del trabajo en el taller</p>
         </div>
-        <button class="btn-primary" id="btn-nueva-orden" type="button">+ Nueva orden</button>
+        <button class="btn-primary" id="btn-nueva-orden" type="button" data-i18n="btn_nueva_orden">+ Nueva orden</button>
       </header>
       <div class="toolbar">
-        <input type="search" id="ordenes-search" placeholder="Buscar por cliente, vehículo o número..." aria-label="Buscar órdenes" />
+        <input type="search" id="ordenes-search" placeholder="Buscar por cliente, vehículo o número..." aria-label="Buscar órdenes" data-i18n-placeholder="ordenes_buscar_placeholder" data-i18n-aria-label="ordenes_buscar_placeholder" />
       </div>
       <div class="kanban" id="ordenes-kanban"></div>
     </section>
@@ -668,27 +687,27 @@
     <section id="view-inventario" class="view" hidden>
       <header class="view-header">
         <div>
-          <h1>Inventario</h1>
-          <p class="view-sub">Piezas y stock del taller</p>
+          <h1 data-i18n="nav_inventario">Inventario</h1>
+          <p class="view-sub" data-i18n="inventario_subtitulo">Piezas y stock del taller</p>
         </div>
         <div style="display:flex;gap:.6rem;">
-          <button class="btn-ghost" id="btn-ver-rotacion" type="button">Ver rotación de inventario</button>
-          <button class="btn-ghost" id="btn-ver-historial-precios" type="button">Ver historial de precios</button>
-          <button class="btn-ghost" id="btn-ver-reordenar" type="button">Para reordenar</button>
-          <button class="btn-primary" id="btn-nueva-pieza" type="button">+ Nueva pieza</button>
+          <button class="btn-ghost" id="btn-ver-rotacion" type="button" data-i18n="btn_ver_rotacion">Ver rotación de inventario</button>
+          <button class="btn-ghost" id="btn-ver-historial-precios" type="button" data-i18n="btn_ver_historial_precios">Ver historial de precios</button>
+          <button class="btn-ghost" id="btn-ver-reordenar" type="button" data-i18n="btn_ver_reordenar">Para reordenar</button>
+          <button class="btn-primary" id="btn-nueva-pieza" type="button" data-i18n="btn_nueva_pieza">+ Nueva pieza</button>
         </div>
       </header>
       <div class="toolbar">
-        <input type="search" id="piezas-search" placeholder="Buscar por nombre o SKU..." aria-label="Buscar piezas" />
+        <input type="search" id="piezas-search" placeholder="Buscar por nombre o SKU..." aria-label="Buscar piezas" data-i18n-placeholder="piezas_buscar_placeholder" data-i18n-aria-label="piezas_buscar_placeholder" />
       </div>
       <div class="table-wrap">
         <table class="data-table">
           <thead><tr>
-            <th data-sort-key="nombre" class="is-sortable">Nombre</th>
+            <th data-sort-key="nombre" class="is-sortable" data-i18n="col_nombre">Nombre</th>
             <th data-sort-key="sku" class="is-sortable">SKU</th>
-            <th data-sort-key="stock" class="is-sortable">Stock</th>
-            <th data-sort-key="costo" class="is-sortable">Costo</th>
-            <th data-sort-key="precio_venta" class="is-sortable">Precio</th>
+            <th data-sort-key="stock" class="is-sortable" data-i18n="col_stock">Stock</th>
+            <th data-sort-key="costo" class="is-sortable" data-i18n="col_costo">Costo</th>
+            <th data-sort-key="precio_venta" class="is-sortable" data-i18n="col_precio">Precio</th>
             <th></th>
           </tr></thead>
           <tbody id="piezas-tbody"></tbody>
@@ -700,20 +719,20 @@
     <section id="view-llamadas" class="view" hidden>
       <header class="view-header">
         <div>
-          <h1>Por llamar</h1>
-          <p class="view-sub">Clientes a los que hay que avisar por teléfono</p>
+          <h1 data-i18n="nav_llamadas">Por llamar</h1>
+          <p class="view-sub" data-i18n="llamadas_subtitulo">Clientes a los que hay que avisar por teléfono</p>
         </div>
         <div class="toolbar" style="margin:0;">
-          <button class="btn-ghost" id="btn-imprimir-qr-llamame" type="button">Imprimir QR para el mostrador</button>
-          <button class="btn-primary" id="btn-nueva-llamada" type="button">+ Agregar llamada</button>
+          <button class="btn-ghost" id="btn-imprimir-qr-llamame" type="button" data-i18n="btn_imprimir_qr_llamame">Imprimir QR para el mostrador</button>
+          <button class="btn-primary" id="btn-nueva-llamada" type="button" data-i18n="btn_agregar_llamada">+ Agregar llamada</button>
         </div>
       </header>
       <div class="table-wrap">
         <table class="data-table">
-          <thead><tr><th>Cliente</th><th>Teléfono</th><th>Carro</th><th>Motivo</th><th></th></tr></thead>
+          <thead><tr><th data-i18n="col_cliente">Cliente</th><th data-i18n="col_telefono">Teléfono</th><th data-i18n="col_carro">Carro</th><th data-i18n="col_motivo">Motivo</th><th></th></tr></thead>
           <tbody id="llamadas-tbody"></tbody>
         </table>
-        <p id="llamadas-empty" class="empty-state" hidden>No hay llamadas pendientes ahora mismo.</p>
+        <p id="llamadas-empty" class="empty-state" hidden data-i18n="llamadas_vacio">No hay llamadas pendientes ahora mismo.</p>
       </div>
     </section>
   </main>
@@ -722,28 +741,28 @@
 <div id="modal-llamada-manual" class="modal-backdrop" hidden>
   <div class="modal">
     <header class="modal-header">
-      <h2>Nueva llamada pendiente</h2>
-      <button class="icon-btn" data-close-modal="modal-llamada-manual" type="button" aria-label="Cerrar">&times;</button>
+      <h2 data-i18n="modal_llamada_nueva_titulo">Nueva llamada pendiente</h2>
+      <button class="icon-btn" data-close-modal="modal-llamada-manual" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <form id="form-llamada-manual" class="modal-body">
       <div class="field">
-        <label>Cliente *</label>
-        <input type="text" id="llamada-manual-cliente" list="clientes-datalist" placeholder="Escribe el nombre del cliente..." required autocomplete="off" />
+        <label for="llamada-manual-cliente" data-i18n="cliente_requerido_label">Cliente *</label>
+        <input type="text" id="llamada-manual-cliente" list="clientes-datalist" placeholder="Escribe el nombre del cliente..." required autocomplete="off" data-i18n-placeholder="escribe_nombre_cliente" />
       </div>
       <div class="field">
-        <label>Teléfono adicional (opcional)</label>
-        <input type="tel" id="llamada-manual-telefono" placeholder="Si tiene otro número además del que ya está guardado" />
+        <label for="llamada-manual-telefono" data-i18n="telefono_adicional_label">Teléfono adicional (opcional)</label>
+        <input type="tel" id="llamada-manual-telefono" placeholder="Si tiene otro número además del que ya está guardado" data-i18n-placeholder="telefono_adicional_placeholder" />
       </div>
       <div class="field-row">
-        <div class="field"><label>Carro</label><input type="text" id="llamada-manual-carro" /></div>
-        <div class="field"><label>Modelo</label><input type="text" id="llamada-manual-modelo" /></div>
-        <div class="field"><label>Año</label><input type="text" id="llamada-manual-anio" /></div>
+        <div class="field"><label for="llamada-manual-carro" data-i18n="col_carro">Carro</label><input type="text" id="llamada-manual-carro" /></div>
+        <div class="field"><label for="llamada-manual-modelo" data-i18n="campo_modelo">Modelo</label><input type="text" id="llamada-manual-modelo" /></div>
+        <div class="field"><label for="llamada-manual-anio" data-i18n="campo_anio">Año</label><input type="text" id="llamada-manual-anio" /></div>
       </div>
-      <div class="field"><label>Motivo</label><input type="text" id="llamada-manual-motivo" placeholder="Ej. Confirmar cita de mañana" /></div>
+      <div class="field"><label for="llamada-manual-motivo" data-i18n="col_motivo">Motivo</label><input type="text" id="llamada-manual-motivo" placeholder="Ej. Confirmar cita de mañana" data-i18n-placeholder="motivo_placeholder_ejemplo" /></div>
       <footer class="modal-footer">
         <span class="spacer"></span>
-        <button type="button" class="btn-ghost" data-close-modal="modal-llamada-manual">Cancelar</button>
-        <button type="submit" class="btn-primary">Agregar</button>
+        <button type="button" class="btn-ghost" data-close-modal="modal-llamada-manual" data-i18n="btn_cancelar">Cancelar</button>
+        <button type="submit" class="btn-primary" data-i18n="btn_agregar">Agregar</button>
       </footer>
     </form>
   </div>
@@ -752,16 +771,16 @@
 <div id="modal-llamada-nota" class="modal-backdrop" hidden>
   <div class="modal">
     <header class="modal-header">
-      <h2>Marcar llamada hecha</h2>
-      <button class="icon-btn" data-close-modal="modal-llamada-nota" type="button" aria-label="Cerrar">&times;</button>
+      <h2 data-i18n="modal_llamada_hecha_titulo">Marcar llamada hecha</h2>
+      <button class="icon-btn" data-close-modal="modal-llamada-nota" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <form id="form-llamada-nota" class="modal-body">
       <input type="hidden" id="llamada-nota-id" />
-      <div class="field"><label>Notas de la llamada (opcional)</label><textarea id="llamada-nota-texto" rows="3" placeholder="Ej. Dijo que pasa mañana por la tarde."></textarea></div>
+      <div class="field"><label for="llamada-nota-texto" data-i18n="notas_llamada_label">Notas de la llamada (opcional)</label><textarea id="llamada-nota-texto" rows="3" placeholder="Ej. Dijo que pasa mañana por la tarde." data-i18n-placeholder="notas_llamada_placeholder"></textarea></div>
       <footer class="modal-footer">
         <span class="spacer"></span>
-        <button type="button" class="btn-ghost" data-close-modal="modal-llamada-nota">Cancelar</button>
-        <button type="submit" class="btn-primary">Guardar y marcar como llamado</button>
+        <button type="button" class="btn-ghost" data-close-modal="modal-llamada-nota" data-i18n="btn_cancelar">Cancelar</button>
+        <button type="submit" class="btn-primary" data-i18n="btn_guardar_marcar_llamado">Guardar y marcar como llamado</button>
       </footer>
     </form>
   </div>
@@ -771,36 +790,36 @@
   <div class="modal">
     <header class="modal-header">
       <h2 id="modal-cliente-title">Nuevo cliente</h2>
-      <button class="icon-btn" data-close-modal="modal-cliente" type="button" aria-label="Cerrar">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-cliente" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <form id="form-cliente" class="modal-body">
       <input type="hidden" id="cliente-id" />
       <div class="field-row">
-        <div class="field"><label><svg class="icon field-icon" aria-hidden="true"><use href="#icon-user"></use></svg>Nombre *</label><input type="text" id="cliente-nombre" required /></div>
-        <div class="field"><label><svg class="icon field-icon" aria-hidden="true"><use href="#icon-user"></use></svg>Apellido *</label><input type="text" id="cliente-apellido" required /></div>
+        <div class="field"><label for="cliente-nombre"><svg class="icon field-icon" aria-hidden="true"><use href="#icon-user"></use></svg><span data-i18n="nombre_requerido_label">Nombre *</span></label><input type="text" id="cliente-nombre" required /></div>
+        <div class="field"><label for="cliente-apellido"><svg class="icon field-icon" aria-hidden="true"><use href="#icon-user"></use></svg><span data-i18n="apellido_requerido_label">Apellido *</span></label><input type="text" id="cliente-apellido" required /></div>
       </div>
       <div class="field-row">
-        <div class="field"><label><svg class="icon field-icon" aria-hidden="true"><use href="#icon-phone"></use></svg>Teléfono</label><input type="text" id="cliente-telefono" /></div>
-        <div class="field"><label><svg class="icon field-icon" aria-hidden="true"><use href="#icon-mail"></use></svg>Email</label><input type="email" id="cliente-email" /></div>
+        <div class="field"><label for="cliente-telefono"><svg class="icon field-icon" aria-hidden="true"><use href="#icon-phone"></use></svg><span data-i18n="col_telefono">Teléfono</span></label><input type="text" id="cliente-telefono" /></div>
+        <div class="field"><label for="cliente-email"><svg class="icon field-icon" aria-hidden="true"><use href="#icon-mail"></use></svg><span data-i18n="campo_email">Email</span></label><input type="email" id="cliente-email" /></div>
       </div>
-      <div class="field"><label><svg class="icon field-icon" aria-hidden="true"><use href="#icon-map-pin"></use></svg>Dirección</label><input type="text" id="cliente-direccion" /></div>
-      <div class="field"><label>Etiquetas (separadas por coma)</label><input type="text" id="cliente-etiquetas" placeholder="Ej. VIP, flotilla" /></div>
-      <div class="field-label-standalone">Vehículo</div>
+      <div class="field"><label for="cliente-direccion"><svg class="icon field-icon" aria-hidden="true"><use href="#icon-map-pin"></use></svg><span data-i18n="config_direccion">Dirección</span></label><input type="text" id="cliente-direccion" /></div>
+      <div class="field"><label for="cliente-etiquetas" data-i18n="etiquetas_label">Etiquetas (separadas por coma)</label><input type="text" id="cliente-etiquetas" placeholder="Ej. VIP, flotilla" data-i18n-placeholder="etiquetas_placeholder" /></div>
+      <div class="field-label-standalone" data-i18n="col_vehiculo">Vehículo</div>
       <div class="field-row">
-        <div class="field"><label>Marca *</label><input type="text" id="cliente-vehiculo-marca" required /></div>
-        <div class="field"><label>Modelo *</label><input type="text" id="cliente-vehiculo-modelo" required /></div>
-        <div class="field"><label>Año *</label><input type="text" id="cliente-vehiculo-anio" required /></div>
+        <div class="field"><label for="cliente-vehiculo-marca" data-i18n="marca_requerido_label">Marca *</label><input type="text" id="cliente-vehiculo-marca" required /></div>
+        <div class="field"><label for="cliente-vehiculo-modelo" data-i18n="modelo_requerido_label">Modelo *</label><input type="text" id="cliente-vehiculo-modelo" required /></div>
+        <div class="field"><label for="cliente-vehiculo-anio" data-i18n="anio_requerido_label">Año *</label><input type="text" id="cliente-vehiculo-anio" required /></div>
       </div>
       <div class="field-row">
-        <div class="field"><label>Placa</label><input type="text" id="cliente-vehiculo-placa" /></div>
-        <div class="field"><label>Kilometraje</label><input type="text" id="cliente-vehiculo-kilometraje" /></div>
+        <div class="field"><label for="cliente-vehiculo-placa" data-i18n="col_placa">Placa</label><input type="text" id="cliente-vehiculo-placa" /></div>
+        <div class="field"><label for="cliente-vehiculo-kilometraje" data-i18n="kilometraje_label">Kilometraje</label><input type="text" id="cliente-vehiculo-kilometraje" /></div>
       </div>
-      <div class="field"><label><svg class="icon field-icon" aria-hidden="true"><use href="#icon-edit"></use></svg>Notas</label><textarea id="cliente-notas" rows="2"></textarea></div>
+      <div class="field"><label for="cliente-notas"><svg class="icon field-icon" aria-hidden="true"><use href="#icon-edit"></use></svg><span data-i18n="notas_label">Notas</span></label><textarea id="cliente-notas" rows="2"></textarea></div>
       <footer class="modal-footer">
-        <button type="button" class="btn-danger" id="btn-eliminar-cliente" hidden>Eliminar</button>
+        <button type="button" class="btn-danger" id="btn-eliminar-cliente" hidden data-i18n="btn_eliminar">Eliminar</button>
         <span class="spacer"></span>
-        <button type="button" class="btn-ghost" data-close-modal="modal-cliente">Cancelar</button>
-        <button type="submit" class="btn-primary">Guardar</button>
+        <button type="button" class="btn-ghost" data-close-modal="modal-cliente" data-i18n="btn_cancelar">Cancelar</button>
+        <button type="submit" class="btn-primary" data-i18n="btn_guardar">Guardar</button>
       </footer>
     </form>
   </div>
@@ -809,18 +828,18 @@
 <div id="modal-empleado" class="modal-backdrop" hidden>
   <div class="modal">
     <header class="modal-header">
-      <h2>Agregar empleado</h2>
-      <button class="icon-btn" data-close-modal="modal-empleado" type="button" aria-label="Cerrar">&times;</button>
+      <h2 data-i18n="btn_agregar_empleado_titulo">Agregar empleado</h2>
+      <button class="icon-btn" data-close-modal="modal-empleado" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <form id="form-empleado" class="modal-body">
-      <div class="field"><label>Nombre *</label><input type="text" id="empleado-nombre" required /></div>
-      <div class="field"><label>Email *</label><input type="email" id="empleado-email" required autocomplete="off" /></div>
-      <div class="field"><label>Contraseña *</label><input type="password" id="empleado-password" required minlength="6" autocomplete="new-password" /></div>
-      <p class="orden-nota">El empleado va a usar este email y contraseña para entrar al panel.</p>
+      <div class="field"><label for="empleado-nombre" data-i18n="nombre_requerido_label">Nombre *</label><input type="text" id="empleado-nombre" required /></div>
+      <div class="field"><label for="empleado-email" data-i18n="email_requerido_label">Email *</label><input type="email" id="empleado-email" required autocomplete="off" /></div>
+      <div class="field"><label for="empleado-password" data-i18n="contrasena_requerido_label">Contraseña *</label><input type="password" id="empleado-password" required minlength="6" autocomplete="new-password" /></div>
+      <p class="orden-nota" data-i18n="empleado_nota">El empleado va a usar este email y contraseña para entrar al panel.</p>
       <footer class="modal-footer">
         <span class="spacer"></span>
-        <button type="button" class="btn-ghost" data-close-modal="modal-empleado">Cancelar</button>
-        <button type="submit" class="btn-primary">Crear acceso</button>
+        <button type="button" class="btn-ghost" data-close-modal="modal-empleado" data-i18n="btn_cancelar">Cancelar</button>
+        <button type="submit" class="btn-primary" data-i18n="btn_crear_acceso">Crear acceso</button>
       </footer>
     </form>
   </div>
@@ -829,22 +848,22 @@
 <div id="modal-vincular-factura" class="modal-backdrop" hidden>
   <div class="modal">
     <header class="modal-header">
-      <h2>Vincular a una factura</h2>
-      <button class="icon-btn" data-close-modal="modal-vincular-factura" type="button" aria-label="Cerrar">&times;</button>
+      <h2 data-i18n="vincular_factura_titulo">Vincular a una factura</h2>
+      <button class="icon-btn" data-close-modal="modal-vincular-factura" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <div class="modal-body">
       <div class="field">
-        <label>Buscar factura (cliente o número)</label>
-        <input type="text" id="vincular-factura-input" list="vincular-facturas-datalist" placeholder="Escribe el nombre del cliente o el número..." autocomplete="off" />
+        <label for="vincular-factura-input" data-i18n="buscar_factura_label">Buscar factura (cliente o número)</label>
+        <input type="text" id="vincular-factura-input" list="vincular-facturas-datalist" placeholder="Escribe el nombre del cliente o el número..." autocomplete="off" data-i18n-placeholder="buscar_factura_placeholder" />
         <datalist id="vincular-facturas-datalist"></datalist>
       </div>
-      <p class="orden-nota">Elige una factura de la lista para vincularla a esta fila del registro diario.</p>
+      <p class="orden-nota" data-i18n="vincular_factura_nota">Elige una factura de la lista para vincularla a esta fila del registro diario.</p>
     </div>
     <footer class="modal-footer">
-      <button type="button" class="btn-danger" id="btn-quitar-vinculo-factura">Quitar vínculo</button>
+      <button type="button" class="btn-danger" id="btn-quitar-vinculo-factura" data-i18n="btn_quitar_vinculo">Quitar vínculo</button>
       <span class="spacer"></span>
-      <button type="button" class="btn-ghost" data-close-modal="modal-vincular-factura">Cancelar</button>
-      <button type="button" class="btn-primary" id="btn-confirmar-vinculo-factura">Vincular</button>
+      <button type="button" class="btn-ghost" data-close-modal="modal-vincular-factura" data-i18n="btn_cancelar">Cancelar</button>
+      <button type="button" class="btn-primary" id="btn-confirmar-vinculo-factura" data-i18n="btn_vincular">Vincular</button>
     </footer>
   </div>
 </div>
@@ -853,39 +872,39 @@
   <div class="modal">
     <header class="modal-header">
       <h2 id="modal-reserva-title">Nueva reserva</h2>
-      <button class="icon-btn" data-close-modal="modal-reserva" type="button" aria-label="Cerrar">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-reserva" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <form id="form-reserva" class="modal-body">
       <input type="hidden" id="reserva-id" />
       <div class="field">
-        <label>Cliente</label>
-        <input type="text" id="reserva-cliente" list="clientes-datalist" placeholder="Escribe el nombre del cliente..." autocomplete="off" />
+        <label for="reserva-cliente" data-i18n="col_cliente">Cliente</label>
+        <input type="text" id="reserva-cliente" list="clientes-datalist" placeholder="Escribe el nombre del cliente..." autocomplete="off" data-i18n-placeholder="escribe_nombre_cliente" />
       </div>
       <div class="field">
-        <label>Vehículo</label>
-        <select id="reserva-vehiculo"><option value="">Sin vehículo</option></select>
+        <label for="reserva-vehiculo" data-i18n="col_vehiculo">Vehículo</label>
+        <select id="reserva-vehiculo"><option value="" data-i18n="sin_vehiculo_opcion">Sin vehículo</option></select>
       </div>
       <div class="field-row">
-        <div class="field"><label>Fecha *</label><input type="date" id="reserva-fecha" required /></div>
-        <div class="field"><label>Hora</label><input type="time" id="reserva-hora" /></div>
+        <div class="field"><label for="reserva-fecha" data-i18n="fecha_requerido_label">Fecha *</label><input type="date" id="reserva-fecha" required /></div>
+        <div class="field"><label for="reserva-hora" data-i18n="hora_label">Hora</label><input type="time" id="reserva-hora" /></div>
       </div>
-      <div class="field"><label>Servicio</label><input type="text" id="reserva-servicio" placeholder="ej. Cambio de mofle" /></div>
+      <div class="field"><label for="reserva-servicio" data-i18n="servicio_label">Servicio</label><input type="text" id="reserva-servicio" placeholder="ej. Cambio de mofle" data-i18n-placeholder="servicio_placeholder" /></div>
       <div class="field">
-        <label>Estado</label>
+        <label for="reserva-estado" data-i18n="col_estado">Estado</label>
         <select id="reserva-estado">
-          <option value="agendada">Agendada</option>
-          <option value="confirmada">Confirmada</option>
-          <option value="completada">Completada</option>
-          <option value="cancelada">Cancelada</option>
+          <option value="agendada" data-i18n="reserva_agendada">Agendada</option>
+          <option value="confirmada" data-i18n="reserva_confirmada">Confirmada</option>
+          <option value="completada" data-i18n="reserva_completada">Completada</option>
+          <option value="cancelada" data-i18n="estado_cancelada">Cancelada</option>
         </select>
       </div>
-      <div class="field"><label>Notas</label><textarea id="reserva-notas" rows="2"></textarea></div>
+      <div class="field"><label for="reserva-notas" data-i18n="notas_label">Notas</label><textarea id="reserva-notas" rows="2"></textarea></div>
 
       <footer class="modal-footer">
-        <button type="button" class="btn-danger" id="btn-eliminar-reserva" hidden>Eliminar</button>
+        <button type="button" class="btn-danger" id="btn-eliminar-reserva" hidden data-i18n="btn_eliminar">Eliminar</button>
         <span class="spacer"></span>
-        <button type="button" class="btn-ghost" data-close-modal="modal-reserva">Cancelar</button>
-        <button type="submit" class="btn-primary">Guardar reserva</button>
+        <button type="button" class="btn-ghost" data-close-modal="modal-reserva" data-i18n="btn_cancelar">Cancelar</button>
+        <button type="submit" class="btn-primary" data-i18n="btn_guardar_reserva">Guardar reserva</button>
       </footer>
     </form>
   </div>
@@ -895,53 +914,53 @@
   <div class="modal modal-wide">
     <header class="modal-header">
       <h2 id="modal-estimado-title">Nuevo presupuesto</h2>
-      <button class="icon-btn" data-close-modal="modal-estimado" type="button" aria-label="Cerrar">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-estimado" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <form id="form-estimado" class="modal-body">
       <input type="hidden" id="estimado-id" />
       <div class="field-row">
         <div class="field">
-          <label>Cliente *</label>
-          <input type="text" id="estimado-cliente" list="clientes-datalist" placeholder="Escribe el nombre del cliente..." required autocomplete="off" />
+          <label for="estimado-cliente" data-i18n="cliente_requerido_label">Cliente *</label>
+          <input type="text" id="estimado-cliente" list="clientes-datalist" placeholder="Escribe el nombre del cliente..." required autocomplete="off" data-i18n-placeholder="escribe_nombre_cliente" />
         </div>
-        <div class="field"><label>Fecha</label><input type="date" id="estimado-fecha" required /></div>
+        <div class="field"><label for="estimado-fecha" data-i18n="col_fecha">Fecha</label><input type="date" id="estimado-fecha" required /></div>
         <div class="field">
-          <label>Estado</label>
+          <label for="estimado-estado" data-i18n="col_estado">Estado</label>
           <select id="estimado-estado">
-            <option value="pendiente">Pendiente</option>
-            <option value="aprobado">Aprobado</option>
-            <option value="rechazado">Rechazado</option>
-            <option value="convertido">Convertido a factura</option>
+            <option value="pendiente" data-i18n="estado_estim_pendiente">Pendiente</option>
+            <option value="aprobado" data-i18n="estado_estim_aprobado">Aprobado</option>
+            <option value="rechazado" data-i18n="estado_estim_rechazado">Rechazado</option>
+            <option value="convertido" data-i18n="estado_estim_convertido_a">Convertido a factura</option>
           </select>
         </div>
       </div>
 
       <table class="items-table">
-        <thead><tr><th>Descripción</th><th>Cant.</th><th>Precio</th><th>Subtotal</th><th></th></tr></thead>
+        <thead><tr><th data-i18n="col_descripcion">Descripción</th><th data-i18n="col_cantidad">Cant.</th><th data-i18n="col_precio">Precio</th><th data-i18n="col_subtotal">Subtotal</th><th></th></tr></thead>
         <tbody id="estimado-items-tbody"></tbody>
       </table>
-      <button type="button" class="btn-ghost" id="btn-add-estimado-item">+ Agregar línea</button>
+      <button type="button" class="btn-ghost" id="btn-add-estimado-item" data-i18n="btn_agregar_linea">+ Agregar línea</button>
 
       <div class="totals">
         <div class="field-row">
-          <div class="field"><label>Impuesto (%)</label><input type="number" id="estimado-impuesto-pct" value="0" min="0" step="0.01" /></div>
+          <div class="field"><label for="estimado-impuesto-pct" data-i18n="impuesto_pct_label">Impuesto (%)</label><input type="number" id="estimado-impuesto-pct" value="0" min="0" step="0.01" /></div>
           <div class="totals-numbers">
-            <div><span>Subtotal</span><strong id="estimado-subtotal">$0.00</strong></div>
-            <div><span>Impuesto</span><strong id="estimado-impuesto-monto">$0.00</strong></div>
-            <div class="total-final"><span>Total</span><strong id="estimado-total">$0.00</strong></div>
+            <div><span data-i18n="col_subtotal">Subtotal</span><strong id="estimado-subtotal">$0.00</strong></div>
+            <div><span data-i18n="col_impuesto_simple">Impuesto</span><strong id="estimado-impuesto-monto">$0.00</strong></div>
+            <div class="total-final"><span data-i18n="col_total">Total</span><strong id="estimado-total">$0.00</strong></div>
           </div>
         </div>
       </div>
 
-      <div class="field"><label>Notas</label><textarea id="estimado-notas" rows="2"></textarea></div>
+      <div class="field"><label for="estimado-notas" data-i18n="notas_label">Notas</label><textarea id="estimado-notas" rows="2"></textarea></div>
 
       <footer class="modal-footer">
-        <button type="button" class="btn-danger" id="btn-eliminar-estimado" hidden>Eliminar</button>
-        <button type="button" class="btn-ghost" id="btn-copiar-link-estimado" hidden>Copiar link para el cliente</button>
-        <button type="button" class="btn-primary" id="btn-convertir-estimado" hidden>Convertir a factura</button>
+        <button type="button" class="btn-danger" id="btn-eliminar-estimado" hidden data-i18n="btn_eliminar">Eliminar</button>
+        <button type="button" class="btn-ghost" id="btn-copiar-link-estimado" hidden data-i18n="btn_copiar_link">Copiar link para el cliente</button>
+        <button type="button" class="btn-primary" id="btn-convertir-estimado" hidden data-i18n="btn_convertir_factura">Convertir a factura</button>
         <span class="spacer"></span>
-        <button type="button" class="btn-ghost" data-close-modal="modal-estimado">Cancelar</button>
-        <button type="submit" class="btn-primary">Guardar presupuesto</button>
+        <button type="button" class="btn-ghost" data-close-modal="modal-estimado" data-i18n="btn_cancelar">Cancelar</button>
+        <button type="submit" class="btn-primary" data-i18n="btn_guardar_presupuesto">Guardar presupuesto</button>
       </footer>
     </form>
   </div>
@@ -951,7 +970,7 @@
   <div class="modal modal-wide">
     <header class="modal-header">
       <h2 id="modal-factura-title">Nueva factura</h2>
-      <button class="icon-btn" data-close-modal="modal-factura" type="button" aria-label="Cerrar">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-factura" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <form id="form-factura" class="modal-body">
       <input type="hidden" id="factura-id" />
@@ -961,58 +980,67 @@
       <p id="factura-garantia-nota" class="orden-nota" hidden></p>
       <div class="field-row">
         <div class="field">
-          <label>Cliente *</label>
-          <input type="text" id="factura-cliente" list="clientes-datalist" placeholder="Escribe el nombre del cliente..." required autocomplete="off" />
+          <label for="factura-cliente" data-i18n="cliente_requerido_label">Cliente *</label>
+          <input type="text" id="factura-cliente" list="clientes-datalist" placeholder="Escribe el nombre del cliente..." required autocomplete="off" data-i18n-placeholder="escribe_nombre_cliente" />
           <datalist id="clientes-datalist"></datalist>
         </div>
-        <div class="field"><label>Fecha</label><input type="date" id="factura-fecha" required /></div>
+        <div class="field"><label for="factura-fecha" data-i18n="col_fecha">Fecha</label><input type="date" id="factura-fecha" required /></div>
         <div class="field">
-          <label>Estado</label>
+          <label for="factura-estado" data-i18n="col_estado">Estado</label>
           <select id="factura-estado">
-            <option value="pendiente">Sin pagar</option>
-            <option value="pagada">Pagada</option>
-            <option value="cancelada">Cancelada</option>
+            <option value="pendiente" data-i18n="estado_pendiente">Sin pagar</option>
+            <option value="pagada" data-i18n="estado_pagada">Pagada</option>
+            <option value="cancelada" data-i18n="estado_cancelada">Cancelada</option>
           </select>
         </div>
       </div>
 
       <div class="field-row">
         <div class="field" style="max-width:16rem;">
-          <label>Mano de obra (Labor)</label>
+          <label for="factura-labor" data-i18n="mano_obra_label">Mano de obra (Labor)</label>
           <input type="number" id="factura-labor" min="0" step="0.01" value="0" />
         </div>
         <div class="field" style="max-width:16rem;">
-          <label>Mecánico</label>
+          <label for="factura-mecanico" data-i18n="mecanico_label">Mecánico</label>
           <select id="factura-mecanico">
-            <option value="">— Sin asignar —</option>
+            <option value="" data-i18n="sin_asignar_opcion">— Sin asignar —</option>
+          </select>
+        </div>
+        <div class="field" style="max-width:16rem;">
+          <label for="factura-metodo-pago" data-i18n="metodo_pago_label">Método de pago</label>
+          <select id="factura-metodo-pago">
+            <option value="" data-i18n="sin_especificar_opcion">— Sin especificar —</option>
+            <option value="efectivo" data-i18n="metodo_efectivo">Efectivo</option>
+            <option value="tarjeta" data-i18n="metodo_tarjeta">Tarjeta</option>
+            <option value="cheque" data-i18n="metodo_cheque">Cheque</option>
           </select>
         </div>
       </div>
 
       <table class="items-table">
-        <thead><tr><th>Descripción</th><th>Cant.</th><th>Precio</th><th>Subtotal</th><th></th></tr></thead>
+        <thead><tr><th data-i18n="col_descripcion">Descripción</th><th data-i18n="col_cantidad">Cant.</th><th data-i18n="col_precio">Precio</th><th data-i18n="col_subtotal">Subtotal</th><th></th></tr></thead>
         <tbody id="factura-items-tbody"></tbody>
       </table>
-      <button type="button" class="btn-ghost" id="btn-add-item">+ Agregar línea</button>
+      <button type="button" class="btn-ghost" id="btn-add-item" data-i18n="btn_agregar_linea">+ Agregar línea</button>
 
       <div class="totals">
         <div class="field-row">
-          <div class="field"><label>Impuesto (%)</label><input type="number" id="factura-impuesto-pct" value="0" min="0" step="0.01" /></div>
+          <div class="field"><label for="factura-impuesto-pct" data-i18n="impuesto_pct_label">Impuesto (%)</label><input type="number" id="factura-impuesto-pct" value="0" min="0" step="0.01" /></div>
           <div class="totals-numbers">
-            <div><span>Subtotal</span><strong id="factura-subtotal">$0.00</strong></div>
-            <div><span>Impuesto</span><strong id="factura-impuesto-monto">$0.00</strong></div>
-            <div class="total-final"><span>Total</span><strong id="factura-total">$0.00</strong></div>
+            <div><span data-i18n="col_subtotal">Subtotal</span><strong id="factura-subtotal">$0.00</strong></div>
+            <div><span data-i18n="col_impuesto_simple">Impuesto</span><strong id="factura-impuesto-monto">$0.00</strong></div>
+            <div class="total-final"><span data-i18n="col_total">Total</span><strong id="factura-total">$0.00</strong></div>
           </div>
         </div>
       </div>
 
-      <div class="field"><label>Notas</label><textarea id="factura-notas" rows="2"></textarea></div>
+      <div class="field"><label for="factura-notas" data-i18n="notas_label">Notas</label><textarea id="factura-notas" rows="2"></textarea></div>
 
       <footer class="modal-footer">
-        <button type="button" class="btn-danger" id="btn-eliminar-factura" hidden>Eliminar</button>
+        <button type="button" class="btn-danger" id="btn-eliminar-factura" hidden data-i18n="btn_eliminar">Eliminar</button>
         <span class="spacer"></span>
-        <button type="button" class="btn-ghost" data-close-modal="modal-factura">Cancelar</button>
-        <button type="submit" class="btn-primary">Guardar factura</button>
+        <button type="button" class="btn-ghost" data-close-modal="modal-factura" data-i18n="btn_cancelar">Cancelar</button>
+        <button type="submit" class="btn-primary" data-i18n="btn_guardar_factura">Guardar factura</button>
       </footer>
     </form>
   </div>
@@ -1021,14 +1049,14 @@
 <div id="modal-rotacion" class="modal-backdrop" hidden>
   <div class="modal">
     <header class="modal-header">
-      <h2>Rotación de inventario</h2>
-      <button class="icon-btn" data-close-modal="modal-rotacion" type="button" aria-label="Cerrar">&times;</button>
+      <h2 data-i18n="btn_ver_rotacion">Rotación de inventario</h2>
+      <button class="icon-btn" data-close-modal="modal-rotacion" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <div class="modal-body">
-      <p class="view-sub" style="margin-top:0;">Piezas usadas en órdenes de servicio, de más a menos.</p>
+      <p class="view-sub" style="margin-top:0;" data-i18n="rotacion_desc">Piezas usadas en órdenes de servicio, de más a menos.</p>
       <div class="table-wrap">
         <table class="data-table">
-          <thead><tr><th>Pieza</th><th>Cant. usada</th><th>Stock actual</th></tr></thead>
+          <thead><tr><th data-i18n="col_pieza">Pieza</th><th data-i18n="col_cant_usada">Cant. usada</th><th data-i18n="col_stock_actual">Stock actual</th></tr></thead>
           <tbody id="rotacion-tbody"></tbody>
         </table>
       </div>
@@ -1039,14 +1067,14 @@
 <div id="modal-historial-precios" class="modal-backdrop" hidden>
   <div class="modal">
     <header class="modal-header">
-      <h2>Historial de precios</h2>
-      <button class="icon-btn" data-close-modal="modal-historial-precios" type="button" aria-label="Cerrar">&times;</button>
+      <h2 data-i18n="btn_ver_historial_precios">Historial de precios</h2>
+      <button class="icon-btn" data-close-modal="modal-historial-precios" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <div class="modal-body">
-      <p class="view-sub" style="margin-top:0;">Cada vez que guardas un cambio de costo o precio de venta en una pieza, queda registrado aquí.</p>
+      <p class="view-sub" style="margin-top:0;" data-i18n="historial_precios_desc">Cada vez que guardas un cambio de costo o precio de venta en una pieza, queda registrado aquí.</p>
       <div class="table-wrap">
         <table class="data-table">
-          <thead><tr><th>Pieza</th><th>Proveedor</th><th>Fecha</th><th>Costo</th><th>Precio venta</th><th>Cambio</th></tr></thead>
+          <thead><tr><th data-i18n="col_pieza">Pieza</th><th data-i18n="col_proveedor">Proveedor</th><th data-i18n="col_fecha">Fecha</th><th data-i18n="col_costo">Costo</th><th data-i18n="col_precio_venta">Precio venta</th><th data-i18n="col_cambio">Cambio</th></tr></thead>
           <tbody id="historial-precios-tbody"></tbody>
         </table>
       </div>
@@ -1057,14 +1085,14 @@
 <div id="modal-reordenar" class="modal-backdrop" hidden>
   <div class="modal">
     <header class="modal-header">
-      <h2>Piezas para reordenar</h2>
-      <button class="icon-btn" data-close-modal="modal-reordenar" type="button" aria-label="Cerrar">&times;</button>
+      <h2 data-i18n="btn_ver_reordenar">Piezas para reordenar</h2>
+      <button class="icon-btn" data-close-modal="modal-reordenar" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <div class="modal-body">
-      <p class="view-sub" style="margin-top:0;">Piezas con stock igual o por debajo del mínimo, con una sugerencia de cuánto pedir.</p>
+      <p class="view-sub" style="margin-top:0;" data-i18n="reordenar_desc">Piezas con stock igual o por debajo del mínimo, con una sugerencia de cuánto pedir.</p>
       <div class="table-wrap">
         <table class="data-table">
-          <thead><tr><th>Pieza</th><th>Proveedor</th><th>Stock actual</th><th>Mínimo</th><th>Sugerido a pedir</th></tr></thead>
+          <thead><tr><th data-i18n="col_pieza">Pieza</th><th data-i18n="col_proveedor">Proveedor</th><th data-i18n="col_stock_actual">Stock actual</th><th data-i18n="col_minimo">Mínimo</th><th data-i18n="col_sugerido_pedir">Sugerido a pedir</th></tr></thead>
           <tbody id="reordenar-tbody"></tbody>
         </table>
       </div>
@@ -1076,30 +1104,30 @@
   <div class="modal">
     <header class="modal-header">
       <h2 id="modal-pieza-title">Nueva pieza</h2>
-      <button class="icon-btn" data-close-modal="modal-pieza" type="button" aria-label="Cerrar">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-pieza" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <form id="form-pieza" class="modal-body">
       <input type="hidden" id="pieza-id" />
-      <div class="field"><label>Nombre *</label><input type="text" id="pieza-nombre" required /></div>
+      <div class="field"><label for="pieza-nombre" data-i18n="nombre_requerido_label">Nombre *</label><input type="text" id="pieza-nombre" required /></div>
       <div class="field-row">
-        <div class="field"><label>SKU</label><input type="text" id="pieza-sku" /></div>
-        <div class="field"><label>Categoría</label><input type="text" id="pieza-categoria" /></div>
+        <div class="field"><label for="pieza-sku">SKU</label><input type="text" id="pieza-sku" /></div>
+        <div class="field"><label for="pieza-categoria" data-i18n="col_categoria">Categoría</label><input type="text" id="pieza-categoria" /></div>
       </div>
       <div class="field-row">
-        <div class="field"><label>Costo</label><input type="number" id="pieza-costo" min="0" step="0.01" value="0" /></div>
-        <div class="field"><label>Precio de venta</label><input type="number" id="pieza-precio" min="0" step="0.01" value="0" /></div>
+        <div class="field"><label for="pieza-costo" data-i18n="col_costo">Costo</label><input type="number" id="pieza-costo" min="0" step="0.01" value="0" /></div>
+        <div class="field"><label for="pieza-precio" data-i18n="col_precio_venta">Precio de venta</label><input type="number" id="pieza-precio" min="0" step="0.01" value="0" /></div>
       </div>
       <div class="field-row">
-        <div class="field"><label>Stock actual</label><input type="number" id="pieza-stock" min="0" step="0.01" value="0" /></div>
-        <div class="field"><label>Stock mínimo</label><input type="number" id="pieza-stock-minimo" min="0" step="0.01" value="0" /></div>
+        <div class="field"><label for="pieza-stock" data-i18n="col_stock_actual">Stock actual</label><input type="number" id="pieza-stock" min="0" step="0.01" value="0" /></div>
+        <div class="field"><label for="pieza-stock-minimo" data-i18n="stock_minimo_label">Stock mínimo</label><input type="number" id="pieza-stock-minimo" min="0" step="0.01" value="0" /></div>
       </div>
-      <div class="field"><label>Proveedor</label><input type="text" id="pieza-proveedor" /></div>
-      <div class="field"><label>Notas</label><textarea id="pieza-notas" rows="2"></textarea></div>
+      <div class="field"><label for="pieza-proveedor" data-i18n="col_proveedor">Proveedor</label><input type="text" id="pieza-proveedor" /></div>
+      <div class="field"><label for="pieza-notas" data-i18n="notas_label">Notas</label><textarea id="pieza-notas" rows="2"></textarea></div>
       <footer class="modal-footer">
-        <button type="button" class="btn-danger" id="btn-eliminar-pieza" hidden>Eliminar</button>
+        <button type="button" class="btn-danger" id="btn-eliminar-pieza" hidden data-i18n="btn_eliminar">Eliminar</button>
         <span class="spacer"></span>
-        <button type="button" class="btn-ghost" data-close-modal="modal-pieza">Cancelar</button>
-        <button type="submit" class="btn-primary">Guardar</button>
+        <button type="button" class="btn-ghost" data-close-modal="modal-pieza" data-i18n="btn_cancelar">Cancelar</button>
+        <button type="submit" class="btn-primary" data-i18n="btn_guardar">Guardar</button>
       </footer>
     </form>
   </div>
@@ -1109,43 +1137,43 @@
   <div class="modal">
     <header class="modal-header">
       <h2 id="modal-vehiculo-title">Nuevo vehículo</h2>
-      <button class="icon-btn" data-close-modal="modal-vehiculo" type="button" aria-label="Cerrar">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-vehiculo" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <form id="form-vehiculo" class="modal-body">
       <input type="hidden" id="vehiculo-id" />
       <input type="hidden" id="vehiculo-cliente-id" />
       <div class="field-row">
-        <div class="field"><label>Marca</label><input type="text" id="vehiculo-marca" /></div>
-        <div class="field"><label>Modelo</label><input type="text" id="vehiculo-modelo" /></div>
+        <div class="field"><label for="vehiculo-marca" data-i18n="campo_marca">Marca</label><input type="text" id="vehiculo-marca" /></div>
+        <div class="field"><label for="vehiculo-modelo" data-i18n="campo_modelo">Modelo</label><input type="text" id="vehiculo-modelo" /></div>
       </div>
       <div class="field-row">
-        <div class="field"><label>Año</label><input type="text" id="vehiculo-anio" /></div>
-        <div class="field"><label>Placa</label><input type="text" id="vehiculo-placa" /></div>
+        <div class="field"><label for="vehiculo-anio" data-i18n="campo_anio">Año</label><input type="text" id="vehiculo-anio" /></div>
+        <div class="field"><label for="vehiculo-placa" data-i18n="col_placa">Placa</label><input type="text" id="vehiculo-placa" /></div>
       </div>
       <div class="field-row">
         <div class="field">
-          <label>VIN</label>
+          <label for="vehiculo-vin">VIN</label>
           <div style="display:flex;gap:.4rem;">
             <input type="text" id="vehiculo-vin" style="flex:1;" />
-            <button type="button" class="btn-ghost" id="btn-escanear-vin" title="Escanear VIN con la cámara">
+            <button type="button" class="btn-ghost" id="btn-escanear-vin" title="Escanear VIN con la cámara" data-i18n-title="escanear_vin_title">
               <svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg>
             </button>
           </div>
         </div>
-        <div class="field"><label>Kilometraje actual</label><input type="text" id="vehiculo-kilometraje" placeholder="ej. 85,000 millas" /></div>
+        <div class="field"><label for="vehiculo-kilometraje" data-i18n="kilometraje_actual_label">Kilometraje actual</label><input type="text" id="vehiculo-kilometraje" placeholder="ej. 85,000 millas" data-i18n-placeholder="kilometraje_placeholder" /></div>
       </div>
-      <div class="field"><label>Notas</label><textarea id="vehiculo-notas" rows="2"></textarea></div>
+      <div class="field"><label for="vehiculo-notas" data-i18n="notas_label">Notas</label><textarea id="vehiculo-notas" rows="2"></textarea></div>
 
       <div id="vehiculo-historial-wrap" hidden>
-        <label class="field-label-standalone">Historial de kilometraje</label>
+        <label class="field-label-standalone" data-i18n="historial_km_titulo">Historial de kilometraje</label>
         <div id="vehiculo-historial" class="detalle-list"></div>
       </div>
 
       <footer class="modal-footer">
-        <button type="button" class="btn-danger" id="btn-eliminar-vehiculo" hidden>Eliminar</button>
+        <button type="button" class="btn-danger" id="btn-eliminar-vehiculo" hidden data-i18n="btn_eliminar">Eliminar</button>
         <span class="spacer"></span>
-        <button type="button" class="btn-ghost" data-close-modal="modal-vehiculo">Cancelar</button>
-        <button type="submit" class="btn-primary">Guardar</button>
+        <button type="button" class="btn-ghost" data-close-modal="modal-vehiculo" data-i18n="btn_cancelar">Cancelar</button>
+        <button type="submit" class="btn-primary" data-i18n="btn_guardar">Guardar</button>
       </footer>
     </form>
   </div>
@@ -1154,13 +1182,13 @@
 <div id="modal-escaner-vin" class="modal-backdrop" hidden>
   <div class="modal">
     <header class="modal-header">
-      <h2>Escanear VIN</h2>
-      <button class="icon-btn" data-close-modal="modal-escaner-vin" type="button" aria-label="Cerrar">&times;</button>
+      <h2 data-i18n="escanear_vin_titulo">Escanear VIN</h2>
+      <button class="icon-btn" data-close-modal="modal-escaner-vin" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <div class="modal-body">
-      <p class="view-sub" style="margin-top:0;">Apunta la cámara al código de barras del VIN (suele estar en la puerta del conductor o el parabrisas).</p>
+      <p class="view-sub" style="margin-top:0;" data-i18n="escanear_vin_desc">Apunta la cámara al código de barras del VIN (suele estar en la puerta del conductor o el parabrisas).</p>
       <video id="video-escaner-vin" style="width:100%;border-radius:8px;background:#000;" muted playsinline></video>
-      <p id="escaner-vin-estado" class="view-sub" style="margin-top:.6rem;">Iniciando cámara...</p>
+      <p id="escaner-vin-estado" class="view-sub" style="margin-top:.6rem;" data-i18n="iniciando_camara">Iniciando cámara...</p>
     </div>
   </div>
 </div>
@@ -1169,84 +1197,84 @@
   <div class="modal modal-wide">
     <header class="modal-header">
       <h2 id="modal-orden-title">Nueva orden de servicio</h2>
-      <button class="icon-btn" data-close-modal="modal-orden" type="button" aria-label="Cerrar">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-orden" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <form id="form-orden" class="modal-body">
       <input type="hidden" id="orden-id" />
       <p id="orden-creado-por-nota" class="orden-nota" hidden></p>
       <div class="field-row">
         <div class="field">
-          <label>Cliente *</label>
+          <label for="orden-cliente" data-i18n="cliente_requerido_label">Cliente *</label>
           <select id="orden-cliente" required></select>
         </div>
-        <div class="field"><label>Kilometraje de esta visita</label><input type="text" id="orden-kilometraje" /></div>
+        <div class="field"><label for="orden-kilometraje" data-i18n="km_visita_label">Kilometraje de esta visita</label><input type="text" id="orden-kilometraje" /></div>
       </div>
       <div class="field">
-        <label>Vehículo</label>
+        <label for="orden-vehiculo" data-i18n="col_vehiculo">Vehículo</label>
         <select id="orden-vehiculo"></select>
       </div>
       <p id="orden-vehiculo-legacy" class="orden-nota" hidden></p>
       <div id="orden-vehiculo-nuevo" class="field-row" hidden>
-        <div class="field"><label>Marca</label><input type="text" id="orden-nuevo-vehiculo-marca" /></div>
-        <div class="field"><label>Modelo</label><input type="text" id="orden-nuevo-vehiculo-modelo" /></div>
-        <div class="field"><label>Año</label><input type="text" id="orden-nuevo-vehiculo-anio" /></div>
-        <div class="field"><label>Placa</label><input type="text" id="orden-nuevo-vehiculo-placa" /></div>
+        <div class="field"><label for="orden-nuevo-vehiculo-marca" data-i18n="campo_marca">Marca</label><input type="text" id="orden-nuevo-vehiculo-marca" /></div>
+        <div class="field"><label for="orden-nuevo-vehiculo-modelo" data-i18n="campo_modelo">Modelo</label><input type="text" id="orden-nuevo-vehiculo-modelo" /></div>
+        <div class="field"><label for="orden-nuevo-vehiculo-anio" data-i18n="campo_anio">Año</label><input type="text" id="orden-nuevo-vehiculo-anio" /></div>
+        <div class="field"><label for="orden-nuevo-vehiculo-placa" data-i18n="col_placa">Placa</label><input type="text" id="orden-nuevo-vehiculo-placa" /></div>
       </div>
       <div class="field-row">
-        <div class="field"><label>Fecha de recepción</label><input type="date" id="orden-fecha-recepcion" required /></div>
-        <div class="field"><label>Fecha estimada de entrega</label><input type="date" id="orden-fecha-estimada" /></div>
+        <div class="field"><label for="orden-fecha-recepcion" data-i18n="fecha_recepcion_label">Fecha de recepción</label><input type="date" id="orden-fecha-recepcion" required /></div>
+        <div class="field"><label for="orden-fecha-estimada" data-i18n="fecha_estimada_label">Fecha estimada de entrega</label><input type="date" id="orden-fecha-estimada" /></div>
       </div>
       <p id="orden-etapa-nota" class="orden-nota"></p>
 
-      <div class="field"><label>Diagnóstico</label><textarea id="orden-diagnostico" rows="2"></textarea></div>
-      <div class="field"><label>Trabajo recomendado</label><textarea id="orden-trabajo" rows="2"></textarea></div>
+      <div class="field"><label for="orden-diagnostico" data-i18n="diagnostico_label">Diagnóstico</label><textarea id="orden-diagnostico" rows="2"></textarea></div>
+      <div class="field"><label for="orden-trabajo" data-i18n="trabajo_recomendado_label">Trabajo recomendado</label><textarea id="orden-trabajo" rows="2"></textarea></div>
 
-      <label class="field-label-standalone">Checklist de inspección</label>
+      <label class="field-label-standalone" data-i18n="checklist_inspeccion_titulo">Checklist de inspección</label>
       <div class="field-row" style="flex-wrap:wrap;">
-        <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;"><input type="checkbox" id="orden-check-frenos" /> Frenos</label>
-        <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;"><input type="checkbox" id="orden-check-luces" /> Luces</label>
-        <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;"><input type="checkbox" id="orden-check-llantas" /> Llantas</label>
-        <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;"><input type="checkbox" id="orden-check-fluidos" /> Fluidos</label>
+        <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;"><input type="checkbox" id="orden-check-frenos" /> <span data-i18n="check_frenos">Frenos</span></label>
+        <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;"><input type="checkbox" id="orden-check-luces" /> <span data-i18n="check_luces">Luces</span></label>
+        <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;"><input type="checkbox" id="orden-check-llantas" /> <span data-i18n="check_llantas">Llantas</span></label>
+        <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;"><input type="checkbox" id="orden-check-fluidos" /> <span data-i18n="check_fluidos">Fluidos</span></label>
       </div>
 
-      <label class="field-label-standalone">Piezas usadas</label>
+      <label class="field-label-standalone" data-i18n="piezas_usadas_titulo">Piezas usadas</label>
       <table class="items-table">
-        <thead><tr><th>Pieza</th><th>Cant.</th><th>Precio</th><th>Subtotal</th><th></th></tr></thead>
+        <thead><tr><th data-i18n="col_pieza">Pieza</th><th data-i18n="col_cantidad">Cant.</th><th data-i18n="col_precio">Precio</th><th data-i18n="col_subtotal">Subtotal</th><th></th></tr></thead>
         <tbody id="orden-piezas-tbody"></tbody>
       </table>
-      <button type="button" class="btn-ghost" id="btn-add-orden-pieza">+ Agregar pieza</button>
+      <button type="button" class="btn-ghost" id="btn-add-orden-pieza" data-i18n="btn_agregar_pieza">+ Agregar pieza</button>
 
-      <div class="field"><label>Notas</label><textarea id="orden-notas" rows="2"></textarea></div>
+      <div class="field"><label for="orden-notas" data-i18n="notas_label">Notas</label><textarea id="orden-notas" rows="2"></textarea></div>
 
-      <label class="field-label-standalone">Fotos del vehículo</label>
-      <p id="orden-fotos-nota" class="orden-nota" hidden>Guarda la orden primero para poder subir fotos.</p>
+      <label class="field-label-standalone" data-i18n="fotos_vehiculo_titulo">Fotos del vehículo</label>
+      <p id="orden-fotos-nota" class="orden-nota" hidden data-i18n="fotos_nota">Guarda la orden primero para poder subir fotos.</p>
       <div id="orden-fotos-grid" class="orden-fotos-grid"></div>
       <label class="btn-ghost" id="btn-subir-orden-foto-label" style="display:inline-block;cursor:pointer;">
-        + Subir foto
+        <span data-i18n="btn_subir_foto">+ Subir foto</span>
         <input type="file" id="input-orden-foto" accept="image/*" capture="environment" style="display:none;" />
       </label>
 
       <div id="orden-firma-seccion" hidden>
-        <label class="field-label-standalone">Firma de entrega</label>
+        <label class="field-label-standalone" data-i18n="firma_entrega_titulo">Firma de entrega</label>
         <div id="orden-firma-guardada" hidden></div>
         <div id="orden-firma-captura">
-          <div class="field"><label>Nombre de quien recibe el vehículo</label><input type="text" id="orden-firma-nombre" /></div>
+          <div class="field"><label for="orden-firma-nombre" data-i18n="nombre_recibe_label">Nombre de quien recibe el vehículo</label><input type="text" id="orden-firma-nombre" /></div>
           <canvas id="orden-firma-canvas" width="400" height="150" style="border:1px solid var(--border);border-radius:6px;width:100%;max-width:400px;height:150px;touch-action:none;background:#fff;"></canvas>
           <div class="field-row" style="margin-top:.5rem;">
-            <button type="button" class="btn-ghost" id="btn-limpiar-firma">Limpiar</button>
-            <button type="button" class="btn-ghost" id="btn-guardar-firma">Guardar firma</button>
+            <button type="button" class="btn-ghost" id="btn-limpiar-firma" data-i18n="btn_limpiar">Limpiar</button>
+            <button type="button" class="btn-ghost" id="btn-guardar-firma" data-i18n="btn_guardar_firma">Guardar firma</button>
           </div>
         </div>
       </div>
 
       <footer class="modal-footer">
-        <button type="button" class="btn-danger" id="btn-eliminar-orden" hidden>Eliminar</button>
-        <button type="button" class="btn-ghost" id="btn-imprimir-orden" hidden>Imprimir</button>
-        <button type="button" class="btn-ghost" id="btn-copiar-link-orden" hidden>Copiar link para el cliente</button>
-        <button type="button" class="btn-ghost" id="btn-generar-factura" hidden>Generar factura</button>
+        <button type="button" class="btn-danger" id="btn-eliminar-orden" hidden data-i18n="btn_eliminar">Eliminar</button>
+        <button type="button" class="btn-ghost" id="btn-imprimir-orden" hidden data-i18n="btn_imprimir_simple">Imprimir</button>
+        <button type="button" class="btn-ghost" id="btn-copiar-link-orden" hidden data-i18n="btn_copiar_link">Copiar link para el cliente</button>
+        <button type="button" class="btn-ghost" id="btn-generar-factura" hidden data-i18n="btn_generar_factura">Generar factura</button>
         <span class="spacer"></span>
-        <button type="button" class="btn-ghost" data-close-modal="modal-orden">Cancelar</button>
-        <button type="submit" class="btn-primary">Guardar orden</button>
+        <button type="button" class="btn-ghost" data-close-modal="modal-orden" data-i18n="btn_cancelar">Cancelar</button>
+        <button type="submit" class="btn-primary" data-i18n="btn_guardar_orden">Guardar orden</button>
       </footer>
     </form>
   </div>
@@ -1256,30 +1284,30 @@
   <div class="modal">
     <header class="modal-header">
       <h2 id="modal-gasto-title">Nuevo gasto</h2>
-      <button class="icon-btn" data-close-modal="modal-gasto" type="button" aria-label="Cerrar">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-gasto" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <form id="form-gasto" class="modal-body">
       <input type="hidden" id="gasto-id" />
       <div class="field-row">
-        <div class="field"><label>Fecha</label><input type="date" id="gasto-fecha" required /></div>
+        <div class="field"><label for="gasto-fecha" data-i18n="col_fecha">Fecha</label><input type="date" id="gasto-fecha" required /></div>
         <div class="field">
-          <label>Categoría</label>
+          <label for="gasto-categoria" data-i18n="col_categoria">Categoría</label>
           <select id="gasto-categoria">
-            <option value="Renta">Renta</option>
-            <option value="Servicios">Servicios</option>
-            <option value="Suministros">Suministros</option>
-            <option value="Sueldos">Sueldos</option>
-            <option value="Otro">Otro</option>
+            <option value="Renta" data-i18n="gasto_renta">Renta</option>
+            <option value="Servicios" data-i18n="gasto_servicios">Servicios</option>
+            <option value="Suministros" data-i18n="gasto_suministros">Suministros</option>
+            <option value="Sueldos" data-i18n="gasto_sueldos">Sueldos</option>
+            <option value="Otro" data-i18n="gasto_otro">Otro</option>
           </select>
         </div>
       </div>
-      <div class="field"><label>Descripción</label><input type="text" id="gasto-descripcion" /></div>
-      <div class="field"><label>Monto</label><input type="number" id="gasto-monto" min="0" step="0.01" value="0" required /></div>
+      <div class="field"><label for="gasto-descripcion" data-i18n="col_descripcion">Descripción</label><input type="text" id="gasto-descripcion" /></div>
+      <div class="field"><label for="gasto-monto" data-i18n="col_monto">Monto</label><input type="number" id="gasto-monto" min="0" step="0.01" value="0" required /></div>
       <footer class="modal-footer">
-        <button type="button" class="btn-danger" id="btn-eliminar-gasto" hidden>Eliminar</button>
+        <button type="button" class="btn-danger" id="btn-eliminar-gasto" hidden data-i18n="btn_eliminar">Eliminar</button>
         <span class="spacer"></span>
-        <button type="button" class="btn-ghost" data-close-modal="modal-gasto">Cancelar</button>
-        <button type="submit" class="btn-primary">Guardar gasto</button>
+        <button type="button" class="btn-ghost" data-close-modal="modal-gasto" data-i18n="btn_cancelar">Cancelar</button>
+        <button type="submit" class="btn-primary" data-i18n="btn_guardar_gasto">Guardar gasto</button>
       </footer>
     </form>
   </div>
@@ -1289,60 +1317,60 @@
   <div class="modal modal-wide">
     <header class="modal-header">
       <h2 id="modal-cliente-detalle-title">Cliente</h2>
-      <button class="icon-btn" data-close-modal="modal-cliente-detalle" type="button" aria-label="Cerrar">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-cliente-detalle" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <div class="modal-body">
       <div id="cliente-detalle-info" class="cliente-detalle-info"></div>
 
       <h3 class="detalle-subtitle">
-        Teléfonos
-        <button type="button" class="btn-ghost" id="btn-detalle-agregar-telefono" style="margin-left:.75rem;">+ Agregar teléfono</button>
+        <span data-i18n="telefonos_titulo">Teléfonos</span>
+        <button type="button" class="btn-ghost" id="btn-detalle-agregar-telefono" style="margin-left:.75rem;" data-i18n="btn_agregar_telefono">+ Agregar teléfono</button>
       </h3>
       <div id="cliente-detalle-telefonos" class="detalle-list"></div>
       <div id="cliente-detalle-telefono-form" class="field-row" style="margin-top:.5rem;" hidden>
         <div class="field" style="flex:1;">
-          <input type="tel" id="cliente-detalle-telefono-nuevo" placeholder="Número de teléfono" aria-label="Número de teléfono" />
+          <input type="tel" id="cliente-detalle-telefono-nuevo" placeholder="Número de teléfono" aria-label="Número de teléfono" data-i18n-placeholder="numero_telefono_label" data-i18n-aria-label="numero_telefono_label" />
         </div>
-        <button type="button" class="btn-primary" id="btn-guardar-telefono-nuevo">Guardar</button>
+        <button type="button" class="btn-primary" id="btn-guardar-telefono-nuevo" data-i18n="btn_guardar">Guardar</button>
       </div>
 
       <div class="config-tabs">
-        <button type="button" class="config-tab is-active" data-detalle-tab="vehiculos">Vehículos</button>
-        <button type="button" class="config-tab" data-detalle-tab="historial">Historial</button>
-        <button type="button" class="config-tab" data-detalle-tab="tareas">Tareas</button>
+        <button type="button" class="config-tab is-active" data-detalle-tab="vehiculos" data-i18n="col_vehiculo">Vehículos</button>
+        <button type="button" class="config-tab" data-detalle-tab="historial" data-i18n="historial_titulo">Historial</button>
+        <button type="button" class="config-tab" data-detalle-tab="tareas" data-i18n="tareas_titulo">Tareas</button>
       </div>
 
       <div id="detalle-tab-vehiculos" class="config-tab-panel">
         <h3 class="detalle-subtitle">
-          Vehículos
-          <button type="button" class="btn-ghost" id="btn-detalle-agregar-vehiculo" style="margin-left:.75rem;">+ Agregar vehículo</button>
+          <span data-i18n="col_vehiculo">Vehículos</span>
+          <button type="button" class="btn-ghost" id="btn-detalle-agregar-vehiculo" style="margin-left:.75rem;" data-i18n="btn_agregar_vehiculo">+ Agregar vehículo</button>
         </h3>
         <div id="cliente-detalle-vehiculos" class="detalle-list"></div>
       </div>
 
       <div id="detalle-tab-historial" class="config-tab-panel" hidden>
         <div class="toolbar" style="margin-top:0;">
-          <input type="search" id="cliente-detalle-historial-search" placeholder="Buscar en el historial..." aria-label="Buscar en el historial" />
+          <input type="search" id="cliente-detalle-historial-search" placeholder="Buscar en el historial..." aria-label="Buscar en el historial" data-i18n-placeholder="buscar_historial_placeholder" data-i18n-aria-label="buscar_historial_placeholder" />
         </div>
         <div id="cliente-detalle-historial" class="detalle-list"></div>
       </div>
 
       <div id="detalle-tab-tareas" class="config-tab-panel" hidden>
-        <h3 class="detalle-subtitle">Tareas</h3>
+        <h3 class="detalle-subtitle" data-i18n="tareas_titulo">Tareas</h3>
         <div id="cliente-detalle-tareas" class="detalle-list"></div>
       </div>
 
       <footer class="modal-footer">
         <button type="button" class="btn-ghost" id="btn-detalle-imprimir">
           <svg class="icon" aria-hidden="true"><use href="#icon-printer"></use></svg>
-          Imprimir
+          <span data-i18n="btn_imprimir_simple">Imprimir</span>
         </button>
         <button type="button" class="btn-primary" id="btn-detalle-crear-factura">
           <svg class="icon" aria-hidden="true"><use href="#icon-file-text"></use></svg>
-          Crear factura
+          <span data-i18n="btn_crear_factura">Crear factura</span>
         </button>
         <span class="spacer"></span>
-        <button type="button" class="btn-ghost" data-close-modal="modal-cliente-detalle">Cerrar</button>
+        <button type="button" class="btn-ghost" data-close-modal="modal-cliente-detalle" data-i18n="btn_cerrar">Cerrar</button>
       </footer>
     </div>
   </div>
@@ -1352,8 +1380,8 @@
   <div class="modal modal-wide search-modal">
     <div class="search-input-row">
       <svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg>
-      <input type="text" id="global-search-input" placeholder="Buscar clientes, órdenes o facturas..." aria-label="Buscar clientes, órdenes o facturas" autocomplete="off" />
-      <button class="icon-btn" data-close-modal="modal-global-search" type="button" aria-label="Cerrar">&times;</button>
+      <input type="text" id="global-search-input" placeholder="Buscar clientes, órdenes o facturas..." aria-label="Buscar clientes, órdenes o facturas" autocomplete="off" data-i18n-placeholder="global_search_placeholder" data-i18n-aria-label="global_search_placeholder" />
+      <button class="icon-btn" data-close-modal="modal-global-search" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </div>
     <div id="global-search-results" class="search-results"></div>
   </div>
@@ -1362,18 +1390,18 @@
 <div id="modal-shortcuts" class="modal-backdrop" hidden>
   <div class="modal">
     <header class="modal-header">
-      <h2>Atajos de teclado</h2>
-      <button class="icon-btn" data-close-modal="modal-shortcuts" type="button" aria-label="Cerrar">&times;</button>
+      <h2 data-i18n="atajos_teclado">Atajos de teclado</h2>
+      <button class="icon-btn" data-close-modal="modal-shortcuts" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <div class="modal-body">
-      <div class="shortcut-row"><kbd>Ctrl</kbd> + <kbd>K</kbd><span>Buscar en todo el sistema</span></div>
-      <div class="shortcut-row"><kbd>/</kbd><span>Buscar en la vista actual</span></div>
-      <div class="shortcut-row"><kbd>N</kbd><span>Crear un registro nuevo en la vista actual</span></div>
-      <div class="shortcut-row"><kbd>Esc</kbd><span>Cerrar la ventana abierta</span></div>
-      <div class="shortcut-row"><kbd>?</kbd><span>Mostrar esta ayuda</span></div>
+      <div class="shortcut-row"><kbd>Ctrl</kbd> + <kbd>K</kbd><span data-i18n="shortcut_buscar_todo">Buscar en todo el sistema</span></div>
+      <div class="shortcut-row"><kbd>/</kbd><span data-i18n="shortcut_buscar_vista">Buscar en la vista actual</span></div>
+      <div class="shortcut-row"><kbd>N</kbd><span data-i18n="shortcut_crear_nuevo">Crear un registro nuevo en la vista actual</span></div>
+      <div class="shortcut-row"><kbd>Esc</kbd><span data-i18n="shortcut_cerrar_ventana">Cerrar la ventana abierta</span></div>
+      <div class="shortcut-row"><kbd>?</kbd><span data-i18n="shortcut_mostrar_ayuda">Mostrar esta ayuda</span></div>
       <footer class="modal-footer">
         <span class="spacer"></span>
-        <button type="button" class="btn-primary" data-close-modal="modal-shortcuts">Entendido</button>
+        <button type="button" class="btn-primary" data-close-modal="modal-shortcuts" data-i18n="btn_entendido">Entendido</button>
       </footer>
     </div>
   </div>
@@ -1383,14 +1411,35 @@
   <div class="modal">
     <header class="modal-header">
       <h2 id="confirm-title">Confirmar</h2>
-      <button class="icon-btn" data-close-modal="modal-confirm" type="button" aria-label="Cerrar">&times;</button>
+      <button class="icon-btn" data-close-modal="modal-confirm" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <div class="modal-body">
       <p id="confirm-message"></p>
       <footer class="modal-footer">
         <span class="spacer"></span>
-        <button type="button" class="btn-ghost" id="confirm-cancel">Cancelar</button>
-        <button type="button" class="btn-danger" id="confirm-ok">Confirmar</button>
+        <button type="button" class="btn-ghost" id="confirm-cancel" data-i18n="btn_cancelar">Cancelar</button>
+        <button type="button" class="btn-danger" id="confirm-ok" data-i18n="btn_confirmar">Confirmar</button>
+      </footer>
+    </div>
+  </div>
+</div>
+
+<div id="modal-metodo-pago" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2 data-i18n="metodo_pago_titulo">¿Cómo pagó?</h2>
+      <button class="icon-btn" data-close-modal="modal-metodo-pago" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
+    </header>
+    <div class="modal-body">
+      <p id="metodo-pago-message" data-i18n="metodo_pago_mensaje">Selecciona el método de pago para marcar esta factura como pagada.</p>
+      <div class="metodo-pago-opciones">
+        <button type="button" class="btn-metodo-pago" data-metodo="efectivo" data-i18n="metodo_efectivo">Efectivo</button>
+        <button type="button" class="btn-metodo-pago" data-metodo="tarjeta" data-i18n="metodo_tarjeta">Tarjeta</button>
+        <button type="button" class="btn-metodo-pago" data-metodo="cheque" data-i18n="metodo_cheque">Cheque</button>
+      </div>
+      <footer class="modal-footer">
+        <span class="spacer"></span>
+        <button type="button" class="btn-ghost" id="metodo-pago-cancel" data-i18n="btn_cancelar">Cancelar</button>
       </footer>
     </div>
   </div>
@@ -1398,6 +1447,7 @@
 
 <div id="toast-stack" class="toast-stack"></div>
 
+<script src="i18n.js"></script>
 <script src="config.local.js"></script>
 <script src="runtime-info.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>

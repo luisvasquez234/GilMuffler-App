@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Factura</title>
+<title data-i18n="ver_factura_titulo">Factura</title>
 <style>
   body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:1.5rem;max-width:40rem;margin:0 auto;background:#f6f7f9;}
   .card{background:#fff;border-radius:12px;padding:1.75rem;box-shadow:0 1px 4px rgba(0,0,0,.08);}
@@ -13,7 +13,8 @@
   .header h1{font-size:1.4rem;margin:0;color:#d5601a;}
   .header .contacto{font-size:.8rem;color:#68707e;text-align:right;}
   .meta{display:flex;justify-content:space-between;margin-bottom:1.5rem;font-size:.9rem;flex-wrap:wrap;gap:.5rem;}
-  .meta .estado{display:inline-block;padding:.2rem .6rem;border-radius:999px;background:#fdefe3;color:#d5601a;font-weight:600;font-size:.78rem;}
+  .meta .estado{display:inline-block;padding:.2rem .6rem;border-radius:999px;background:#fdefe3;color:#a84a14;font-weight:600;font-size:.78rem;}
+  .meta .metodo-pago{display:block;margin-top:.35rem;font-size:.78rem;color:#68707e;}
   table{width:100%;border-collapse:collapse;margin-top:.5rem;}
   th,td{text-align:left;padding:.5rem .6rem;border-bottom:1px solid #e1e4e9;font-size:.9rem;}
   th{color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}
@@ -25,15 +26,18 @@
   .extra{margin-top:.75rem;text-align:center;color:#68707e;font-size:.8rem;white-space:pre-line;}
   .btn-imprimir{display:block;margin:0 auto 1rem;padding:.6rem 1.2rem;border-radius:8px;border:none;background:#d5601a;color:#fff;font-size:.9rem;cursor:pointer;}
   .estado-msg{text-align:center;color:#68707e;padding:3rem 1rem;}
-  @media print{ body{background:#fff;padding:0;} .btn-imprimir{display:none;} .card{box-shadow:none;} }
+  .idioma-toggle{position:absolute;top:.9rem;right:.9rem;width:auto;margin:0;padding:.3rem .7rem;font-size:.75rem;font-weight:600;border-radius:999px;background:#f0f1f3;color:#68707e;border:1px solid #d7dade;cursor:pointer;}
+  @media print{ body{background:#fff;padding:0;} .btn-imprimir{display:none;} .card{box-shadow:none;} .idioma-toggle{display:none;} }
 </style>
 </head>
-<body>
-  <button class="btn-imprimir" id="btn-imprimir" hidden>Imprimir / Guardar como PDF</button>
-  <div class="card" id="contenido">
-    <p class="estado-msg">Cargando factura…</p>
+<body style="position:relative;">
+  <button type="button" class="idioma-toggle" id="idioma-toggle" data-i18n-toggle-label>English</button>
+  <button class="btn-imprimir" id="btn-imprimir" hidden data-i18n="btn_imprimir">Imprimir / Guardar como PDF</button>
+  <div class="card" id="contenido" aria-live="polite">
+    <p class="estado-msg" data-i18n="cargando_factura">Cargando factura…</p>
   </div>
 
+  <script src="i18n.js"></script>
   <script src="config.local.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script>
@@ -48,13 +52,14 @@
       const [anio, mes, dia] = iso.slice(0, 10).split("-");
       return formato === "DD/MM/YYYY" ? dia + "/" + mes + "/" + anio : mes + "/" + dia + "/" + anio;
     }
-    const ESTADO_LABELS = { pendiente: "Sin pagar", pagada: "Pagada", cancelada: "Cancelada" };
+    const ESTADO_KEYS = { pendiente: "estado_pendiente", pagada: "estado_pagada", cancelada: "estado_cancelada" };
+    const METODO_PAGO_KEYS = { efectivo: "metodo_efectivo", tarjeta: "metodo_tarjeta", cheque: "metodo_cheque" };
 
     async function cargar() {
       const contenido = document.getElementById("contenido");
       const id = new URLSearchParams(location.search).get("id");
       if (!id) {
-        contenido.innerHTML = '<p class="estado-msg">Falta el número de factura en el enlace.</p>';
+        contenido.innerHTML = '<p class="estado-msg">' + t("falta_numero_factura") + "</p>";
         return;
       }
 
@@ -66,7 +71,7 @@
       ]);
 
       if (errF || !factura) {
-        contenido.innerHTML = '<p class="estado-msg">No se encontró esta factura.</p>';
+        contenido.innerHTML = '<p class="estado-msg">' + t("factura_no_encontrada") + "</p>";
         return;
       }
 
@@ -97,23 +102,29 @@
         "</h1></div><div class='contacto'>" +
         escapeHtml(contacto) +
         "</div></div>" +
-        "<div class='meta'><div><strong>Factura #" +
+        "<div class='meta'><div><strong>" +
+        t("factura_hash") +
         String(factura.numero).padStart(4, "0") +
         "</strong><br>" +
         escapeHtml(formatDate(factura.fecha, c.formato_fecha)) +
-        "<br>Cliente: " +
+        "<br>" +
+        t("cliente_prefijo") +
         escapeHtml(clienteNombre) +
         "</div><div><span class='estado'>" +
-        escapeHtml(ESTADO_LABELS[factura.estado] || factura.estado) +
-        "</span></div></div>" +
-        "<table><thead><tr><th>Descripción</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr></thead><tbody>" +
+        escapeHtml(t(ESTADO_KEYS[factura.estado]) || factura.estado) +
+        "</span>" +
+        (factura.estado === "pagada" && factura.metodo_pago
+          ? "<span class='metodo-pago'>" + escapeHtml(t("pagado_con", { metodo: t(METODO_PAGO_KEYS[factura.metodo_pago]) || factura.metodo_pago })) + "</span>"
+          : "") +
+        "</div></div>" +
+        "<table><thead><tr><th>" + t("col_descripcion") + "</th><th>" + t("col_cantidad") + "</th><th>" + t("col_precio") + "</th><th>" + t("col_subtotal") + "</th></tr></thead><tbody>" +
         filas +
         "</tbody></table>" +
-        "<div class='totals'><div>Subtotal: " +
+        "<div class='totals'><div>" + t("subtotal_label") +
         money(factura.subtotal) +
-        "</div><div>Impuesto: " +
+        "</div><div>" + t("impuesto_label") +
         money(factura.impuesto) +
-        "</div><div><strong>Total: " +
+        "</div><div><strong>" + t("total_label") +
         money(factura.total) +
         "</strong></div></div>" +
         notasHtml +
@@ -125,6 +136,11 @@
       btn.addEventListener("click", () => window.print());
     }
 
+    document.getElementById("idioma-toggle").addEventListener("click", () => {
+      setIdioma(getIdioma() === "es" ? "en" : "es");
+      cargar();
+    });
+    aplicarIdioma();
     cargar();
   </script>
 </body>

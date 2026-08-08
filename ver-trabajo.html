@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title data-i18n="ticket_trabajo_titulo">Ticket de trabajo</title>
+<style>
+  body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:1.5rem;max-width:26rem;margin:0 auto;background:#f6f7f9;}
+  .card{position:relative;background:#fff;border-radius:12px;padding:1.75rem;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-top:2rem;text-align:center;}
+  .header{border-bottom:3px solid #d5601a;padding-bottom:1rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:.8rem;}
+  .header img{height:3rem;width:3rem;object-fit:cover;object-position:68% 55%;border-radius:8px;flex:none;}
+  .header h1{font-size:1.2rem;margin:0;color:#d5601a;}
+  h2{font-size:1.4rem;margin:.3rem 0;}
+  p.desc{color:#68707e;margin:.2rem 0 0;}
+  .total{font-size:1.7rem;font-weight:800;margin-top:1.2rem;padding:.9rem;background:#fdefe3;color:#a84a14;border-radius:8px;}
+  .desglose{margin-top:1rem;font-size:.85rem;color:#68707e;text-align:left;}
+  .desglose div{display:flex;justify-content:space-between;padding:.25rem 0;}
+  .idioma-toggle{position:absolute;top:.9rem;right:.9rem;width:auto;margin:0;padding:.3rem .7rem;font-size:.75rem;font-weight:600;border-radius:999px;background:#f0f1f3;color:#68707e;border:1px solid #d7dade;cursor:pointer;}
+</style>
+</head>
+<body>
+  <div class="card" id="contenido">
+    <button type="button" class="idioma-toggle" id="idioma-toggle" data-i18n-toggle-label>English</button>
+    <div class="header">
+      <img id="logo-img" src="logo-muffler.png" alt="" />
+      <h1 id="nombre-negocio">Gil Muffler</h1>
+    </div>
+    <h2 id="ticket-carro">—</h2>
+    <p class="desc" id="ticket-descripcion" hidden></p>
+    <div class="desglose" id="ticket-desglose"></div>
+    <div class="total" id="ticket-total">$0.00</div>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="config.local.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    function escapeHtml(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+    function money(n) {
+      return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(n) || 0);
+    }
+
+    async function cargar() {
+      const params = new URLSearchParams(location.search);
+      const carro = params.get("carro") || "";
+      const descripcion = params.get("descripcion") || "";
+      const labor = parseFloat(params.get("labor")) || 0;
+      const piezas = parseFloat(params.get("piezas")) || 0;
+      const otro = parseFloat(params.get("otro")) || 0;
+      const total = labor + piezas + otro;
+
+      document.getElementById("ticket-carro").textContent = carro || "—";
+      const descEl = document.getElementById("ticket-descripcion");
+      if (descripcion) {
+        descEl.textContent = descripcion;
+        descEl.hidden = false;
+      }
+      document.getElementById("ticket-total").textContent = money(total);
+
+      const desgloseEl = document.getElementById("ticket-desglose");
+      const filas = [];
+      if (labor) filas.push("<div><span>" + t("mano_obra_seccion_titulo") + "</span><span>" + money(labor) + "</span></div>");
+      if (piezas) filas.push("<div><span>" + t("parts_seccion_titulo") + "</span><span>" + money(piezas) + "</span></div>");
+      if (otro) filas.push("<div><span>" + t("otro_label") + "</span><span>" + money(otro) + "</span></div>");
+      desgloseEl.innerHTML = filas.join("");
+
+      try {
+        const sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+        const { data: cfg } = await sb.from("configuracion_negocio").select("*").eq("id", 1).maybeSingle();
+        if (cfg) {
+          document.getElementById("nombre-negocio").textContent = cfg.nombre_negocio || "Gil Muffler";
+          if (cfg.logo_url) document.getElementById("logo-img").src = cfg.logo_url;
+        }
+      } catch (e) {
+        // si falla, se queda con el nombre/logo genérico
+      }
+    }
+
+    document.getElementById("idioma-toggle").addEventListener("click", () => {
+      setIdioma(getIdioma() === "es" ? "en" : "es");
+      cargar();
+    });
+    aplicarIdioma();
+    cargar();
+  </script>
+</body>
+</html>

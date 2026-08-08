@@ -31,18 +31,18 @@
   let ordenPiezasOriginal = [];
 
   const ETAPAS = [
-    { key: "diagnostico", label: "Diagnóstico" },
-    { key: "presupuesto", label: "Presupuesto enviado" },
-    { key: "aprobado", label: "Aprobado" },
-    { key: "en_reparacion", label: "En reparación" },
-    { key: "completado", label: "Completado" },
-    { key: "facturado", label: "Facturado" },
-    { key: "cancelado", label: "Cancelada" },
+    { key: "diagnostico", labelKey: "paso_diagnostico" },
+    { key: "presupuesto", labelKey: "paso_presupuesto_enviado" },
+    { key: "aprobado", labelKey: "paso_aprobado" },
+    { key: "en_reparacion", labelKey: "paso_en_reparacion" },
+    { key: "completado", labelKey: "etapa_completado" },
+    { key: "facturado", labelKey: "etapa_facturado" },
+    { key: "cancelado", labelKey: "estado_cancelada" },
   ];
 
   function etapaLabel(key) {
     const e = ETAPAS.find((x) => x.key === key);
-    return e ? e.label : key;
+    return e ? t(e.labelKey) : key;
   }
 
   function nextEtapa(key) {
@@ -163,7 +163,7 @@
             const originalThen = filterBuilder.then.bind(filterBuilder);
             filterBuilder.then = function (onFulfilled, onRejected) {
               if (!conexionReal) {
-                return Promise.resolve({ data: null, error: { message: "Sin conexión a internet." } }).then(onFulfilled, onRejected);
+                return Promise.resolve({ data: null, error: { message: t("sin_conexion_internet") } }).then(onFulfilled, onRejected);
               }
               return originalThen(onFulfilled, onRejected);
             };
@@ -186,8 +186,8 @@
     if (sinConexion) {
       const guardadoEn = cargarCacheOffline().guardadoEn;
       texto.textContent = guardadoEn
-        ? "Sin conexión — viendo datos guardados el " + new Date(guardadoEn).toLocaleString() + ". Los cambios no se pueden guardar hasta que vuelva el internet."
-        : "Sin conexión y todavía no hay datos guardados en este dispositivo. Conéctate a internet al menos una vez para poder consultar información sin WiFi.";
+        ? t("offline_con_cache", { fecha: new Date(guardadoEn).toLocaleString() })
+        : t("offline_sin_cache");
     }
   }
 
@@ -276,6 +276,39 @@
       closeBtn.addEventListener("click", onCancel);
       backdrop.addEventListener("click", onBackdrop);
       openModal("modal-confirm");
+    });
+  }
+
+  function pedirMetodoPago(message) {
+    return new Promise((resolve) => {
+      document.getElementById("metodo-pago-message").textContent = message || t("metodo_pago_mensaje");
+      const backdrop = document.getElementById("modal-metodo-pago");
+      const cancelBtn = document.getElementById("metodo-pago-cancel");
+      const closeBtn = backdrop.querySelector("[data-close-modal]");
+      const botones = Array.from(backdrop.querySelectorAll(".btn-metodo-pago"));
+
+      let done = false;
+      const cleanup = (result) => {
+        if (done) return;
+        done = true;
+        botones.forEach((btn) => btn.removeEventListener("click", onBtnClick));
+        cancelBtn.removeEventListener("click", onCancel);
+        closeBtn.removeEventListener("click", onCancel);
+        backdrop.removeEventListener("click", onBackdrop);
+        closeModal("modal-metodo-pago");
+        resolve(result);
+      };
+      const onBtnClick = (e) => cleanup(e.currentTarget.dataset.metodo);
+      const onCancel = () => cleanup(null);
+      const onBackdrop = (e) => {
+        if (e.target === backdrop) cleanup(null);
+      };
+
+      botones.forEach((btn) => btn.addEventListener("click", onBtnClick));
+      cancelBtn.addEventListener("click", onCancel);
+      closeBtn.addEventListener("click", onCancel);
+      backdrop.addEventListener("click", onBackdrop);
+      openModal("modal-metodo-pago");
     });
   }
 
@@ -377,7 +410,17 @@
   function applyTheme(theme) {
     document.documentElement.setAttribute("data-theme", theme);
     document.getElementById("theme-toggle-icon").setAttribute("href", theme === "dark" ? "#icon-sun" : "#icon-moon");
-    document.getElementById("theme-toggle-label").textContent = theme === "dark" ? "Modo claro" : "Modo oscuro";
+    document.getElementById("theme-toggle-label").textContent = theme === "dark" ? t("modo_claro") : t("modo_oscuro");
+  }
+
+  function initIdioma() {
+    aplicarIdioma();
+    document.querySelectorAll(".idioma-toggle-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        setIdioma(getIdioma() === "es" ? "en" : "es");
+        location.reload();
+      });
+    });
   }
 
   // ---------------- orden de tablas ----------------
@@ -472,7 +515,7 @@
         "</button>";
     });
     if (overflow.length) {
-      html += '<button type="button" class="row-action-btn" data-row-more title="Más acciones" aria-label="Más acciones">' + icon("more") + "</button>";
+      html += '<button type="button" class="row-action-btn" data-row-more title="' + t("mas_acciones") + '" aria-label="' + t("mas_acciones") + '">' + icon("more") + "</button>";
       html += '<div class="row-actions-menu">';
       overflow.forEach((a) => {
         html +=
@@ -846,7 +889,7 @@
       "clientes",
       () => sb.from("clientes").select("*").order("nombre", { ascending: true }),
       [],
-      "No se pudieron cargar los clientes."
+      t("error_cargar_clientes")
     );
   }
 
@@ -855,7 +898,7 @@
       "facturas",
       () => sb.from("facturas").select("*, clientes(nombre, apellido, direccion, numero)").order("numero", { ascending: false }),
       [],
-      "No se pudieron cargar las facturas."
+      t("error_cargar_facturas")
     );
   }
 
@@ -866,7 +909,7 @@
       .eq("factura_id", facturaId)
       .order("orden", { ascending: true });
     if (error) {
-      showToast("No se pudieron cargar las líneas de la factura.", true);
+      showToast(t("error_cargar_lineas_factura"), true);
       return [];
     }
     return data;
@@ -877,7 +920,7 @@
       "piezas",
       () => sb.from("piezas").select("*").order("nombre", { ascending: true }),
       [],
-      "No se pudieron cargar las piezas."
+      t("error_cargar_piezas")
     );
   }
 
@@ -886,7 +929,7 @@
       "vehiculos",
       () => sb.from("vehiculos").select("*").order("created_at", { ascending: true }),
       [],
-      "No se pudieron cargar los vehículos."
+      t("error_cargar_vehiculos")
     );
   }
 
@@ -899,7 +942,7 @@
       "cliente_telefonos",
       () => sb.from("cliente_telefonos").select("*").order("created_at", { ascending: true }),
       [],
-      "No se pudieron cargar los teléfonos adicionales."
+      t("error_cargar_telefonos")
     );
   }
 
@@ -914,7 +957,7 @@
       .select()
       .single();
     if (error) {
-      showToast("No se pudo agregar el teléfono.", true);
+      showToast(t("error_agregar_telefono"), true);
       return null;
     }
     state.telefonos.push(data);
@@ -924,7 +967,7 @@
   async function eliminarTelefonoCliente(id) {
     const { error } = await sb.from("cliente_telefonos").delete().eq("id", id);
     if (error) {
-      showToast("No se pudo eliminar el teléfono.", true);
+      showToast(t("error_eliminar_telefono"), true);
       return;
     }
     state.telefonos = state.telefonos.filter((t) => t.id !== id);
@@ -940,17 +983,17 @@
     telefonosEl.innerHTML = telefonos.length
       ? telefonos
           .map(
-            (t) =>
+            (tel) =>
               '<div class="detalle-list-item" data-telefono-id="' +
-              t.id +
+              tel.id +
               '"><span style="flex:1;">' +
-              escapeHtml(t.telefono) +
+              escapeHtml(tel.telefono) +
               '</span><button type="button" class="icon-btn" data-eliminar-telefono="' +
-              t.id +
-              '" aria-label="Eliminar teléfono">&times;</button></div>'
+              tel.id +
+              '" aria-label="' + t("eliminar_telefono_titulo") + '">&times;</button></div>'
           )
           .join("")
-      : '<p class="detalle-empty">Sin teléfonos adicionales.</p>';
+      : '<p class="detalle-empty">' + t("sin_telefonos_adicionales") + "</p>";
     telefonosEl.querySelectorAll("[data-eliminar-telefono]").forEach((btn) => {
       btn.addEventListener("click", async () => {
         await eliminarTelefonoCliente(btn.dataset.eliminarTelefono);
@@ -960,7 +1003,7 @@
   }
 
   function vehiculoLabel(v) {
-    return [v.marca, v.modelo, v.anio].filter(Boolean).join(" ") || "Vehículo sin marca/modelo";
+    return [v.marca, v.modelo, v.anio].filter(Boolean).join(" ") || t("vehiculo_sin_marca_modelo");
   }
 
   function cargarZXing() {
@@ -969,20 +1012,20 @@
       const script = document.createElement("script");
       script.src = "https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js";
       script.onload = () => resolve();
-      script.onerror = () => reject(new Error("No se pudo cargar el escáner."));
+      script.onerror = () => reject(new Error(t("error_cargar_escaner")));
       document.head.appendChild(script);
     });
   }
 
   async function abrirEscanerVin() {
     const estado = document.getElementById("escaner-vin-estado");
-    estado.textContent = "Iniciando cámara...";
+    estado.textContent = t("iniciando_camara");
     openModal("modal-escaner-vin");
 
     try {
       await cargarZXing();
     } catch (e) {
-      estado.textContent = "No se pudo cargar el escáner. Revisa tu conexión a internet.";
+      estado.textContent = t("error_cargar_escaner_conexion");
       return;
     }
 
@@ -998,9 +1041,9 @@
           decodificarVinNHTSA(texto);
         }
       });
-      estado.textContent = "Buscando el código de barras del VIN...";
+      estado.textContent = t("buscando_vin");
     } catch (e) {
-      estado.textContent = "No se pudo acceder a la cámara. Revisa que le hayas dado permiso al navegador.";
+      estado.textContent = t("error_acceso_camara");
     }
   }
 
@@ -1019,14 +1062,14 @@
       if (marca && !document.getElementById("vehiculo-marca").value.trim()) document.getElementById("vehiculo-marca").value = marca;
       if (modelo && !document.getElementById("vehiculo-modelo").value.trim()) document.getElementById("vehiculo-modelo").value = modelo;
       if (anio && !document.getElementById("vehiculo-anio").value.trim()) document.getElementById("vehiculo-anio").value = anio;
-      if (marca || modelo || anio) showToast("Marca/modelo/año completados con el VIN.");
+      if (marca || modelo || anio) showToast(t("vin_completado_msg"));
     } catch (e) {
       // Si falla la consulta del VIN, no pasa nada más — el VIN ya quedó guardado.
     }
   }
 
   async function openVehiculoModal(vehiculo, clienteId) {
-    document.getElementById("modal-vehiculo-title").textContent = vehiculo ? "Editar vehículo" : "Nuevo vehículo";
+    document.getElementById("modal-vehiculo-title").textContent = vehiculo ? t("editar_vehiculo_titulo") : t("nuevo_vehiculo_titulo");
     document.getElementById("vehiculo-id").value = vehiculo ? vehiculo.id : "";
     document.getElementById("vehiculo-cliente-id").value = vehiculo ? vehiculo.cliente_id : clienteId;
     document.getElementById("vehiculo-marca").value = vehiculo ? vehiculo.marca || "" : "";
@@ -1054,7 +1097,7 @@
           kilometraje: o.kilometraje,
           fuente: "Orden #" + String(o.numero).padStart(4, "0"),
         })),
-        ...kmHistorial.map((k) => ({ fecha: k.fecha, kilometraje: k.kilometraje, fuente: "Actualización manual" })),
+        ...kmHistorial.map((k) => ({ fecha: k.fecha, kilometraje: k.kilometraje, fuente: t("actualizacion_manual") })),
       ].sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
 
       historialEl.innerHTML = lecturas.length
@@ -1119,7 +1162,7 @@
     }
 
     if (error) {
-      showToast("No se pudo guardar el vehículo: " + error.message, true);
+      showToast(t("error_guardar_vehiculo", { error: error.message }), true);
       return;
     }
 
@@ -1128,7 +1171,7 @@
     }
 
     closeModal("modal-vehiculo");
-    showToast("Vehículo guardado.");
+    showToast(t("vehiculo_guardado"));
     await refreshVehiculos();
     const cliente = state.clientes.find((c) => c.id === payload.cliente_id);
     if (cliente) openClienteDetalle(cliente);
@@ -1137,21 +1180,21 @@
   async function deleteVehiculo() {
     const id = document.getElementById("vehiculo-id").value;
     if (!id) return;
-    if (!(await confirmDialog("¿Eliminar este vehículo? Esta acción no se puede deshacer.", { title: "Eliminar vehículo" }))) return;
+    if (!(await confirmDialog(t("confirm_eliminar_vehiculo"), { title: t("eliminar_vehiculo_titulo") }))) return;
 
     const clienteId = document.getElementById("vehiculo-cliente-id").value;
     const { error } = await sb.from("vehiculos").delete().eq("id", id);
     if (error) {
       if (error.code === "23503") {
-        showToast("No se puede eliminar: tiene órdenes asociadas.", true);
+        showToast(t("error_eliminar_ordenes_asociadas"), true);
       } else {
-        showToast("No se pudo eliminar el vehículo.", true);
+        showToast(t("error_eliminar_vehiculo"), true);
       }
       return;
     }
 
     closeModal("modal-vehiculo");
-    showToast("Vehículo eliminado.");
+    showToast(t("vehiculo_eliminado"));
     await refreshVehiculos();
     const cliente = state.clientes.find((c) => c.id === clienteId);
     if (cliente) openClienteDetalle(cliente);
@@ -1162,7 +1205,7 @@
       "ordenes",
       () => sb.from("ordenes_servicio").select("*, clientes(nombre)").order("numero", { ascending: false }),
       [],
-      "No se pudieron cargar las órdenes de servicio."
+      t("error_cargar_ordenes")
     );
   }
 
@@ -1191,11 +1234,11 @@
         (f) =>
           '<div class="orden-foto-item"><img src="' +
           f.url +
-          '" alt="Foto del vehículo" /><button type="button" class="orden-foto-eliminar" data-foto-id="' +
+          '" alt="' + t("foto_vehiculo_alt") + '" /><button type="button" class="orden-foto-eliminar" data-foto-id="' +
           f.id +
           '" data-storage-path="' +
           escapeHtml(f.storage_path) +
-          '" title="Eliminar foto">&times;</button></div>'
+          '" title="' + t("confirm_eliminar_foto_titulo") + '">&times;</button></div>'
       )
       .join("");
 
@@ -1234,7 +1277,7 @@
   }
 
   async function eliminarOrdenFoto(fotoId, storagePath) {
-    if (!(await confirmDialog("¿Eliminar esta foto?", { title: "Eliminar foto" }))) return;
+    if (!(await confirmDialog(t("confirm_eliminar_foto"), { title: t("confirm_eliminar_foto_titulo") }))) return;
     await sb.storage.from("fotos-ordenes").remove([storagePath]);
     const { error } = await sb.from("orden_fotos").delete().eq("id", fotoId);
     if (error) {
@@ -1266,13 +1309,13 @@
               "<tr><td>" +
               escapeHtml(f.pieza.nombre) +
               "</td><td>" +
-              (f.usado || "Sin movimiento") +
+              (f.usado || t("sin_movimiento")) +
               "</td><td>" +
               f.pieza.stock +
               "</td></tr>"
           )
           .join("")
-      : "<tr><td colspan='3'>No hay piezas registradas todavía.</td></tr>";
+      : "<tr><td colspan='3'>" + t("sin_piezas_registradas") + "</td></tr>";
 
     openModal("modal-rotacion");
   }
@@ -1286,7 +1329,7 @@
 
     const tbody = document.getElementById("historial-precios-tbody");
     if (error || !data || !data.length) {
-      tbody.innerHTML = "<tr><td colspan='6'>Todavía no hay cambios de precio registrados. Se van guardando a medida que editas el costo o precio de venta de una pieza.</td></tr>";
+      tbody.innerHTML = "<tr><td colspan='6'>" + t("sin_cambios_precio") + "</td></tr>";
       openModal("modal-historial-precios");
       return;
     }
@@ -1351,7 +1394,7 @@
             );
           })
           .join("")
-      : "<tr><td colspan='5'>Ninguna pieza está en o por debajo de su stock mínimo ahora mismo.</td></tr>";
+      : "<tr><td colspan='5'>" + t("sin_piezas_reordenar") + "</td></tr>";
     openModal("modal-reordenar");
   }
 
@@ -1360,7 +1403,7 @@
       "tareas",
       () => sb.from("tareas").select("*, clientes(nombre)").order("fecha_vencimiento", { ascending: true }),
       [],
-      "No se pudieron cargar las tareas."
+      t("error_cargar_tareas")
     );
   }
 
@@ -1392,7 +1435,7 @@
     tbody.innerHTML = "";
     empty.hidden = list.length !== 0;
     if (!list.length) {
-      empty.innerHTML = emptyStateHtml("user", "Todavía no hay clientes registrados.", "+ Agregar el primer cliente", "empty-cta-cliente");
+      empty.innerHTML = emptyStateHtml("user", t("vacio_clientes"), "+ Agregar el primer cliente", "empty-cta-cliente");
       document.getElementById("empty-cta-cliente").addEventListener("click", () => openClienteModal(null));
     }
 
@@ -1404,10 +1447,10 @@
       const placa = vehiculosCliente.length ? (vehiculosCliente[0].placa || "—") + extra : "—";
       const ultimaFecha = ultimaFacturaFecha(c.id);
       const actions = [
-        { key: "detalle", icon: "eye", label: "Ver detalle" },
-        { key: "factura", icon: "file-text", label: "Crear factura" },
-        { key: "editar", icon: "edit", label: "Editar" },
-        { key: "eliminar", icon: "trash", label: "Eliminar", danger: true },
+        { key: "detalle", icon: "eye", label: t("btn_ver_detalle") },
+        { key: "factura", icon: "file-text", label: t("btn_crear_factura") },
+        { key: "editar", icon: "edit", label: t("btn_editar") },
+        { key: "eliminar", icon: "trash", label: t("btn_eliminar"), danger: true },
       ];
       tr.innerHTML =
         "<td>" + avatarHtml(c.nombre) + escapeHtml(c.nombre) + " " + etiquetasPillsHtml(c.etiquetas) + "</td>" +
@@ -1440,7 +1483,7 @@
       const { error } = await sb.from("clientes").delete().eq("id", id);
       if (error) {
         if (error.code === "23503") {
-          showToast("No se pudo eliminar: tiene órdenes o facturas asociadas.", true);
+          showToast(t("error_eliminar_ordenes_facturas"), true);
         } else {
           showToast("No se pudo eliminar el cliente.", true);
         }
@@ -1471,12 +1514,16 @@
     const totalGastado = state.facturas
       .filter((f) => f.cliente_id === cliente.id && f.estado === "pagada")
       .reduce((sum, f) => sum + Number(f.total), 0);
+    const saldoPendiente = state.facturas
+      .filter((f) => f.cliente_id === cliente.id && f.estado === "pendiente")
+      .reduce((sum, f) => sum + Number(f.total), 0);
     document.getElementById("cliente-detalle-info").innerHTML =
-      "<div><span>ID Cliente</span>" + escapeHtml(String(cliente.numero || "—")) + "</div>" +
-      "<div><span>Teléfono</span>" + escapeHtml(cliente.telefono || "—") + "</div>" +
-      "<div><span>Email</span>" + escapeHtml(cliente.email || "—") + "</div>" +
-      "<div><span>Total gastado</span>" + money(totalGastado) + "</div>" +
-      (cliente.etiquetas ? "<div><span>Etiquetas</span>" + etiquetasPillsHtml(cliente.etiquetas) + "</div>" : "");
+      "<div><span>" + t("id_cliente_label") + "</span>" + escapeHtml(String(cliente.numero || "—")) + "</div>" +
+      "<div><span>" + t("col_telefono") + "</span>" + escapeHtml(cliente.telefono || "—") + "</div>" +
+      "<div><span>" + t("campo_email") + "</span>" + escapeHtml(cliente.email || "—") + "</div>" +
+      "<div><span>" + t("total_gastado_label") + "</span>" + money(totalGastado) + "</div>" +
+      (saldoPendiente > 0 ? "<div><span>" + t("saldo_pendiente_label") + "</span><strong class='saldo-pendiente'>" + money(saldoPendiente) + "</strong></div>" : "") +
+      (cliente.etiquetas ? "<div><span>" + t("etiquetas_label_simple") + "</span>" + etiquetasPillsHtml(cliente.etiquetas) + "</div>" : "");
 
     renderTelefonosClienteDetalle(cliente.id);
     const telefonoForm = document.getElementById("cliente-detalle-telefono-form");
@@ -1523,6 +1570,8 @@
 
     const ordenesCliente = state.ordenes.filter((o) => o.cliente_id === cliente.id);
     const facturasCliente = state.facturas.filter((f) => f.cliente_id === cliente.id);
+    const estimadosCliente = state.estimados.filter((e) => e.cliente_id === cliente.id);
+    const citasCliente = state.citas.filter((c) => c.cliente_id === cliente.id);
 
     const historial = [];
     ordenesCliente.forEach((o) => {
@@ -1532,7 +1581,7 @@
         id: o.id,
         fecha: o.fecha_recepcion,
         estadoClass: done ? "is-pagada" : "is-neutral",
-        texto: "Orden #" + String(o.numero).padStart(4, "0") + " — " + (o.diagnostico || "Sin diagnóstico"),
+        texto: "Orden #" + String(o.numero).padStart(4, "0") + " — " + (o.diagnostico || t("sin_diagnostico")),
         etiqueta: etapaLabel(o.etapa),
       });
     });
@@ -1544,6 +1593,26 @@
         estadoClass: f.estado === "pagada" ? "is-pagada" : f.estado === "cancelada" ? "is-neutral" : "is-pendiente",
         texto: "Factura #" + String(f.numero).padStart(4, "0") + " — " + money(f.total),
         etiqueta: estadoFacturaLabel(f.estado),
+      });
+    });
+    estimadosCliente.forEach((e) => {
+      historial.push({
+        tipo: "estimado",
+        id: e.id,
+        fecha: e.fecha,
+        estadoClass: e.estado === "aprobado" || e.estado === "convertido" ? "is-pagada" : e.estado === "pendiente" ? "is-pendiente" : "is-neutral",
+        texto: "Presupuesto #" + String(e.numero).padStart(4, "0") + " — " + money(e.total),
+        etiqueta: estadoEstimadoLabel(e.estado),
+      });
+    });
+    citasCliente.forEach((c) => {
+      historial.push({
+        tipo: "cita",
+        id: c.id,
+        fecha: c.fecha,
+        estadoClass: c.estado === "completada" ? "is-pagada" : "is-neutral",
+        texto: "Cita — " + (c.servicio || "Sin especificar"),
+        etiqueta: ESTADO_RESERVA_LABELS[c.estado] || capitalize(c.estado),
       });
     });
     historial.sort((a, b) => (a.fecha < b.fecha ? 1 : a.fecha > b.fecha ? -1 : 0));
@@ -1576,17 +1645,20 @@
             .join("")
         : historial.length
         ? '<p class="detalle-empty">Nada en el historial coincide con esa búsqueda.</p>'
-        : '<p class="detalle-empty">Sin historial todavía — aún no se le ha hecho ninguna orden o factura.</p>';
+        : '<p class="detalle-empty">Sin historial todavía — aún no tiene órdenes, facturas, presupuestos ni citas.</p>';
 
       historialEl.querySelectorAll("[data-historial-id]").forEach((row) => {
         makeRowActivatable(row, () => {
           const tipo = row.dataset.historialTipo;
           const itemId = row.dataset.historialId;
-          closeModal("modal-cliente-detalle");
           if (tipo === "orden") {
-            openOrdenModal(state.ordenes.find((o) => o.id === itemId));
+            printOrden(itemId, true);
+          } else if (tipo === "estimado") {
+            printEstimado(itemId, true);
+          } else if (tipo === "cita") {
+            printCita(itemId, true);
           } else {
-            openFacturaModal(state.facturas.find((f) => f.id === itemId));
+            printFactura(itemId, true);
           }
         });
       });
@@ -1596,20 +1668,20 @@
     document.getElementById("cliente-detalle-historial-search").oninput = renderHistorialFiltrado;
     renderHistorialFiltrado();
 
-    const tareasCliente = state.tareas.filter((t) => t.cliente_id === cliente.id);
+    const tareasCliente = state.tareas.filter((tarea) => tarea.cliente_id === cliente.id);
     const tareasEl = document.getElementById("cliente-detalle-tareas");
     tareasEl.innerHTML = tareasCliente.length
       ? tareasCliente
           .map(
-            (t) =>
+            (tarea) =>
               '<div class="detalle-list-item"><span>' +
-              escapeHtml(t.titulo) +
+              escapeHtml(tarea.titulo) +
               "</span><span>" +
-              (t.completada ? "Completada" : escapeHtml(t.fecha_vencimiento ? formatDate(t.fecha_vencimiento) : "Sin fecha")) +
+              (tarea.completada ? t("tarea_completada") : escapeHtml(tarea.fecha_vencimiento ? formatDate(tarea.fecha_vencimiento) : t("sin_fecha"))) +
               "</span></div>"
           )
           .join("")
-      : '<p class="detalle-empty">Sin tareas registradas.</p>';
+      : '<p class="detalle-empty">' + t("sin_tareas_registradas") + "</p>";
 
     document.getElementById("btn-detalle-imprimir").onclick = () => {
       imprimirHistorialCliente(cliente, vehiculosCliente, historial, tareasCliente, totalGastado);
@@ -1623,25 +1695,25 @@
     const nombreNegocio = cfg.nombre_negocio || "Gil Muffler";
 
     const vehiculosHtml = vehiculos.length
-      ? "<ul>" + vehiculos.map((v) => "<li>" + escapeHtml(vehiculoLabel(v)) + " — Placa: " + escapeHtml(v.placa || "—") + " — Kilometraje: " + escapeHtml(v.kilometraje || "—") + "</li>").join("") + "</ul>"
-      : "<p>Sin vehículos registrados.</p>";
+      ? "<ul>" + vehiculos.map((v) => "<li>" + escapeHtml(vehiculoLabel(v)) + " — " + t("col_placa") + ": " + escapeHtml(v.placa || "—") + " — " + t("kilometraje_label") + ": " + escapeHtml(v.kilometraje || "—") + "</li>").join("") + "</ul>"
+      : "<p>" + t("sin_vehiculos_registrados") + "</p>";
 
     const historialHtml = historial.length
-      ? "<table><thead><tr><th>Fecha</th><th>Detalle</th><th>Estado</th></tr></thead><tbody>" +
+      ? "<table><thead><tr><th>" + t("col_fecha") + "</th><th>" + t("col_detalle") + "</th><th>" + t("col_estado") + "</th></tr></thead><tbody>" +
         historial
-          .map((h) => "<tr><td>" + escapeHtml(h.fecha ? formatDate(h.fecha) : "Sin fecha") + "</td><td>" + escapeHtml(h.texto) + "</td><td>" + escapeHtml(h.etiqueta) + "</td></tr>")
+          .map((h) => "<tr><td>" + escapeHtml(h.fecha ? formatDate(h.fecha) : t("sin_fecha")) + "</td><td>" + escapeHtml(h.texto) + "</td><td>" + escapeHtml(h.etiqueta) + "</td></tr>")
           .join("") +
         "</tbody></table>"
-      : "<p>Sin historial todavía.</p>";
+      : "<p>" + t("sin_historial_todavia") + "</p>";
 
     const tareasHtml = tareas.length
-      ? "<ul>" + tareas.map((t) => "<li>" + escapeHtml(t.titulo) + " — " + (t.completada ? "Completada" : escapeHtml(t.fecha_vencimiento ? formatDate(t.fecha_vencimiento) : "Sin fecha")) + "</li>").join("") + "</ul>"
-      : "<p>Sin tareas registradas.</p>";
+      ? "<ul>" + tareas.map((tarea) => "<li>" + escapeHtml(tarea.titulo) + " — " + (tarea.completada ? t("tarea_completada") : escapeHtml(tarea.fecha_vencimiento ? formatDate(tarea.fecha_vencimiento) : t("sin_fecha"))) + "</li>").join("") + "</ul>"
+      : "<p>" + t("sin_tareas_registradas") + "</p>";
 
     const html =
       "<!doctype html><html><head><meta charset='utf-8'><title>" +
       escapeHtml(cliente.nombre) +
-      " — Historial</title><style>" +
+      " — " + t("historial_titulo") + "</title><style>" +
       "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:2.5rem;max-width:40rem;margin:0 auto;}" +
       "h1{font-size:1.3rem;margin:0 0 .2rem;}" +
       "h2{font-size:1rem;margin:1.5rem 0 .5rem;border-bottom:1px solid #ccc;padding-bottom:.3rem;}" +
@@ -1655,21 +1727,21 @@
       "<h1>" +
       escapeHtml(nombreNegocio) +
       "</h1>" +
-      "<p class='sub'>Historial del cliente — impreso el " +
+      "<p class='sub'>" + t("historial_impreso_el") +
       escapeHtml(formatDate(todayISO())) +
       "</p>" +
-      "<p><strong>Cliente:</strong> " +
+      "<p><strong>" + t("col_cliente") + ":</strong> " +
       escapeHtml([cliente.nombre, cliente.apellido].filter(Boolean).join(" ")) +
-      "<br><strong>Teléfono:</strong> " +
+      "<br><strong>" + t("col_telefono") + ":</strong> " +
       escapeHtml(cliente.telefono || "—") +
-      "<br><strong>Total gastado:</strong> " +
+      "<br><strong>" + t("total_gastado_label") + ":</strong> " +
       money(totalGastado) +
       "</p>" +
-      "<h2>Vehículos</h2>" +
+      "<h2>" + t("col_vehiculo") + "</h2>" +
       vehiculosHtml +
-      "<h2>Historial</h2>" +
+      "<h2>" + t("historial_titulo") + "</h2>" +
       historialHtml +
-      "<h2>Tareas</h2>" +
+      "<h2>" + t("tareas_titulo") + "</h2>" +
       tareasHtml +
       "</body></html>";
 
@@ -1697,7 +1769,7 @@
 
   function descargarCsv(nombreArchivo, filas) {
     if (!filas.length) {
-      showToast("No hay datos todavía para exportar.", true);
+      showToast(t("sin_datos_exportar"), true);
       return;
     }
     const blob = new Blob([toCsv(filas)], { type: "text/csv;charset=utf-8;" });
@@ -1751,7 +1823,7 @@
   }
 
   const clientesSortState = { field: null, dir: 1 };
-  const CLIENTES_SORT_LABELS = { nombre: "Nombre", telefono: "Teléfono", vehiculo: "Vehículo", vehiculo_placa: "Placa" };
+  const CLIENTES_SORT_LABELS = { nombre: t("col_nombre"), telefono: t("col_telefono"), vehiculo: t("col_vehiculo"), vehiculo_placa: t("col_placa") };
 
   function clienteSortValue(c, field) {
     const vehiculosCliente = state.vehiculos.filter((v) => v.cliente_id === c.id);
@@ -1821,7 +1893,7 @@
     const vehiculoAnio = document.getElementById("cliente-vehiculo-anio").value.trim();
 
     if (!nombre || !apellido || !vehiculoMarca || !vehiculoModelo || !vehiculoAnio) {
-      showToast("Nombre, apellido y los datos del vehículo (marca, modelo y año) son obligatorios.", true);
+      showToast(t("cliente_campos_obligatorios"), true);
       return;
     }
 
@@ -1874,7 +1946,7 @@
   async function deleteCliente() {
     const id = document.getElementById("cliente-id").value;
     if (!id) return;
-    if (!(await confirmDialog("¿Eliminar este cliente? Esta acción no se puede deshacer.", { title: "Eliminar cliente" }))) return;
+    if (!(await confirmDialog(t("confirm_eliminar_cliente"), { title: t("eliminar_cliente_titulo") }))) return;
 
     const { error } = await sb.from("clientes").delete().eq("id", id);
     if (error) {
@@ -1908,7 +1980,7 @@
     tbody.innerHTML = "";
     empty.hidden = list.length !== 0;
     if (!list.length) {
-      empty.innerHTML = emptyStateHtml("file-text", "Todavía no hay facturas registradas.", "+ Crear la primera factura", "empty-cta-factura");
+      empty.innerHTML = emptyStateHtml("file-text", t("vacio_facturas"), "+ Crear la primera factura", "empty-cta-factura");
       document.getElementById("empty-cta-factura").addEventListener("click", () => openFacturaModal(null));
     }
 
@@ -1921,18 +1993,24 @@
       const tr = document.createElement("tr");
       const clienteNombre = f.clientes ? f.clientes.nombre : "—";
       const actions = [
-        { key: "ver", icon: "eye", label: "Ver / editar" },
-        { key: "pagada", icon: "check-circle", label: "Marcar pagada", show: f.estado !== "pagada" },
-        { key: "imprimir", icon: "printer", label: "Imprimir" },
-        { key: "eliminar", icon: "trash", label: "Eliminar", danger: true },
+        { key: "ver", icon: "eye", label: t("btn_ver_editar") },
+        { key: "pagada", icon: "check-circle", label: t("btn_marcar_pagada"), show: f.estado !== "pagada" },
+        { key: "whatsapp", icon: "phone", label: t("btn_recordar_whatsapp"), show: f.estado === "pendiente" },
+        { key: "imprimir", icon: "printer", label: t("btn_imprimir_simple") },
+        { key: "eliminar", icon: "trash", label: t("btn_eliminar"), danger: true },
       ];
+      const vencida = facturaVencida(f);
+      if (vencida) tr.classList.add("is-vencida");
       tr.innerHTML =
         '<td><input type="checkbox" class="factura-select" data-id="' + f.id + '"' + (facturasSeleccionadas.has(f.id) ? " checked" : "") + " /></td>" +
         "<td>#" + String(f.numero).padStart(4, "0") + "</td>" +
         "<td>" + avatarHtml(clienteNombre, "avatar-sm") + escapeHtml(clienteNombre) + "</td>" +
         "<td>" + escapeHtml(formatDate(f.fecha)) + "</td>" +
         "<td>" + money(f.total) + "</td>" +
-        '<td><span class="pill pill-' + f.estado + '">' + estadoFacturaLabel(f.estado) + "</span></td>" +
+        '<td><span class="pill pill-' + f.estado + '">' + estadoFacturaLabel(f.estado) + "</span>" +
+        (f.estado === "pagada" && f.metodo_pago ? ' <span class="metodo-pago-tag">' + escapeHtml(metodoPagoLabel(f.metodo_pago)) + "</span>" : "") +
+        (vencida ? ' <span class="pill pill-vencida" title="' + t("factura_vencida_title", { n: FACTURA_DIAS_VENCIMIENTO }) + '">' + t("factura_vencida_pill") + "</span>" : "") +
+        "</td>" +
         "<td>" + rowActionsHtml(f.id, actions) + "</td>";
       tbody.appendChild(tr);
     });
@@ -1948,6 +2026,7 @@
     wireRowActions(tbody, {
       ver: (id) => openFacturaModal(state.facturas.find((f) => f.id === id)),
       pagada: (id) => marcarFacturaPagada(id),
+      whatsapp: (id) => recordarFacturaWhatsapp(id),
       imprimir: (id) => printFactura(id),
       eliminar: (id, btn) => deleteFacturaRow(id, btn),
     });
@@ -1969,6 +2048,40 @@
     selectAll.indeterminate = seleccionadosVisibles > 0 && seleccionadosVisibles < totalVisibles;
   }
 
+  function telefonoALinkWhatsapp(telefono, mensaje) {
+    const digits = (telefono || "").replace(/\D/g, "");
+    if (!digits) return null;
+    const conCodigo = digits.length === 10 ? "1" + digits : digits;
+    return "https://wa.me/" + conCodigo + "?text=" + encodeURIComponent(mensaje);
+  }
+
+  function recordarFacturaWhatsapp(id) {
+    const factura = state.facturas.find((f) => f.id === id);
+    if (!factura) return;
+    const cliente = state.clientes.find((c) => c.id === factura.cliente_id);
+    if (!cliente || !cliente.telefono) {
+      showToast(t("error_sin_telefono"), true);
+      return;
+    }
+    const cfg = state.configNegocio || {};
+    const nombreNegocio = cfg.nombre_negocio || "Gil Muffler";
+    const origenFactura = typeof LAN_ORIGIN !== "undefined" && LAN_ORIGIN ? LAN_ORIGIN : location.origin;
+    const facturaUrl = origenFactura + location.pathname.replace(/index\.html$/, "") + "ver-factura.html?id=" + factura.id;
+    const mensaje = t("whatsapp_recordatorio_mensaje", {
+      nombre: cliente.nombre || "",
+      negocio: nombreNegocio,
+      numero: String(factura.numero).padStart(4, "0"),
+      monto: money(factura.total),
+      url: facturaUrl,
+    });
+    const link = telefonoALinkWhatsapp(cliente.telefono, mensaje);
+    if (!link) {
+      showToast(t("error_telefono_invalido"), true);
+      return;
+    }
+    window.open(link, "_blank");
+  }
+
   function enviarFacturaEmail(id) {
     fetch(CONFIG.SUPABASE_URL + "/functions/v1/enviar-factura-email", {
       method: "POST",
@@ -1986,39 +2099,43 @@
   async function bulkMarcarPagadas() {
     if (!facturasSeleccionadas.size) return;
     const ids = Array.from(facturasSeleccionadas);
-    const { error } = await sb.from("facturas").update({ estado: "pagada" }).in("id", ids);
+    const metodoPago = await pedirMetodoPago(t("metodo_pago_bulk_mensaje", { n: ids.length }));
+    if (!metodoPago) return;
+    const { error } = await sb.from("facturas").update({ estado: "pagada", metodo_pago: metodoPago }).in("id", ids);
     if (error) {
-      showToast("No se pudieron marcar las facturas.", true);
+      showToast(t("error_marcar_facturas"), true);
       return;
     }
     ids.forEach(enviarFacturaEmail);
-    showToast(ids.length + " factura(s) marcadas como pagadas.");
+    showToast(t("facturas_marcadas_pagadas_msg", { n: ids.length }));
     facturasSeleccionadas.clear();
     await refreshFacturas();
   }
 
   async function bulkEliminarFacturas() {
     if (!facturasSeleccionadas.size) return;
-    if (!(await confirmDialog("¿Eliminar " + facturasSeleccionadas.size + " factura(s)? Esta acción no se puede deshacer.", { title: "Eliminar facturas" }))) return;
+    if (!(await confirmDialog(t("confirm_eliminar_facturas_bulk", { n: facturasSeleccionadas.size }), { title: t("eliminar_facturas_titulo") }))) return;
     const ids = Array.from(facturasSeleccionadas);
     const { error } = await sb.from("facturas").delete().in("id", ids);
     if (error) {
-      showToast("No se pudieron eliminar las facturas.", true);
+      showToast(t("error_eliminar_facturas"), true);
       return;
     }
-    showToast(ids.length + " factura(s) eliminadas.");
+    showToast(t("facturas_eliminadas_msg", { n: ids.length }));
     facturasSeleccionadas.clear();
     await refreshFacturas();
   }
 
   async function marcarFacturaPagada(id) {
-    const { error } = await sb.from("facturas").update({ estado: "pagada" }).eq("id", id);
+    const metodoPago = await pedirMetodoPago();
+    if (!metodoPago) return;
+    const { error } = await sb.from("facturas").update({ estado: "pagada", metodo_pago: metodoPago }).eq("id", id);
     if (error) {
-      showToast("No se pudo marcar la factura como pagada.", true);
+      showToast(t("error_marcar_pagada"), true);
       return;
     }
     enviarFacturaEmail(id);
-    showToast("Factura marcada como pagada.");
+    showToast(t("factura_marcada_pagada"));
     await refreshFacturas();
   }
 
@@ -2033,6 +2150,17 @@
       }
       await refreshFacturas();
     }, () => renderFacturas(filterFacturas()));
+  }
+
+  function previewInNewTab(html) {
+    const ventana = window.open("", "_blank");
+    if (!ventana) {
+      showToast(t("error_ventana_bloqueada"), true);
+      return;
+    }
+    ventana.document.open();
+    ventana.document.write(html);
+    ventana.document.close();
   }
 
   function openPrintWindow(html) {
@@ -2058,13 +2186,20 @@
     }, 150);
   }
 
-  async function printFactura(id) {
+  async function printFactura(id, preview) {
     const factura = state.facturas.find((f) => f.id === id);
     if (!factura) return;
     const items = await fetchFacturaItems(id);
     const cliente = factura.clientes || {};
     const clienteNombre = [cliente.nombre, cliente.apellido].filter(Boolean).join(" ") || "—";
-    const vehiculo = state.vehiculos.find((v) => v.cliente_id === factura.cliente_id);
+    let vehiculo = null;
+    if (factura.orden_id) {
+      const ordenDeFactura = state.ordenes.find((o) => o.id === factura.orden_id);
+      if (ordenDeFactura && ordenDeFactura.vehiculo_id) {
+        vehiculo = state.vehiculos.find((v) => v.id === ordenDeFactura.vehiculo_id) || null;
+      }
+    }
+    if (!vehiculo) vehiculo = state.vehiculos.find((v) => v.cliente_id === factura.cliente_id) || null;
     const vehiculoLabelStr = vehiculo ? [vehiculo.marca, vehiculo.modelo, vehiculo.anio].filter(Boolean).join(" ") : "";
     const cfg = state.configNegocio || {};
     const nombreNegocio = cfg.nombre_negocio || "Gil Muffler";
@@ -2075,32 +2210,94 @@
     const mecanico = factura.mecanico_id ? state.mecanicos.find((m) => m.id === factura.mecanico_id) : null;
 
     const ESTADO_ESTILO = {
-      pagada: { label: "PAGADA", color: "#1a7f5a" },
-      pendiente: { label: "PENDIENTE DE PAGO", color: "#b8860b" },
-      cancelada: { label: "CANCELADA", color: "#d6293b" },
+      pagada: { label: t("factura_print_pagada"), color: "#1a7f5a" },
+      pendiente: { label: t("factura_print_pendiente"), color: "#b8860b" },
+      cancelada: { label: t("factura_print_cancelada"), color: "#d6293b" },
     };
     const estadoInfo = ESTADO_ESTILO[factura.estado] || { label: estadoFacturaLabel(factura.estado), color: "#68707e" };
 
-    const filas = items
-      .map(
-        (it) =>
-          "<tr><td>" + escapeHtml(it.descripcion) + "</td><td class='num'>" + it.cantidad + "</td><td class='num'>" + money(it.precio_unitario) + "</td><td class='num'>" + money(it.subtotal) + "</td></tr>"
-      )
-      .join("");
+    const laborItem = items.find((it) => it.descripcion === "Mano de obra");
+    const otrosItems = items.filter((it) => it !== laborItem);
+    const subtotalNum = Number(factura.subtotal) || 0;
+    const tasaImpuesto = subtotalNum > 0 ? Number(factura.impuesto) / subtotalNum : 0;
+
+    function filaItem(it, incluirCantidad) {
+      const itemTax = it.subtotal * tasaImpuesto;
+      return (
+        "<tr><td>" +
+        escapeHtml(it.descripcion) +
+        "</td>" +
+        (incluirCantidad ? "<td class='num'>" + it.cantidad + "</td>" : "") +
+        "<td class='num'>" +
+        money(it.precio_unitario) +
+        "</td><td class='num'>" +
+        (tasaImpuesto * 100).toFixed(0) +
+        "%</td><td class='num'>" +
+        money(it.subtotal + itemTax) +
+        "</td></tr>"
+      );
+    }
+
+    function tablaSeccion(titulo, filasItems, incluirCantidad) {
+      if (!filasItems.length) return "";
+      const totalCosto = filasItems.reduce((sum, it) => sum + Number(it.subtotal), 0);
+      const totalTax = totalCosto * tasaImpuesto;
+      return (
+        "<h2 class='seccion-titulo'>" +
+        titulo +
+        "</h2><table><thead><tr><th>" +
+        t("col_descripcion") +
+        "</th>" +
+        (incluirCantidad ? "<th class='num'>" + t("col_cantidad") + "</th>" : "") +
+        "<th class='num'>" +
+        t("col_costo") +
+        "</th><th class='num'>" +
+        t("col_impuesto_simple") +
+        "</th><th class='num'>" +
+        t("col_total") +
+        "</th></tr></thead><tbody>" +
+        filasItems.map((it) => filaItem(it, incluirCantidad)).join("") +
+        "<tr class='fila-total'><td" +
+        (incluirCantidad ? " colspan='2'" : "") +
+        ">" +
+        t("col_total") +
+        "</td><td class='num'>" +
+        money(totalCosto) +
+        "</td><td class='num'>" +
+        money(totalTax) +
+        "</td><td class='num'>" +
+        money(totalCosto + totalTax) +
+        "</td></tr>" +
+        "</tbody></table>"
+      );
+    }
+
+    const laborHtml = tablaSeccion(t("mano_obra_seccion_titulo"), laborItem ? [laborItem] : [], false);
+    const partsHtml = tablaSeccion(t("parts_seccion_titulo"), otrosItems, true);
 
     const notasHtml = factura.notas
-      ? "<div class='notas'><strong>Notas</strong><p>" + escapeHtml(factura.notas).replace(/\n/g, "<br>") + "</p></div>"
+      ? "<div class='notas'><strong>" + t("notas_label") + "</strong><p>" + escapeHtml(factura.notas).replace(/\n/g, "<br>") + "</p></div>"
       : "";
 
     const pieHtml = cfg.mensaje_pie ? "<p class='pie'>" + escapeHtml(cfg.mensaje_pie) + "</p>" : "";
     const extraHtml = cfg.texto_adicional
       ? "<p class='extra'>" + escapeHtml(cfg.texto_adicional).replace(/\n/g, "<br>") + "</p>"
       : "";
-    const garantiaDiasFactura = Number(cfg.garantia_dias) || 0;
-    const garantiaHastaFactura = garantiaDiasFactura ? sumarDias(factura.fecha, garantiaDiasFactura) : null;
-    const garantiaHtml = garantiaHastaFactura
-      ? "<p class='garantia'>Garantía válida hasta: " + escapeHtml(formatDate(garantiaHastaFactura)) + "</p>"
-      : "";
+
+    const garantiaLaborDias = Number(cfg.garantia_labor_dias) || 0;
+    const garantiaPiezasDias = Number(cfg.garantia_dias) || 0;
+    const garantiaHtml =
+      garantiaLaborDias || garantiaPiezasDias
+        ? "<p class='garantia'>Warranty:* Labor: " +
+          garantiaLaborDias +
+          " days * Parts: " +
+          garantiaPiezasDias +
+          " days<br>Garantía:* Trabajo: " +
+          garantiaLaborDias +
+          " días * Piezas: " +
+          garantiaPiezasDias +
+          " días</p>"
+        : "";
 
     let qrBlockHtml = "";
     if (mostrarQr) {
@@ -2110,7 +2307,7 @@
       qr.addData(facturaUrl);
       qr.make();
       const qrDataUrl = qr.createDataURL(4, 4);
-      qrBlockHtml = "<div class='qr'><img src='" + qrDataUrl + "' alt='QR' /><p>Ver factura completa</p></div>";
+      qrBlockHtml = "<div class='qr'><img src='" + qrDataUrl + "' alt='QR' /><p>" + t("ver_factura_completa") + "</p></div>";
     }
 
     const html =
@@ -2131,21 +2328,27 @@
       ".titulo{text-align:center;margin:1.4rem 0 .3rem;}" +
       ".titulo .num-factura{font-size:1.15rem;font-weight:700;color:#1f2430;}" +
       ".titulo .estado{display:block;margin-top:.3rem;font-size:1.4rem;font-weight:800;letter-spacing:.03em;}" +
+      ".titulo .metodo-pago{display:block;margin-top:.2rem;font-size:.8rem;font-weight:600;color:#68707e;}" +
       ".meta{display:flex;justify-content:space-between;gap:2rem;margin:1.3rem 0;padding-bottom:1rem;border-bottom:1px solid #e1e4e9;font-size:.85rem;}" +
       ".meta div{flex:1;line-height:1.7;}" +
       ".meta .label{color:#68707e;}" +
+      ".meta-col-right{padding-left:2rem;border-left:1px solid #e1e4e9;}" +
+      ".seccion-titulo{font-size:.9rem;text-transform:uppercase;letter-spacing:.04em;color:#68707e;margin:1.2rem 0 0;}" +
       "table{width:100%;border-collapse:collapse;margin-top:.5rem;border:1px solid #ccc;}" +
       "th,td{text-align:left;padding:.5rem .6rem;border:1px solid #ccc;font-size:.85rem;}" +
       "th{color:#1f2430;font-size:.75rem;text-transform:uppercase;letter-spacing:.03em;background:#eef0f1;}" +
       "td.num,th.num{text-align:right;}" +
-      ".totals{margin-top:1.1rem;margin-left:auto;width:14rem;border:1px solid #ccc;font-size:.9rem;}" +
-      ".totals div{display:flex;justify-content:space-between;padding:.45rem .7rem;background:#eef0f1;border-bottom:1px solid #ccc;}" +
-      ".totals div:last-child{border-bottom:none;font-weight:800;font-size:1.15rem;color:#fff;background:#0b0e14;padding-top:.6rem;padding-bottom:.6rem;}" +
-      ".notas{margin-top:1.5rem;padding:.9rem 1rem;background:#fafbfc;border:1px solid #ccc;border-radius:6px;font-size:.85rem;}" +
+      "tr.fila-total td{background:#eef0f1;font-weight:700;}" +
+      ".notas-resumen{display:flex;gap:1.5rem;margin-top:1.5rem;align-items:flex-start;}" +
+      ".notas{flex:1;padding:.9rem 1rem;background:#fafbfc;border:1px solid #ccc;border-radius:6px;font-size:.85rem;}" +
       ".notas strong{display:block;margin-bottom:.3rem;color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}" +
+      ".resumen-box{width:14rem;flex:none;border:1px solid #ccc;font-size:.9rem;}" +
+      ".resumen-box div{display:flex;justify-content:space-between;padding:.45rem .7rem;background:#eef0f1;border-bottom:1px solid #ccc;}" +
+      ".resumen-box div:last-child{border-bottom:none;font-weight:800;font-size:1.15rem;color:#fff;background:#0b0e14;padding-top:.6rem;padding-bottom:.6rem;}" +
       ".pie{margin-top:2rem;text-align:center;font-style:italic;color:#68707e;font-size:.9rem;}" +
       ".extra{margin-top:.75rem;text-align:center;color:#68707e;font-size:.8rem;white-space:pre-line;}" +
-      ".garantia{margin-top:.5rem;text-align:center;color:#68707e;font-size:.8rem;}" +
+      ".garantia{margin-top:1rem;text-align:center;color:#68707e;font-size:.72rem;line-height:1.5;}" +
+      ".footer-space{height:3.5rem;}" +
       ".qr{position:fixed;bottom:1.2rem;right:1.2rem;text-align:center;margin:0;}" +
       ".qr img{width:90px;height:90px;}" +
       ".qr p{margin:.25rem 0 0;font-size:.62rem;color:#68707e;}" +
@@ -2160,6 +2363,7 @@
       escapeHtml(nombreNegocio) +
       "</h1></div><div class='contacto'>" +
       [cfg.direccion, cfg.telefono, cfg.email].filter(Boolean).map(escapeHtml).join("<br>") +
+      (cfg.numero_fiscal ? "<br>" + t("numero_fiscal_label") + ": " + escapeHtml(cfg.numero_fiscal) : "") +
       "</div></div>" +
       "<div class='titulo'><div class='num-factura'>" +
       escapeHtml(facturaTitulo) +
@@ -2169,41 +2373,47 @@
       estadoInfo.color +
       "'>" +
       estadoInfo.label +
-      "</span></div>" +
-      "<div class='meta'><div><span class='label'>Fecha:</span> " +
+      "</span>" +
+      (factura.estado === "pagada" && factura.metodo_pago
+        ? "<span class='metodo-pago'>" + t("pagado_con", { metodo: escapeHtml(metodoPagoLabel(factura.metodo_pago)) }) + "</span>"
+        : "") +
+      "</div>" +
+      "<div class='meta'><div><span class='label'>" + t("col_fecha") + ":</span> " +
       escapeHtml(formatDate(factura.fecha)) +
-      "<br><span class='label'>Cliente:</span> " +
+      "<br><span class='label'>" + t("col_cliente") + ":</span> " +
       escapeHtml(clienteNombre) +
-      (cliente.direccion ? "<br><span class='label'>Dirección:</span> " + escapeHtml(cliente.direccion) : "") +
-      "</div><div>" +
-      "<span class='label'>ID Cliente:</span> " + escapeHtml(String(cliente.numero || "—")) + "<br>" +
-      (vehiculoLabelStr ? "<span class='label'>Vehículo:</span> " + escapeHtml(vehiculoLabelStr) + "<br>" : "") +
-      (vehiculo && vehiculo.vin ? "<span class='label'>VIN:</span> " + escapeHtml(vehiculo.vin) + "<br>" : "") +
-      (vehiculo && vehiculo.placa ? "<span class='label'>Placa:</span> " + escapeHtml(vehiculo.placa) + "<br>" : "") +
-      (vehiculo && vehiculo.kilometraje ? "<span class='label'>Kilometraje:</span> " + escapeHtml(vehiculo.kilometraje) + "<br>" : "") +
-      (mecanico ? "<span class='label'>Mecánico:</span> " + escapeHtml(mecanico.nombre) : "") +
+      (cliente.direccion ? "<br><span class='label'>" + t("config_direccion") + ":</span> " + escapeHtml(cliente.direccion) : "") +
+      "</div><div class='meta-col-right'>" +
+      "<span class='label'>" + t("id_cliente_label") + ":</span> " + escapeHtml(String(cliente.numero || "—")) + "<br>" +
+      "<span class='label'>VIN:</span> " + escapeHtml((vehiculo && vehiculo.vin) || "—") + "<br>" +
+      "<span class='label'>" + t("col_vehiculo") + ":</span> " + escapeHtml(vehiculoLabelStr || "—") + "<br>" +
+      "<span class='label'>" + t("col_placa") + ":</span> " + escapeHtml((vehiculo && vehiculo.placa) || "—") + "<br>" +
+      "<span class='label'>" + t("kilometraje_label") + ":</span> " + escapeHtml((vehiculo && vehiculo.kilometraje) || "—") +
+      (mecanico ? "<br><span class='label'>" + t("mecanico_label") + ":</span> " + escapeHtml(mecanico.nombre) : "") +
       "</div></div>" +
-      "<table><thead><tr><th>Descripción</th><th class='num'>Cant.</th><th class='num'>Precio</th><th class='num'>Subtotal</th></tr></thead><tbody>" +
-      filas +
-      "</tbody></table>" +
-      "<div class='totals'><div><span>Subtotal</span><span>" +
+      laborHtml +
+      partsHtml +
+      "<div class='notas-resumen'>" +
+      (notasHtml || "<div class='notas'></div>") +
+      "<div class='resumen-box'><div><span>" + t("monto_a_pagar_label") + "</span><span>" +
       money(factura.subtotal) +
-      "</span></div><div><span>Impuesto</span><span>" +
+      "</span></div><div><span>" + t("col_impuesto_simple") + "</span><span>" +
       money(factura.impuesto) +
-      "</span></div><div><span>Total</span><span>" +
+      "</span></div><div><span>" + t("total_a_pagar_label") + "</span><span>" +
       money(factura.total) +
       "</span></div></div>" +
-      notasHtml +
+      "</div>" +
       extraHtml +
       garantiaHtml +
       pieHtml +
+      "<div class='footer-space'></div>" +
       qrBlockHtml +
       "</body></html>";
 
-    openPrintWindow(html);
+    if (preview) { previewInNewTab(html); } else { openPrintWindow(html); }
   }
 
-  async function printOrden(id) {
+  async function printOrden(id, preview) {
     const orden = state.ordenes.find((o) => o.id === id);
     if (!orden) return;
     const piezasOrden = await fetchOrdenPiezas(id);
@@ -2258,32 +2468,161 @@
       "</h1></div><div class='contacto'>" +
       escapeHtml(contacto) +
       "</div></div>" +
-      "<div class='meta'><div><strong>Orden " +
+      "<div class='meta'><div><strong>" + t("orden_palabra") + " " +
       numeroOrden +
       "</strong><br>" +
       escapeHtml(formatDate(orden.fecha_recepcion)) +
-      "<br>Cliente: " +
+      "<br>" + t("col_cliente") + ": " +
       escapeHtml(clienteNombre) +
-      (clienteTelefono ? "<br>Tel: " + escapeHtml(clienteTelefono) : "") +
-      "<br>Vehículo: " +
+      (clienteTelefono ? "<br>" + t("tel_abrev") + ": " + escapeHtml(clienteTelefono) : "") +
+      "<br>" + t("col_vehiculo") + ": " +
       escapeHtml(vehiculo || "—") +
-      (orden.vehiculo_placa ? "<br>Placa: " + escapeHtml(orden.vehiculo_placa) : "") +
+      (orden.vehiculo_placa ? "<br>" + t("col_placa") + ": " + escapeHtml(orden.vehiculo_placa) : "") +
       "</div><div><span class='estado'>" +
       escapeHtml(etapaLabel(orden.etapa)) +
       "</span></div></div>" +
-      (orden.diagnostico ? "<div class='bloque'><strong>Diagnóstico</strong>" + escapeHtml(orden.diagnostico).replace(/\n/g, "<br>") + "</div>" : "") +
+      (orden.diagnostico ? "<div class='bloque'><strong>" + t("diagnostico_label") + "</strong>" + escapeHtml(orden.diagnostico).replace(/\n/g, "<br>") + "</div>" : "") +
       (orden.trabajo_recomendado
-        ? "<div class='bloque'><strong>Trabajo recomendado</strong>" + escapeHtml(orden.trabajo_recomendado).replace(/\n/g, "<br>") + "</div>"
+        ? "<div class='bloque'><strong>" + t("trabajo_recomendado_label") + "</strong>" + escapeHtml(orden.trabajo_recomendado).replace(/\n/g, "<br>") + "</div>"
         : "") +
       (filasPiezas
-        ? "<div class='bloque'><strong>Piezas usadas</strong><table><thead><tr><th>Pieza</th><th>Cant.</th><th>Precio</th></tr></thead><tbody>" +
+        ? "<div class='bloque'><strong>" + t("piezas_usadas_titulo") + "</strong><table><thead><tr><th>" + t("col_pieza") + "</th><th>" + t("col_cantidad") + "</th><th>" + t("col_precio") + "</th></tr></thead><tbody>" +
           filasPiezas +
           "</tbody></table></div>"
         : "") +
-      (orden.notas ? "<div class='bloque'><strong>Notas</strong>" + escapeHtml(orden.notas).replace(/\n/g, "<br>") + "</div>" : "") +
+      (orden.notas ? "<div class='bloque'><strong>" + t("notas_label") + "</strong>" + escapeHtml(orden.notas).replace(/\n/g, "<br>") + "</div>" : "") +
       "</body></html>";
 
-    openPrintWindow(html);
+    if (preview) { previewInNewTab(html); } else { openPrintWindow(html); }
+  }
+
+  async function printEstimado(id, preview) {
+    const estimado = state.estimados.find((e) => e.id === id);
+    if (!estimado) return;
+    const items = await fetchEstimadoItems(id);
+    const cliente = estimado.clientes || {};
+    const clienteNombre = [cliente.nombre, cliente.apellido].filter(Boolean).join(" ") || "—";
+    const cfg = state.configNegocio || {};
+    const nombreNegocio = cfg.nombre_negocio || "Gil Muffler";
+    const logoSrc = cfg.logo_url || LOGO_DATA_URI;
+    const colorAcento = cfg.color_acento || "#d5601a";
+
+    const filas = items
+      .map(
+        (it) =>
+          "<tr><td>" + escapeHtml(it.descripcion) + "</td><td class='num'>" + it.cantidad + "</td><td class='num'>" + money(it.precio_unitario) + "</td><td class='num'>" + money(it.subtotal) + "</td></tr>"
+      )
+      .join("");
+
+    const notasHtml = estimado.notas ? "<div class='notas'><strong>" + t("notas_label") + "</strong><p>" + escapeHtml(estimado.notas).replace(/\n/g, "<br>") + "</p></div>" : "";
+
+    const html =
+      "<!doctype html><html><head><meta charset='utf-8'><title>" + t("presupuesto_hash") +
+      String(estimado.numero).padStart(4, "0") +
+      "</title><style>" +
+      "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:2.5rem;max-width:40rem;margin:0 auto;}" +
+      ".header{border-bottom:3px solid " +
+      colorAcento +
+      ";padding-bottom:1rem;margin-bottom:1.2rem;display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;}" +
+      ".header-brand{display:flex;align-items:center;gap:.8rem;}" +
+      ".header-brand img{height:3.2rem;width:3.2rem;object-fit:cover;object-position:68% 55%;border-radius:8px;flex:none;}" +
+      ".header h1{font-size:1.4rem;margin:0;color:#1f2430;}" +
+      ".header .contacto{font-size:.78rem;color:#68707e;text-align:right;line-height:1.5;}" +
+      ".titulo{text-align:center;margin:1.4rem 0 .3rem;}" +
+      ".titulo .num-estimado{font-size:1.15rem;font-weight:700;color:#1f2430;}" +
+      ".titulo .estado{display:block;margin-top:.3rem;font-size:1.2rem;font-weight:800;letter-spacing:.03em;color:" +
+      colorAcento +
+      ";}" +
+      ".meta{display:flex;justify-content:space-between;gap:2rem;margin:1.3rem 0;padding-bottom:1rem;border-bottom:1px solid #e1e4e9;font-size:.85rem;}" +
+      ".meta div{flex:1;line-height:1.7;}" +
+      ".meta .label{color:#68707e;}" +
+      "table{width:100%;border-collapse:collapse;margin-top:.5rem;border:1px solid #ccc;}" +
+      "th,td{text-align:left;padding:.5rem .6rem;border:1px solid #ccc;font-size:.85rem;}" +
+      "th{color:#1f2430;font-size:.75rem;text-transform:uppercase;letter-spacing:.03em;background:#eef0f1;}" +
+      "td.num,th.num{text-align:right;}" +
+      ".totals{margin-top:1.1rem;margin-left:auto;width:14rem;border:1px solid #ccc;font-size:.9rem;}" +
+      ".totals div{display:flex;justify-content:space-between;padding:.45rem .7rem;background:#eef0f1;border-bottom:1px solid #ccc;}" +
+      ".totals div:last-child{border-bottom:none;font-weight:800;font-size:1.15rem;color:#fff;background:#0b0e14;padding-top:.6rem;padding-bottom:.6rem;}" +
+      ".notas{margin-top:1.5rem;padding:.9rem 1rem;background:#fafbfc;border:1px solid #ccc;border-radius:6px;font-size:.85rem;}" +
+      ".notas strong{display:block;margin-bottom:.3rem;color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}" +
+      "@media print{body{padding:0;}}" +
+      "</style></head><body>" +
+      "<div class='header'><div class='header-brand'><img src='" +
+      logoSrc +
+      "' alt='' /><h1>" +
+      escapeHtml(nombreNegocio) +
+      "</h1></div><div class='contacto'>" +
+      [cfg.direccion, cfg.telefono, cfg.email].filter(Boolean).map(escapeHtml).join("<br>") +
+      "</div></div>" +
+      "<div class='titulo'><div class='num-estimado'>" + t("presupuesto_hash") +
+      String(estimado.numero).padStart(4, "0") +
+      "</div><span class='estado'>" +
+      escapeHtml(estadoEstimadoLabel(estimado.estado)) +
+      "</span></div>" +
+      "<div class='meta'><div><span class='label'>" + t("col_fecha") + ":</span> " +
+      escapeHtml(formatDate(estimado.fecha)) +
+      "<br><span class='label'>" + t("col_cliente") + ":</span> " +
+      escapeHtml(clienteNombre) +
+      "</div></div>" +
+      "<table><thead><tr><th>" + t("col_descripcion") + "</th><th class='num'>" + t("col_cantidad") + "</th><th class='num'>" + t("col_precio") + "</th><th class='num'>" + t("col_subtotal") + "</th></tr></thead><tbody>" +
+      filas +
+      "</tbody></table>" +
+      "<div class='totals'><div><span>" + t("col_subtotal") + "</span><span>" +
+      money(estimado.subtotal) +
+      "</span></div><div><span>" + t("col_impuesto_simple") + "</span><span>" +
+      money(estimado.impuesto) +
+      "</span></div><div><span>" + t("col_total") + "</span><span>" +
+      money(estimado.total) +
+      "</span></div></div>" +
+      notasHtml +
+      "</body></html>";
+
+    if (preview) { previewInNewTab(html); } else { openPrintWindow(html); }
+  }
+
+  function printCita(id, preview) {
+    const cita = state.citas.find((c) => c.id === id);
+    if (!cita) return;
+    const cliente = state.clientes.find((c) => c.id === cita.cliente_id);
+    const clienteNombre = cita.clientes ? cita.clientes.nombre : cliente ? cliente.nombre : "—";
+    const vehiculo = cita.vehiculo_id ? state.vehiculos.find((v) => v.id === cita.vehiculo_id) : null;
+    const cfg = state.configNegocio || {};
+    const nombreNegocio = cfg.nombre_negocio || "Gil Muffler";
+    const logoSrc = cfg.logo_url || LOGO_DATA_URI;
+
+    const html =
+      "<!doctype html><html><head><meta charset='utf-8'><title>" + t("cita_titulo") + "</title><style>" +
+      "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:2.5rem;max-width:32rem;margin:0 auto;}" +
+      ".header{border-bottom:3px solid #d5601a;padding-bottom:1rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:.8rem;}" +
+      ".header img{height:3rem;width:3rem;object-fit:cover;object-position:68% 55%;border-radius:8px;flex:none;}" +
+      ".header h1{font-size:1.3rem;margin:0;color:#d5601a;}" +
+      ".bloque{margin-top:1rem;font-size:.95rem;line-height:1.7;}" +
+      ".bloque .label{color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;display:block;}" +
+      "@media print{body{padding:0;}}" +
+      "</style></head><body>" +
+      "<div class='header'><img src='" +
+      logoSrc +
+      "' alt='' /><h1>" +
+      escapeHtml(nombreNegocio) +
+      "</h1></div>" +
+      "<div class='bloque'><span class='label'>" + t("col_cliente") + "</span>" +
+      escapeHtml(clienteNombre) +
+      "</div>" +
+      (vehiculo ? "<div class='bloque'><span class='label'>" + t("col_vehiculo") + "</span>" + escapeHtml(vehiculoLabel(vehiculo)) + "</div>" : "") +
+      "<div class='bloque'><span class='label'>" + t("col_fecha") + "</span>" +
+      escapeHtml(formatDate(cita.fecha)) +
+      (cita.hora ? " " + escapeHtml(cita.hora) : "") +
+      "</div>" +
+      "<div class='bloque'><span class='label'>" + t("servicio_label") + "</span>" +
+      escapeHtml(cita.servicio || "—") +
+      "</div>" +
+      "<div class='bloque'><span class='label'>" + t("col_estado") + "</span>" +
+      escapeHtml(ESTADO_RESERVA_LABELS[cita.estado] || capitalize(cita.estado)) +
+      "</div>" +
+      (cita.notas ? "<div class='bloque'><span class='label'>" + t("notas_label") + "</span>" + escapeHtml(cita.notas).replace(/\n/g, "<br>") + "</div>" : "") +
+      "</body></html>";
+
+    if (preview) { previewInNewTab(html); } else { openPrintWindow(html); }
   }
 
   function imprimirQrLlamame() {
@@ -2296,7 +2635,7 @@
     const nombreNegocio = cfg.nombre_negocio || "Gil Muffler";
 
     const html =
-      "<!doctype html><html><head><meta charset='utf-8'><title>QR — Pídenos que te llamemos</title><style>" +
+      "<!doctype html><html><head><meta charset='utf-8'><title>QR — " + t("llamame_titulo") + "</title><style>" +
       "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:3rem;text-align:center;}" +
       "h1{font-size:1.3rem;margin-bottom:.5rem;}" +
       "p{color:#68707e;margin-top:0;}" +
@@ -2306,10 +2645,59 @@
       "<h1>" +
       escapeHtml(nombreNegocio) +
       "</h1>" +
-      "<p>Escanea este código para pedir que te llamemos</p>" +
+      "<p>" + t("escanea_qr_llamame") + "</p>" +
       "<img src='" +
       qrDataUrl +
       "' alt='QR' />" +
+      "</body></html>";
+
+    openPrintWindow(html);
+  }
+
+  function imprimirTicketTrabajo(tr) {
+    const carro = tr.querySelector(".reg-carro").value.trim();
+    const descripcion = tr.querySelector(".reg-desc").value.trim();
+    const labor = parseFloat(tr.querySelector(".reg-labor").value) || 0;
+    const piezas = parseFloat(tr.querySelector(".reg-piezas").value) || 0;
+    const otro = parseFloat(tr.querySelector(".reg-otro").value) || 0;
+    const total = labor + piezas + otro;
+
+    const params = new URLSearchParams({
+      carro,
+      descripcion,
+      labor: labor.toFixed(2),
+      piezas: piezas.toFixed(2),
+      otro: otro.toFixed(2),
+    });
+    const url =
+      (typeof LAN_ORIGIN !== "undefined" && LAN_ORIGIN ? LAN_ORIGIN : location.origin) +
+      location.pathname.replace(/index\.html$/, "") +
+      "ver-trabajo.html?" +
+      params.toString();
+
+    const qr = qrcode(0, "M");
+    qr.addData(url);
+    qr.make();
+    const qrDataUrl = qr.createDataURL(6, 6);
+    const cfg = state.configNegocio || {};
+    const nombreNegocio = cfg.nombre_negocio || "Gil Muffler";
+
+    const html =
+      "<!doctype html><html><head><meta charset='utf-8'><title>" + t("ticket_trabajo_titulo") + "</title><style>" +
+      "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:2rem;text-align:center;max-width:20rem;margin:0 auto;}" +
+      "h1{font-size:1.1rem;margin-bottom:.2rem;}" +
+      "h2{font-size:1.3rem;margin:.4rem 0;}" +
+      "p{color:#68707e;margin:.2rem 0;}" +
+      ".total{font-size:1.4rem;font-weight:800;color:#1f2430;margin-top:.8rem;}" +
+      "img{margin-top:1rem;}" +
+      "@media print{body{padding:0;}}" +
+      "</style></head><body>" +
+      "<h1>" + escapeHtml(nombreNegocio) + "</h1>" +
+      "<h2>" + escapeHtml(carro || "—") + "</h2>" +
+      (descripcion ? "<p>" + escapeHtml(descripcion) + "</p>" : "") +
+      "<p class='total'>" + t("total_a_pagar_label") + ": " + money(total) + "</p>" +
+      "<p>" + t("escanea_ticket_trabajo") + "</p>" +
+      "<img src='" + qrDataUrl + "' alt='QR' />" +
       "</body></html>";
 
     openPrintWindow(html);
@@ -2324,8 +2712,18 @@
     return ESTADO_FACTURA_LABELS[estado] || capitalize(estado);
   }
 
+  const METODO_PAGO_LABELS = { efectivo: "Efectivo", tarjeta: "Tarjeta", cheque: "Cheque" };
+  function metodoPagoLabel(metodo) {
+    return METODO_PAGO_LABELS[metodo] || "";
+  }
+
+  const FACTURA_DIAS_VENCIMIENTO = 30;
+  function facturaVencida(f) {
+    return f.estado === "pendiente" && !!f.fecha && sumarDias(f.fecha, FACTURA_DIAS_VENCIMIENTO) < todayISO();
+  }
+
   const facturasSortState = { field: null, dir: 1 };
-  const FACTURAS_SORT_LABELS = { numero: "N.º", cliente: "Cliente", fecha: "Fecha", total: "Total", estado: "Estado" };
+  const FACTURAS_SORT_LABELS = { numero: t("col_numero"), cliente: t("col_cliente"), fecha: t("col_fecha"), total: t("col_total"), estado: t("col_estado") };
 
   function facturaSortValue(f, field) {
     if (field === "cliente") return f.clientes ? f.clientes.nombre : "";
@@ -2336,6 +2734,7 @@
   function filterFacturas() {
     const q = document.getElementById("facturas-search").value.trim().toLowerCase();
     const estado = document.getElementById("facturas-filter-estado").value;
+    const metodoPago = document.getElementById("facturas-filter-metodo-pago").value;
     const desde = document.getElementById("facturas-filter-desde").value;
     const hasta = document.getElementById("facturas-filter-hasta").value;
     const list = state.facturas.filter((f) => {
@@ -2343,20 +2742,22 @@
       const numero = String(f.numero);
       const matchesQ = !q || clienteNombre.includes(q) || numero.includes(q);
       const matchesEstado = !estado || f.estado === estado;
+      const matchesMetodoPago = !metodoPago || f.metodo_pago === metodoPago;
       const matchesDesde = !desde || f.fecha >= desde;
       const matchesHasta = !hasta || f.fecha <= hasta;
-      return matchesQ && matchesEstado && matchesDesde && matchesHasta;
+      return matchesQ && matchesEstado && matchesMetodoPago && matchesDesde && matchesHasta;
     });
-    renderFacturasFilterChips(q, estado, desde, hasta);
+    renderFacturasFilterChips(q, estado, metodoPago, desde, hasta);
     return sortByField(list, facturasSortState, facturaSortValue);
   }
 
-  function renderFacturasFilterChips(q, estado, desde, hasta) {
+  function renderFacturasFilterChips(q, estado, metodoPago, desde, hasta) {
     const chips = [];
-    if (q) chips.push({ key: "q", label: "Texto: " + q });
-    if (estado) chips.push({ key: "estado", label: "Estado: " + estadoFacturaLabel(estado) });
-    if (desde) chips.push({ key: "desde", label: "Desde: " + desde });
-    if (hasta) chips.push({ key: "hasta", label: "Hasta: " + hasta });
+    if (q) chips.push({ key: "q", label: t("chip_texto", { valor: q }) });
+    if (estado) chips.push({ key: "estado", label: t("chip_estado", { valor: estadoFacturaLabel(estado) }) });
+    if (metodoPago) chips.push({ key: "metodoPago", label: t("chip_pago", { valor: metodoPagoLabel(metodoPago) }) });
+    if (desde) chips.push({ key: "desde", label: t("chip_desde", { valor: desde }) });
+    if (hasta) chips.push({ key: "hasta", label: t("chip_hasta", { valor: hasta }) });
 
     const container = document.getElementById("facturas-filter-chips");
     container.innerHTML = chips
@@ -2368,6 +2769,7 @@
         const key = btn.dataset.clearChip;
         if (key === "q") document.getElementById("facturas-search").value = "";
         if (key === "estado") document.getElementById("facturas-filter-estado").value = "";
+        if (key === "metodoPago") document.getElementById("facturas-filter-metodo-pago").value = "";
         if (key === "desde") document.getElementById("facturas-filter-desde").value = "";
         if (key === "hasta") document.getElementById("facturas-filter-hasta").value = "";
         renderFacturas(filterFacturas());
@@ -2399,7 +2801,7 @@
     const tbody = document.getElementById("factura-items-tbody");
     const tr = document.createElement("tr");
     tr.innerHTML =
-      '<td><input type="text" class="item-desc" placeholder="Descripción" value="' +
+      '<td><input type="text" class="item-desc" placeholder="' + t("col_descripcion") + '" value="' +
       (item ? escapeHtml(item.descripcion) : "") +
       '" /></td>' +
       '<td><input type="number" class="item-cant" min="0" step="0.01" value="' +
@@ -2409,7 +2811,7 @@
       (item ? item.precio_unitario : 0) +
       '" /></td>' +
       '<td class="item-subtotal">$0.00</td>' +
-      '<td><button type="button" class="item-remove" title="Quitar línea">&times;</button></td>';
+      '<td><button type="button" class="item-remove" title="' + t("quitar_linea_title") + '">&times;</button></td>';
     tbody.appendChild(tr);
 
     tr.querySelectorAll(".item-cant, .item-precio").forEach((input) => {
@@ -2455,7 +2857,7 @@
       nota.hidden = false;
       nota.textContent = orden
         ? "Esta factura fue generada desde la orden #" + String(orden.numero).padStart(4, "0") + "."
-        : "Esta factura está vinculada a una orden de servicio.";
+        : t("factura_vinculada_orden_nota");
     } else {
       nota.hidden = true;
     }
@@ -2468,7 +2870,7 @@
     const garantiaDias = state.configNegocio ? Number(state.configNegocio.garantia_dias) || 0 : 0;
     const garantiaHasta = factura && garantiaDias ? sumarDias(factura.fecha, garantiaDias) : null;
     notaGarantia.hidden = !garantiaHasta;
-    if (garantiaHasta) notaGarantia.textContent = "Garantía válida hasta: " + formatDate(garantiaHasta);
+    if (garantiaHasta) notaGarantia.textContent = t("garantia_valida_hasta") + formatDate(garantiaHasta);
 
     const selectMecanico = document.getElementById("factura-mecanico");
     selectMecanico.innerHTML =
@@ -2484,6 +2886,7 @@
     document.getElementById("factura-cliente").value = factura ? (factura.clientes ? factura.clientes.nombre : clienteExistente ? clienteExistente.nombre : "") : "";
     document.getElementById("factura-fecha").value = factura ? factura.fecha : todayISO();
     document.getElementById("factura-estado").value = factura ? factura.estado : "pendiente";
+    document.getElementById("factura-metodo-pago").value = factura ? factura.metodo_pago || "" : "";
     document.getElementById("factura-notas").value = factura ? factura.notas || "" : "";
 
     const subtotalNum = factura ? Number(factura.subtotal) : 0;
@@ -2555,7 +2958,7 @@
 
     const items = collectItems();
     if (!items.length) {
-      showToast("Agrega al menos una línea con descripción.", true);
+      showToast(t("error_linea_descripcion"), true);
       return;
     }
 
@@ -2583,6 +2986,7 @@
       notas: document.getElementById("factura-notas").value.trim(),
       orden_id: ordenId,
       mecanico_id: document.getElementById("factura-mecanico").value || null,
+      metodo_pago: document.getElementById("factura-metodo-pago").value || null,
     };
 
     let facturaId = id;
@@ -2607,7 +3011,7 @@
     const itemsPayload = items.map((it) => Object.assign({}, it, { factura_id: facturaId }));
     const { error: itemsError } = await sb.from("factura_items").insert(itemsPayload);
     if (itemsError) {
-      showToast("La factura se guardó, pero hubo un error con las líneas.", true);
+      showToast(t("error_guardado_parcial_factura"), true);
     } else {
       showToast("Factura guardada.");
     }
@@ -2628,7 +3032,7 @@
   async function deleteFactura() {
     const id = document.getElementById("factura-id").value;
     if (!id) return;
-    if (!(await confirmDialog("¿Eliminar esta factura? Esta acción no se puede deshacer.", { title: "Eliminar factura" }))) return;
+    if (!(await confirmDialog(t("confirm_eliminar_factura"), { title: t("eliminar_factura_titulo") }))) return;
 
     const { error } = await sb.from("facturas").delete().eq("id", id);
     if (error) {
@@ -2649,7 +3053,7 @@
 
   // ---------------- estimados (presupuestos) ----------------
 
-  const ESTADO_ESTIMADO_LABELS = { pendiente: "Pendiente", aprobado: "Aprobado", rechazado: "Rechazado", convertido: "Convertido" };
+  const ESTADO_ESTIMADO_LABELS = { pendiente: t("estado_estim_pendiente"), aprobado: t("estado_estim_aprobado"), rechazado: t("estado_estim_rechazado"), convertido: t("estimado_convertido_corto") };
   function estadoEstimadoLabel(estado) {
     return ESTADO_ESTIMADO_LABELS[estado] || capitalize(estado);
   }
@@ -2659,7 +3063,7 @@
       "estimados",
       () => sb.from("estimados").select("*, clientes(nombre, apellido)").order("numero", { ascending: false }),
       [],
-      "No se pudieron cargar los presupuestos."
+      t("error_cargar_presupuestos")
     );
   }
 
@@ -2696,8 +3100,8 @@
       const tr = document.createElement("tr");
       const clienteNombre = e.clientes ? [e.clientes.nombre, e.clientes.apellido].filter(Boolean).join(" ") : "—";
       const actions = [
-        { key: "ver", icon: "eye", label: "Ver / editar" },
-        { key: "eliminar", icon: "trash", label: "Eliminar", danger: true },
+        { key: "ver", icon: "eye", label: t("btn_ver_editar") },
+        { key: "eliminar", icon: "trash", label: t("btn_eliminar"), danger: true },
       ];
       tr.innerHTML =
         "<td>#" + String(e.numero).padStart(4, "0") + "</td>" +
@@ -2718,7 +3122,7 @@
   async function deleteEstimado() {
     const id = document.getElementById("estimado-id").value;
     if (!id) return;
-    if (!(await confirmDialog("¿Eliminar este presupuesto? Esta acción no se puede deshacer.", { title: "Eliminar presupuesto" }))) return;
+    if (!(await confirmDialog(t("confirm_eliminar_presupuesto"), { title: t("eliminar_presupuesto_titulo") }))) return;
     const { error } = await sb.from("estimados").delete().eq("id", id);
     if (error) {
       showToast("No se pudo eliminar el presupuesto.", true);
@@ -2730,7 +3134,7 @@
   }
 
   async function deleteEstimadoRow(id) {
-    if (!(await confirmDialog("¿Eliminar este presupuesto? Esta acción no se puede deshacer.", { title: "Eliminar presupuesto" }))) return;
+    if (!(await confirmDialog(t("confirm_eliminar_presupuesto"), { title: t("eliminar_presupuesto_titulo") }))) return;
     const { error } = await sb.from("estimados").delete().eq("id", id);
     if (error) {
       showToast("No se pudo eliminar el presupuesto.", true);
@@ -2744,7 +3148,7 @@
     const tbody = document.getElementById("estimado-items-tbody");
     const tr = document.createElement("tr");
     tr.innerHTML =
-      '<td><input type="text" class="item-desc" placeholder="Descripción" value="' +
+      '<td><input type="text" class="item-desc" placeholder="' + t("col_descripcion") + '" value="' +
       (item ? escapeHtml(item.descripcion) : "") +
       '" /></td>' +
       '<td><input type="number" class="item-cant" min="0" step="0.01" value="' +
@@ -2754,7 +3158,7 @@
       (item ? item.precio_unitario : 0) +
       '" /></td>' +
       '<td class="item-subtotal">$0.00</td>' +
-      '<td><button type="button" class="item-remove" title="Quitar línea">&times;</button></td>';
+      '<td><button type="button" class="item-remove" title="' + t("quitar_linea_title") + '">&times;</button></td>';
     tbody.appendChild(tr);
 
     tr.querySelectorAll(".item-cant, .item-precio").forEach((input) => {
@@ -2864,13 +3268,13 @@
 
     const items = collectEstimadoItems();
     if (!items.length) {
-      showToast("Agrega al menos una línea con descripción.", true);
+      showToast(t("error_linea_descripcion"), true);
       return;
     }
 
     const clienteId = await resolveClienteIdByName(clienteNombre);
     if (!clienteId) {
-      showToast("No se encontró ese cliente.", true);
+      showToast(t("error_cliente_no_encontrado"), true);
       return;
     }
 
@@ -2909,7 +3313,7 @@
     const itemsPayload = items.map((it) => Object.assign({}, it, { estimado_id: estimadoId }));
     const { error: itemsError } = await sb.from("estimado_items").insert(itemsPayload);
     if (itemsError) {
-      showToast("El presupuesto se guardó, pero hubo un error con las líneas.", true);
+      showToast(t("error_guardado_parcial_presupuesto"), true);
     } else {
       showToast("Presupuesto guardado.");
     }
@@ -2920,7 +3324,7 @@
 
   async function convertirEstimadoAFactura(estimado) {
     if (!estimado || estimado.estado === "convertido") return;
-    if (!(await confirmDialog("¿Convertir este presupuesto en una factura? Se creará una factura nueva con las mismas líneas.", { title: "Convertir a factura" }))) return;
+    if (!(await confirmDialog(t("confirm_convertir_presupuesto"), { title: t("btn_convertir_factura") }))) return;
 
     const items = await fetchEstimadoItems(estimado.id);
     const payload = {
@@ -2959,14 +3363,14 @@
 
   // ---------------- reservas (bookings) ----------------
 
-  const ESTADO_RESERVA_LABELS = { agendada: "Agendada", confirmada: "Confirmada", completada: "Completada", cancelada: "Cancelada" };
+  const ESTADO_RESERVA_LABELS = { agendada: t("reserva_agendada"), confirmada: t("reserva_confirmada"), completada: t("reserva_completada"), cancelada: t("estado_cancelada") };
 
   async function fetchCitas() {
     return fetchConCache(
       "citas",
       () => sb.from("citas").select("*, clientes(nombre, apellido)").order("fecha", { ascending: true }).order("hora", { ascending: true }),
       [],
-      "No se pudieron cargar las reservas."
+      t("error_cargar_reservas")
     );
   }
 
@@ -2985,11 +3389,11 @@
 
     const activas = state.citas.filter((c) => c.estado !== "cancelada" && c.estado !== "completada");
     const grupos = [
-      { title: "Hoy", items: activas.filter((c) => c.fecha === hoy) },
-      { title: "Esta semana", items: activas.filter((c) => c.fecha > hoy && c.fecha <= limiteSemana) },
-      { title: "Más adelante", items: activas.filter((c) => c.fecha > limiteSemana) },
-      { title: "Atrasadas", items: activas.filter((c) => c.fecha < hoy) },
-      { title: "Completadas / canceladas", items: state.citas.filter((c) => c.estado === "cancelada" || c.estado === "completada") },
+      { title: t("titulo_hoy"), items: activas.filter((c) => c.fecha === hoy) },
+      { title: t("titulo_esta_semana"), items: activas.filter((c) => c.fecha > hoy && c.fecha <= limiteSemana) },
+      { title: t("mas_adelante"), items: activas.filter((c) => c.fecha > limiteSemana) },
+      { title: t("titulo_atrasadas"), items: activas.filter((c) => c.fecha < hoy) },
+      { title: t("titulo_completadas_canceladas"), items: state.citas.filter((c) => c.estado === "cancelada" || c.estado === "completada") },
     ];
 
     grupos.forEach((grupo) => {
@@ -3029,7 +3433,7 @@
     });
 
     if (!state.citas.length) {
-      container.innerHTML = emptyStateHtml("calendar", "Todavía no hay reservas agendadas.", "+ Crear la primera reserva", "empty-cta-reserva");
+      container.innerHTML = emptyStateHtml("calendar", t("vacio_reservas"), "+ Crear la primera reserva", "empty-cta-reserva");
       document.getElementById("empty-cta-reserva").addEventListener("click", () => openReservaModal(null));
     }
 
@@ -3085,7 +3489,7 @@
     const clienteNombre = document.getElementById("reserva-cliente").value.trim();
     const clienteId = clienteNombre ? findClienteByName(clienteNombre)?.id || null : null;
     if (clienteNombre && !clienteId) {
-      showToast("No se encontró ese cliente.", true);
+      showToast(t("error_cliente_no_encontrado"), true);
       return;
     }
 
@@ -3119,7 +3523,7 @@
   async function deleteReserva() {
     const id = document.getElementById("reserva-id").value;
     if (!id) return;
-    if (!(await confirmDialog("¿Eliminar esta reserva? Esta acción no se puede deshacer.", { title: "Eliminar reserva" }))) return;
+    if (!(await confirmDialog(t("confirm_eliminar_reserva"), { title: t("eliminar_reserva_titulo") }))) return;
     const { error } = await sb.from("citas").delete().eq("id", id);
     if (error) {
       showToast("No se pudo eliminar la reserva.", true);
@@ -3138,7 +3542,7 @@
     tbody.innerHTML = "";
     empty.hidden = list.length !== 0;
     if (!list.length) {
-      empty.innerHTML = emptyStateHtml("box", "Todavía no hay piezas registradas.", "+ Agregar la primera pieza", "empty-cta-pieza");
+      empty.innerHTML = emptyStateHtml("box", t("vacio_piezas"), "+ Agregar la primera pieza", "empty-cta-pieza");
       document.getElementById("empty-cta-pieza").addEventListener("click", () => openPiezaModal(null));
     }
 
@@ -3164,7 +3568,7 @@
   }
 
   const piezasSortState = { field: null, dir: 1 };
-  const PIEZAS_SORT_LABELS = { nombre: "Nombre", sku: "SKU", stock: "Stock", costo: "Costo", precio_venta: "Precio" };
+  const PIEZAS_SORT_LABELS = { nombre: t("col_nombre"), sku: "SKU", stock: t("col_stock"), costo: t("col_costo"), precio_venta: t("col_precio") };
 
   function piezaSortValue(p, field) {
     if (field === "stock" || field === "costo" || field === "precio_venta") return Number(p[field]) || 0;
@@ -3243,12 +3647,12 @@
   async function deletePieza() {
     const id = document.getElementById("pieza-id").value;
     if (!id) return;
-    if (!(await confirmDialog("¿Eliminar esta pieza? Esta acción no se puede deshacer.", { title: "Eliminar pieza" }))) return;
+    if (!(await confirmDialog(t("confirm_eliminar_pieza"), { title: t("eliminar_pieza_titulo") }))) return;
 
     const { error } = await sb.from("piezas").delete().eq("id", id);
     if (error) {
       if (error.code === "23503") {
-        showToast("No se puede eliminar: está siendo usada en una orden.", true);
+        showToast(t("error_pieza_en_uso"), true);
       } else {
         showToast("No se pudo eliminar la pieza.", true);
       }
@@ -3291,7 +3695,7 @@
       col.className = "kanban-column etapa-" + etapa.key;
       col.innerHTML =
         '<div class="kanban-column-header"><span class="kanban-column-title">' +
-        etapa.label +
+        t(etapa.labelKey) +
         '</span><span class="kanban-column-count">' +
         ordenesEtapa.length +
         "</span></div>" +
@@ -3316,7 +3720,7 @@
           escapeHtml(clienteNombre) +
           "</span>" +
           '<span class="kanban-card-sub">' +
-          escapeHtml(vehiculo || "Sin vehículo") +
+          escapeHtml(vehiculo || t("sin_vehiculo_opcion")) +
           "</span>" +
           (o.diagnostico ? '<span class="kanban-card-diag">' + escapeHtml(o.diagnostico) + "</span>" : "") +
           '<div class="kanban-card-actions"></div>';
@@ -3341,7 +3745,7 @@
         }
 
         const select = document.createElement("select");
-        select.innerHTML = ETAPAS.map((et) => '<option value="' + et.key + '"' + (et.key === o.etapa ? " selected" : "") + ">" + et.label + "</option>").join("");
+        select.innerHTML = ETAPAS.map((et) => '<option value="' + et.key + '"' + (et.key === o.etapa ? " selected" : "") + ">" + t(et.labelKey) + "</option>").join("");
         select.addEventListener("click", (e) => e.stopPropagation());
         select.addEventListener("change", async (e) => {
           e.stopPropagation();
@@ -3403,7 +3807,7 @@
       });
     const optNuevo = document.createElement("option");
     optNuevo.value = "__nuevo__";
-    optNuevo.textContent = "+ Nuevo vehículo";
+    optNuevo.textContent = t("btn_nuevo_vehiculo");
     select.appendChild(optNuevo);
 
     if (selectedVehiculoId && select.querySelector('option[value="' + selectedVehiculoId + '"]')) {
@@ -3502,10 +3906,10 @@
     if (orden && !orden.vehiculo_id && (orden.vehiculo_marca || orden.vehiculo_placa)) {
       legacyNota.hidden = false;
       legacyNota.textContent =
-        "Vehículo de esta orden (de antes de tener el listado de vehículos): " +
+        t("vehiculo_legacy_prefijo") +
         [orden.vehiculo_marca, orden.vehiculo_modelo, orden.vehiculo_anio].filter(Boolean).join(" ") +
         (orden.vehiculo_placa ? " — " + orden.vehiculo_placa : "") +
-        ". Si no hay ningún vehículo del cliente para elegir abajo, se va a crear uno con estos mismos datos al guardar.";
+        t("vehiculo_legacy_sufijo");
       if (document.getElementById("orden-vehiculo").value === "__nuevo__") {
         document.getElementById("orden-nuevo-vehiculo-marca").value = orden.vehiculo_marca || "";
         document.getElementById("orden-nuevo-vehiculo-modelo").value = orden.vehiculo_modelo || "";
@@ -3533,7 +3937,7 @@
     const nota = document.getElementById("orden-etapa-nota");
     if (orden) {
       nota.hidden = false;
-      nota.textContent = "Etapa actual: " + etapaLabel(orden.etapa) + " — para cambiarla, usa el tablero de Órdenes de servicio.";
+      nota.textContent = t("etapa_actual_prefijo") + etapaLabel(orden.etapa) + t("etapa_actual_sufijo");
     } else {
       nota.hidden = true;
     }
@@ -3656,11 +4060,11 @@
     const nombre = document.getElementById("orden-firma-nombre").value.trim();
     if (!ordenId) return;
     if (!nombre) {
-      showToast("Escribe el nombre de quien recibe el vehículo.", true);
+      showToast(t("error_nombre_recibe_vacio"), true);
       return;
     }
     if (!firmaTieneTrazo) {
-      showToast("Todavía no hay una firma dibujada. Dibújala en el recuadro antes de guardar.", true);
+      showToast(t("error_firma_vacia"), true);
       return;
     }
     const canvas = document.getElementById("orden-firma-canvas");
@@ -3718,7 +4122,7 @@
       };
       const { data, error } = await sb.from("vehiculos").insert(nuevoVehiculo).select().single();
       if (error) {
-        showToast("No se pudo guardar el vehículo: " + error.message, true);
+        showToast(t("error_guardar_vehiculo", { error: error.message }), true);
         return;
       }
       vehiculo = data;
@@ -3803,7 +4207,7 @@
   async function deleteOrden() {
     const id = document.getElementById("orden-id").value;
     if (!id) return;
-    if (!(await confirmDialog("¿Eliminar esta orden de servicio? Esta acción no se puede deshacer.", { title: "Eliminar orden" }))) return;
+    if (!(await confirmDialog(t("confirm_eliminar_orden"), { title: t("eliminar_orden_titulo") }))) return;
 
     for (const old of ordenPiezasOriginal) {
       await adjustPiezaStock(old.pieza_id, Number(old.cantidad));
@@ -3836,6 +4240,7 @@
     document.getElementById("factura-cliente").value = orden.clientes ? orden.clientes.nombre : clienteOrden ? clienteOrden.nombre : "";
     document.getElementById("factura-fecha").value = todayISO();
     document.getElementById("factura-estado").value = "pendiente";
+    document.getElementById("factura-metodo-pago").value = "";
     const tasaDefault = state.configNegocio ? Number(state.configNegocio.tasa_impuesto_default) || 0 : 0;
     document.getElementById("factura-impuesto-pct").value = tasaDefault;
     document.getElementById("factura-labor").value = 0;
@@ -3844,7 +4249,7 @@
 
     const nota = document.getElementById("factura-orden-nota");
     nota.hidden = false;
-    nota.textContent = "Esta factura se está generando desde la orden #" + String(orden.numero).padStart(4, "0") + ".";
+    nota.textContent = t("factura_generada_desde_orden", { numero: String(orden.numero).padStart(4, "0") });
 
     document.getElementById("factura-items-tbody").innerHTML = "";
     const piezasOrden = await fetchOrdenPiezas(orden.id);
@@ -3881,9 +4286,9 @@
   // ---------------- llamadas pendientes (por llamar) ----------------
 
   const MOTIVO_LLAMADA_LABELS = {
-    recibido: "Confirmar que se recibió el carro",
-    presupuesto: "Avisar diagnóstico/presupuesto",
-    listo: "Avisar que está listo",
+    recibido: t("etapa_accion_confirmar_recibido"),
+    presupuesto: t("etapa_accion_avisar_diagnostico"),
+    listo: t("etapa_accion_avisar_listo"),
   };
 
   async function crearLlamadaPendiente(ordenId, motivo) {
@@ -4011,7 +4416,7 @@
       "gastos",
       () => sb.from("gastos").select("*").order("fecha", { ascending: false }),
       [],
-      "No se pudieron cargar los gastos."
+      t("error_cargar_gastos")
     );
   }
 
@@ -4102,8 +4507,8 @@
     state.gastos.forEach((g) => {
       const tr = document.createElement("tr");
       const actions = [
-        { key: "editar", icon: "edit", label: "Editar" },
-        { key: "eliminar", icon: "trash", label: "Eliminar", danger: true },
+        { key: "editar", icon: "edit", label: t("btn_editar") },
+        { key: "eliminar", icon: "trash", label: t("btn_eliminar"), danger: true },
       ];
       tr.innerHTML =
         "<td>" + escapeHtml(formatDate(g.fecha)) + "</td>" +
@@ -4160,7 +4565,7 @@
 
   async function deleteGastoRow(id) {
     if (!id) return;
-    if (!(await confirmDialog("¿Eliminar este gasto?", { title: "Eliminar gasto" }))) return;
+    if (!(await confirmDialog(t("confirm_eliminar_gasto_simple"), { title: t("eliminar_gasto_titulo") }))) return;
     const { error } = await sb.from("gastos").delete().eq("id", id);
     if (error) {
       showToast("No se pudo eliminar el gasto.", true);
@@ -4218,11 +4623,11 @@
     if (!nombre) return;
     const { error } = await sb.from("mecanicos").insert({ nombre });
     if (error) {
-      showToast("No se pudo agregar el mecánico.", true);
+      showToast(t("error_agregar_mecanico"), true);
       return;
     }
     input.value = "";
-    showToast("Mecánico agregado.");
+    showToast(t("mecanico_agregado"));
     await refreshMecanicos();
   }
 
@@ -4231,24 +4636,24 @@
     if (!mecanico) return;
     const { error } = await sb.from("mecanicos").update({ activo: !mecanico.activo }).eq("id", id);
     if (error) {
-      showToast("No se pudo actualizar el mecánico.", true);
+      showToast(t("error_actualizar_mecanico"), true);
       return;
     }
     await refreshMecanicos();
   }
 
   async function eliminarMecanico(id) {
-    if (!(await confirmDialog("¿Eliminar este mecánico? Esta acción no se puede deshacer.", { title: "Eliminar mecánico" }))) return;
+    if (!(await confirmDialog(t("confirm_eliminar_mecanico"), { title: t("eliminar_mecanico_titulo") }))) return;
     const { error } = await sb.from("mecanicos").delete().eq("id", id);
     if (error) {
       if (error.code === "23503") {
         showToast("No se puede eliminar: tiene filas guardadas en el registro diario. Puedes desactivarlo en vez de eliminarlo.", true);
       } else {
-        showToast("No se pudo eliminar el mecánico.", true);
+        showToast(t("error_eliminar_mecanico"), true);
       }
       return;
     }
-    showToast("Mecánico eliminado.");
+    showToast(t("mecanico_eliminado"));
     await refreshMecanicos();
   }
 
@@ -4257,7 +4662,7 @@
   async function fetchRegistroDiario(fecha) {
     const { data, error } = await sb.from("registro_diario").select("*").eq("fecha", fecha).maybeSingle();
     if (error) {
-      showToast("No se pudo cargar el registro del día.", true);
+      showToast(t("error_cargar_registro_dia"), true);
       return null;
     }
     return data;
@@ -4288,9 +4693,9 @@
 
   async function irAFechaRegistro(nuevaFecha) {
     if (registroDiarioSucio) {
-      const seguir = await confirmDialog("Tienes cambios sin guardar en el registro de hoy. Si cambias de día se van a perder. ¿Quieres continuar sin guardarlos?", {
-        title: "Cambios sin guardar",
-        okLabel: "Continuar sin guardar",
+      const seguir = await confirmDialog(t("confirm_cambios_sin_guardar"), {
+        title: t("cambios_sin_guardar_titulo"),
+        okLabel: t("btn_continuar_sin_guardar"),
       });
       if (!seguir) {
         document.getElementById("registro-fecha").value = state.registroDiarioFechaActual || todayISO();
@@ -4303,20 +4708,20 @@
   }
 
   const REGISTRO_COLUMNAS_DEF = {
-    carro: { label: "Carro", celda: (item) => '<input type="text" class="reg-carro" value="' + (item ? escapeHtml(item.carro || "") : "") + '" />' },
-    descripcion: { label: "Descripción", celda: (item) => '<input type="text" class="reg-desc" value="' + (item ? escapeHtml(item.descripcion || "") : "") + '" />' },
-    labor: { label: "Labor", celda: (item) => '<input type="number" class="reg-labor" step="0.01" min="0" value="' + (item ? item.labor : 0) + '" />' },
-    piezas: { label: "Piezas", celda: (item) => '<input type="number" class="reg-piezas" step="0.01" min="0" value="' + (item ? item.piezas : 0) + '" />' },
-    otro: { label: "Otro", celda: (item) => '<input type="number" class="reg-otro" step="0.01" min="0" value="' + (item ? item.otro : 0) + '" />' },
-    dinero_salida: { label: "Dinero de salida", celda: (item) => '<input type="number" class="reg-dinero-salida" step="0.01" min="0" value="' + (item ? item.dinero_salida : 0) + '" />' },
+    carro: { label: t("col_carro"), celda: (item) => '<input type="text" class="reg-carro" value="' + (item ? escapeHtml(item.carro || "") : "") + '" />' },
+    descripcion: { label: t("col_descripcion"), celda: (item) => '<input type="text" class="reg-desc" value="' + (item ? escapeHtml(item.descripcion || "") : "") + '" />' },
+    labor: { label: t("mano_obra_corta"), celda: (item) => '<input type="number" class="reg-labor" step="0.01" min="0" value="' + (item ? item.labor : 0) + '" />' },
+    piezas: { label: t("kpi_piezas_dia_corta"), celda: (item) => '<input type="number" class="reg-piezas" step="0.01" min="0" value="' + (item ? item.piezas : 0) + '" />' },
+    otro: { label: t("otro_label"), celda: (item) => '<input type="number" class="reg-otro" step="0.01" min="0" value="' + (item ? item.otro : 0) + '" />' },
+    dinero_salida: { label: t("kpi_dinero_salida"), celda: (item) => '<input type="number" class="reg-dinero-salida" step="0.01" min="0" value="' + (item ? item.dinero_salida : 0) + '" />' },
     factura: {
-      label: "Factura",
+      label: t("nav_facturas"),
       celda: (item) =>
         '<button type="button" class="reg-factura-btn' +
         (item && item.factura_id ? " is-vinculada" : "") +
         '" aria-label="' +
-        (item && item.factura_id ? "Factura vinculada" : "Vincular factura") +
-        (item && item.carro ? " para " + escapeHtml(item.carro) : "") +
+        (item && item.factura_id ? t("factura_vinculada_label") : t("vincular_factura_label")) +
+        (item && item.carro ? " " + t("para_prefijo") + escapeHtml(item.carro) : "") +
         '">' +
         facturaBadgeLabel(item && item.factura_id) +
         "</button>",
@@ -4419,7 +4824,7 @@
     const mecanicosActivos = state.mecanicos.filter((m) => m.activo);
 
     if (!mecanicosActivos.length) {
-      container.innerHTML = "<p class='empty-state'>Todavía no hay mecánicos activos. Agrega uno en Configuración &rarr; Mecánicos.</p>";
+      container.innerHTML = "<p class='empty-state'>" + t("sin_mecanicos_activos") + "</p>";
       recalcularRegistroDiario();
       renderFotoHojaRegistro(registro);
       return;
@@ -4479,9 +4884,9 @@
   }
 
   function facturaBadgeLabel(facturaId) {
-    if (!facturaId) return "+ Vincular";
+    if (!facturaId) return t("mas_vincular");
     const f = state.facturas.find((x) => x.id === facturaId);
-    return f ? "#" + String(f.numero).padStart(4, "0") : "+ Vincular";
+    return f ? "#" + String(f.numero).padStart(4, "0") : t("mas_vincular");
   }
 
   function addRegistroItemRow(tbody, item) {
@@ -4491,7 +4896,12 @@
     tr.innerHTML =
       getRegistroColumnOrder()
         .map((key) => "<td>" + REGISTRO_COLUMNAS_DEF[key].celda(item) + "</td>")
-        .join("") + '<td><button type="button" class="item-remove" title="Quitar fila">&times;</button></td>';
+        .join("") +
+      "<td><button type=\"button\" class=\"item-ticket\" title=\"" +
+      t("btn_imprimir_ticket_title") +
+      "\">🖨️</button><button type=\"button\" class=\"item-remove\" title=\"" +
+      t("quitar_fila_title") +
+      "\">&times;</button></td>";
     tbody.appendChild(tr);
 
     tr.querySelectorAll(".reg-carro, .reg-desc, .reg-labor, .reg-piezas, .reg-otro, .reg-dinero-salida").forEach((input) => {
@@ -4505,6 +4915,7 @@
       registroDiarioSucio = true;
       recalcularRegistroDiario();
     });
+    tr.querySelector(".item-ticket").addEventListener("click", () => imprimirTicketTrabajo(tr));
     tr.querySelector(".reg-factura-btn").addEventListener("click", () => abrirVincularFactura(tr));
 
     return tr;
@@ -4549,8 +4960,8 @@
       warningEl.hidden = false;
       warningEl.textContent =
         diferencia > 0
-          ? "El trabajo del día (" + money(trabajoTotal) + ") es " + money(diferencia) + " más que el cierre de caja (" + money(cajaTotal) + ")."
-          : "El cierre de caja (" + money(cajaTotal) + ") es " + money(-diferencia) + " más que el trabajo del día (" + money(trabajoTotal) + "). Puede ser normal si hubo dinero de salida.";
+          ? t("mismatch_trabajo_mayor", { trabajo: money(trabajoTotal), diferencia: money(diferencia), caja: money(cajaTotal) })
+          : t("mismatch_caja_mayor", { caja: money(cajaTotal), diferencia: money(-diferencia), trabajo: money(trabajoTotal) });
     } else {
       warningEl.hidden = true;
       warningEl.textContent = "";
@@ -4559,7 +4970,7 @@
 
   async function guardarRegistroDiario() {
     if (registroDiarioCerrado) {
-      showToast("Este día ya está cerrado. Reábrelo primero para poder editarlo.", true);
+      showToast(t("error_dia_cerrado_editar"), true);
       return;
     }
     const fecha = document.getElementById("registro-fecha").value;
@@ -4586,7 +4997,7 @@
     }
 
     if (error) {
-      showToast("No se pudo guardar el registro del día.", true);
+      showToast(t("error_guardar_registro"), true);
       return;
     }
 
@@ -4620,25 +5031,25 @@
 
     const { error: delError } = await sb.from("registro_diario_items").delete().eq("registro_id", registroId);
     if (delError) {
-      showToast("No se pudo guardar el registro del día.", true);
+      showToast(t("error_guardar_registro"), true);
       return;
     }
     if (filas.length) {
       const { error: insItemsError } = await sb.from("registro_diario_items").insert(filas);
       if (insItemsError) {
-        showToast("No se pudo guardar el registro del día.", true);
+        showToast(t("error_guardar_registro"), true);
         return;
       }
     }
 
     state.registroDiarioId = registroId;
-    showToast("Registro del día guardado.");
+    showToast(t("registro_guardado"));
     await cargarRegistroDiario(fecha);
   }
 
   async function duplicarDiaAnterior() {
     if (registroDiarioCerrado) {
-      showToast("Este día está cerrado, no se puede editar.", true);
+      showToast(t("error_dia_cerrado_simple"), true);
       return;
     }
     const fechaActual = document.getElementById("registro-fecha").value;
@@ -4646,9 +5057,9 @@
 
     const hayFilas = document.querySelectorAll(".registro-items-tbody tr").length > 0;
     if (hayFilas) {
-      const seguir = await confirmDialog("Esto va a agregar las filas de ayer (sin los montos, solo carro y descripción) a las de hoy. ¿Continuar?", {
-        title: "Duplicar día anterior",
-        okLabel: "Sí, agregar",
+      const seguir = await confirmDialog(t("confirm_duplicar_dia"), {
+        title: t("btn_duplicar_dia"),
+        okLabel: t("btn_si_agregar"),
       });
       if (!seguir) return;
     }
@@ -4659,12 +5070,12 @@
 
     const registroAnterior = await fetchRegistroDiario(fechaAnterior);
     if (!registroAnterior) {
-      showToast("El día anterior no tiene un registro guardado.", true);
+      showToast(t("error_dia_anterior_sin_registro"), true);
       return;
     }
     const itemsAnteriores = await fetchRegistroDiarioItems(registroAnterior.id);
     if (!itemsAnteriores.length) {
-      showToast("El día anterior no tiene filas guardadas.", true);
+      showToast(t("error_dia_anterior_sin_filas"), true);
       return;
     }
 
@@ -4677,7 +5088,7 @@
 
     registroDiarioSucio = true;
     recalcularRegistroDiario();
-    showToast("Filas de ayer agregadas. Revisa los montos y guarda cuando estés listo.");
+    showToast(t("filas_duplicadas_msg"));
   }
 
   let vincularFacturaMapaLabels = {};
@@ -4760,7 +5171,7 @@
       filasHtml +=
         "<h3>" +
         escapeHtml(mecanico ? mecanico.nombre : "") +
-        "</h3><table><thead><tr><th>Carro</th><th>Descripción</th><th class='num'>Labor</th><th class='num'>Piezas</th><th class='num'>Otro</th><th class='num'>Dinero de salida</th></tr></thead><tbody>";
+        "</h3><table><thead><tr><th>" + t("col_carro") + "</th><th>" + t("col_descripcion") + "</th><th class='num'>" + t("mano_obra_corta") + "</th><th class='num'>" + t("kpi_piezas_dia_corta") + "</th><th class='num'>" + t("otro_label") + "</th><th class='num'>" + t("kpi_dinero_salida") + "</th></tr></thead><tbody>";
       filasMecanico.forEach((tr) => {
         filasHtml +=
           "<tr><td>" +
@@ -4785,7 +5196,7 @@
     const check = document.getElementById("registro-check").value;
 
     const html =
-      "<!doctype html><html><head><meta charset='utf-8'><title>Registro diario " +
+      "<!doctype html><html><head><meta charset='utf-8'><title>" + t("nav_registro_diario") + " " +
       escapeHtml(fecha) +
       "</title><style>" +
       "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:2rem;}" +
@@ -4796,17 +5207,17 @@
       ".totales{margin-top:1.5rem;font-size:.9rem;}" +
       "@media print{body{padding:0;}}" +
       "</style></head><body>" +
-      "<h1>Registro diario — " +
+      "<h1>" + t("nav_registro_diario") + " — " +
       escapeHtml(formatDate(fecha)) +
       "</h1>" +
       filasHtml +
-      "<div class='totales'><strong>Cierre de caja:</strong> Tarjeta " +
+      "<div class='totales'><strong>" + t("cierre_caja_titulo") + ":</strong> " + t("metodo_tarjeta") + " " +
       money(cc) +
-      " · Efectivo " +
+      " · " + t("metodo_efectivo") + " " +
       money(cash) +
-      " · Cheque " +
+      " · " + t("metodo_cheque") + " " +
       money(check) +
-      " · Total " +
+      " · " + t("col_total") + " " +
       money((parseFloat(cc) || 0) + (parseFloat(cash) || 0) + (parseFloat(check) || 0)) +
       "</div>" +
       "</body></html>";
@@ -4816,27 +5227,27 @@
 
   async function cerrarRegistroDiario() {
     if (!state.registroDiarioId) {
-      showToast("Guarda el registro del día primero.", true);
+      showToast(t("error_guarda_registro_primero"), true);
       return;
     }
-    if (!(await confirmDialog("¿Cerrar este día? No se podrá editar hasta que lo reabras.", { title: "Cerrar día", okLabel: "Cerrar día" }))) return;
+    if (!(await confirmDialog(t("confirm_cerrar_dia"), { title: t("btn_cerrar_dia"), okLabel: t("btn_cerrar_dia") }))) return;
     const { error } = await sb.from("registro_diario").update({ cerrado: true, cerrado_en: new Date().toISOString() }).eq("id", state.registroDiarioId);
     if (error) {
-      showToast("No se pudo cerrar el día.", true);
+      showToast(t("error_cerrar_dia"), true);
       return;
     }
-    showToast("Día cerrado.");
+    showToast(t("dia_cerrado_msg"));
     await cargarRegistroDiario(document.getElementById("registro-fecha").value);
   }
 
   async function reabrirRegistroDiario() {
-    if (!(await confirmDialog("¿Reabrir este día para poder editarlo de nuevo?", { title: "Reabrir día", okLabel: "Reabrir" }))) return;
+    if (!(await confirmDialog(t("confirm_reabrir_dia"), { title: t("btn_reabrir_dia"), okLabel: t("btn_reabrir") }))) return;
     const { error } = await sb.from("registro_diario").update({ cerrado: false }).eq("id", state.registroDiarioId);
     if (error) {
-      showToast("No se pudo reabrir el día.", true);
+      showToast(t("error_reabrir_dia"), true);
       return;
     }
-    showToast("Día reabierto.");
+    showToast(t("dia_reabierto_msg"));
     await cargarRegistroDiario(document.getElementById("registro-fecha").value);
   }
 
@@ -4850,7 +5261,7 @@
       preview.innerHTML =
         '<div class="orden-fotos-grid"><div class="orden-foto-item"><img src="' +
         escapeHtml(registro.foto_hoja_url) +
-        '" alt="Foto de la hoja del día" /><button type="button" class="orden-foto-eliminar" id="btn-eliminar-foto-hoja" title="Eliminar foto">&times;</button></div></div>';
+        '" alt="' + t("foto_hoja_dia_alt") + '" /><button type="button" class="orden-foto-eliminar" id="btn-eliminar-foto-hoja" title="' + t("confirm_eliminar_foto_titulo") + '">&times;</button></div></div>';
       const btnEliminar = document.getElementById("btn-eliminar-foto-hoja");
       if (btnEliminar) btnEliminar.addEventListener("click", eliminarFotoHojaRegistro);
     } else {
@@ -4883,7 +5294,7 @@
   }
 
   async function eliminarFotoHojaRegistro() {
-    if (!(await confirmDialog("¿Eliminar esta foto?", { title: "Eliminar foto" }))) return;
+    if (!(await confirmDialog(t("confirm_eliminar_foto"), { title: t("confirm_eliminar_foto_titulo") }))) return;
     if (registroDiarioActual && registroDiarioActual.foto_hoja_storage_path) {
       await sb.storage.from("fotos-registro-diario").remove([registroDiarioActual.foto_hoja_storage_path]);
     }
@@ -5005,7 +5416,7 @@
     for (let dia = 1; dia <= ultimoDiaNum; dia++) {
       const fecha = mesActual + "-" + String(dia).padStart(2, "0");
       const registroDelDia = porFecha[fecha];
-      const etiquetaDia = formatDate(fecha) + (registroDelDia ? (registroDelDia.cerrado ? " — día cerrado" : " — registro guardado") : "");
+      const etiquetaDia = formatDate(fecha) + (registroDelDia ? (registroDelDia.cerrado ? " — " + t("dia_cerrado_sufijo") : " — " + t("registro_guardado_sufijo")) : "");
       celdas +=
         '<button type="button" class="registro-calendario-dia' +
         (registroDelDia ? " tiene-registro" : "") +
@@ -5053,7 +5464,7 @@
       "configNegocio",
       () => sb.from("configuracion_negocio").select("*").eq("id", 1).maybeSingle(),
       null,
-      "No se pudo cargar la configuración."
+      t("error_cargar_configuracion")
     );
   }
 
@@ -5081,6 +5492,8 @@
     document.getElementById("config-texto-adicional").value = c.texto_adicional || "";
     document.getElementById("config-tasa-impuesto-default").value = c.tasa_impuesto_default || 0;
     document.getElementById("config-garantia-dias").value = c.garantia_dias || 90;
+    document.getElementById("config-garantia-labor-dias").value = c.garantia_labor_dias || 45;
+    document.getElementById("config-numero-fiscal").value = c.numero_fiscal || "";
     document.getElementById("config-formato-fecha").value = c.formato_fecha || "MM/DD/YYYY";
     document.getElementById("config-color-acento").value = c.color_acento || "#d5601a";
     document.getElementById("config-factura-titulo").value = c.factura_titulo || "Factura";
@@ -5098,7 +5511,7 @@
     ]
       .filter(Boolean)
       .join(" · ");
-    const pie = document.getElementById("config-mensaje-pie").value.trim() || "¡Gracias por su preferencia!";
+    const pie = document.getElementById("config-mensaje-pie").value.trim() || t("gracias_preferencia");
     const logoUrl = document.getElementById("config-logo-url").value.trim();
     const extra = document.getElementById("config-texto-adicional").value.trim();
     const colorAcento = document.getElementById("config-color-acento").value || "#d5601a";
@@ -5134,6 +5547,8 @@
       texto_adicional: document.getElementById("config-texto-adicional").value.trim(),
       tasa_impuesto_default: parseFloat(document.getElementById("config-tasa-impuesto-default").value) || 0,
       garantia_dias: parseInt(document.getElementById("config-garantia-dias").value, 10) || 90,
+      garantia_labor_dias: parseInt(document.getElementById("config-garantia-labor-dias").value, 10) || 45,
+      numero_fiscal: document.getElementById("config-numero-fiscal").value.trim() || null,
       formato_fecha: document.getElementById("config-formato-fecha").value,
       color_acento: document.getElementById("config-color-acento").value || "#d5601a",
       factura_titulo: document.getElementById("config-factura-titulo").value.trim() || "Factura",
@@ -5143,26 +5558,26 @@
 
     const { error } = await sb.from("configuracion_negocio").upsert(payload, { onConflict: "id" });
     if (error) {
-      showToast("No se pudo guardar la configuración: " + error.message, true);
+      showToast(t("error_guardar_configuracion", { error: error.message }), true);
       return;
     }
 
-    showToast("Configuración guardada.");
+    showToast(t("configuracion_guardada"));
     await refreshConfigNegocio();
   }
 
   // ---------------- dashboard ----------------
 
   const QUICK_ACCESS = [
-    { view: "clientes", icon: "user", label: "Clientes" },
-    { view: "reservas", icon: "calendar", label: "Bookings" },
-    { view: "ordenes", icon: "wrench", label: "Órdenes de servicio", badge: "neutral" },
-    { view: "inventario", icon: "box", label: "Inventario", badge: "danger" },
-    { view: "llamadas", icon: "phone", label: "Por llamar", badge: "warning" },
-    { view: "facturas", icon: "file-text", label: "Facturas", badge: "warning" },
-    { view: "estimados", icon: "clipboard", label: "Estimates", badge: "neutral" },
-    { view: "registro-diario", icon: "hash", label: "Registro diario", badge: "warning" },
-    { view: "configuracion", icon: "settings", label: "Configuración" },
+    { view: "clientes", icon: "user", label: t("nav_clientes") },
+    { view: "reservas", icon: "calendar", label: t("nav_reservas") },
+    { view: "ordenes", icon: "wrench", label: t("nav_ordenes"), badge: "neutral" },
+    { view: "inventario", icon: "box", label: t("nav_inventario"), badge: "danger" },
+    { view: "llamadas", icon: "phone", label: t("nav_llamadas"), badge: "warning" },
+    { view: "facturas", icon: "file-text", label: t("nav_facturas"), badge: "warning" },
+    { view: "estimados", icon: "clipboard", label: t("nav_estimados"), badge: "neutral" },
+    { view: "registro-diario", icon: "hash", label: t("nav_registro_diario"), badge: "warning" },
+    { view: "configuracion", icon: "settings", label: t("nav_configuracion") },
   ];
 
   function renderQuickAccess() {
@@ -5222,7 +5637,7 @@
     if (ingresosMesAnioPasado > 0) {
       const cambio = ((ingresosMes - ingresosMesAnioPasado) / ingresosMesAnioPasado) * 100;
       comparacionEl.hidden = false;
-      comparacionEl.textContent = (cambio >= 0 ? "▲ " : "▼ ") + Math.abs(cambio).toFixed(0) + "% vs. el mismo mes del año pasado";
+      comparacionEl.textContent = (cambio >= 0 ? "▲ " : "▼ ") + t("vs_mismo_mes_anio_pasado", { pct: Math.abs(cambio).toFixed(0) });
       comparacionEl.style.color = cambio >= 0 ? "var(--success)" : "var(--danger)";
     } else {
       comparacionEl.hidden = true;
@@ -5244,14 +5659,14 @@
     const counts = document.getElementById("dashboard-etapa-counts");
     counts.innerHTML = ETAPAS.map((etapa) => {
       const n = state.ordenes.filter((o) => o.etapa === etapa.key).length;
-      return '<span class="etapa-count-item">' + etapa.label + ": <strong>" + n + "</strong></span>";
+      return '<span class="etapa-count-item">' + t(etapa.labelKey) + ": <strong>" + n + "</strong></span>";
     }).join("");
 
     const pagadas = state.facturas.filter((f) => f.estado === "pagada").sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
     const pendientesOrdenadas = pendientes.slice().sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
 
-    renderPagoPanel("pago-panel-pendientes", pendientesOrdenadas);
-    renderPagoPanel("pago-panel-pagadas", pagadas);
+    renderPagoPanel("pago-panel-pendientes", pendientesOrdenadas, false);
+    renderPagoPanel("pago-panel-pagadas", pagadas, true);
     document.getElementById("pago-panel-pendientes-count").textContent = String(pendientesOrdenadas.length);
     document.getElementById("pago-panel-pagadas-count").textContent = String(pagadas.length);
 
@@ -5321,7 +5736,7 @@
     });
   }
 
-  function renderPagoPanel(containerId, facturasList) {
+  function renderPagoPanel(containerId, facturasList, soloLectura) {
     const el = document.getElementById(containerId);
     if (!facturasList.length) {
       el.innerHTML = '<p class="detalle-empty">Nada por aquí.</p>';
@@ -5344,6 +5759,10 @@
       .join("");
     el.querySelectorAll("[data-pago-factura]").forEach((row) => {
       makeRowActivatable(row, () => {
+        if (soloLectura) {
+          printFactura(row.dataset.pagoFactura, true);
+          return;
+        }
         const factura = state.facturas.find((f) => f.id === row.dataset.pagoFactura);
         if (factura) openFacturaModal(factura);
       });
@@ -5403,6 +5822,7 @@
     document.getElementById("factura-labor").addEventListener("input", recalcTotals);
     document.getElementById("facturas-search").addEventListener("input", () => renderFacturas(filterFacturas()));
     document.getElementById("facturas-filter-estado").addEventListener("change", () => renderFacturas(filterFacturas()));
+    document.getElementById("facturas-filter-metodo-pago").addEventListener("change", () => renderFacturas(filterFacturas()));
     document.getElementById("facturas-filter-desde").addEventListener("change", () => renderFacturas(filterFacturas()));
     document.getElementById("facturas-filter-hasta").addEventListener("change", () => renderFacturas(filterFacturas()));
     wireSortHeaders(document.querySelector("#view-facturas thead tr"), facturasSortState, FACTURAS_SORT_LABELS, () => renderFacturas(filterFacturas()));
@@ -5651,7 +6071,7 @@
     const result = await resp.json();
 
     if (!resp.ok) {
-      showToast(result.error || "No se pudo crear el empleado.", true);
+      showToast(result.error || t("error_crear_empleado"), true);
       return;
     }
 
@@ -5695,6 +6115,7 @@
     });
   }
 
+  initIdioma();
   initTheme();
   initAuth();
   initNav();
