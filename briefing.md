@@ -307,3 +307,58 @@ Nada que hacer en este momento, Luis. Si querés, puedo:
 - Bajar el umbral (ej. clientes que no vuelven en más de 60 o 45 días), que probablemente sí devuelva nombres.
 - Verificar cuántos clientes y facturas hay en total, para confirmar que la base tiene los datos esperados y el resultado vacío es real y no un problema de datos.
 
+## Briefing 2026-08-07
+Verifiqué 5 candidatos y descarté 2 (Larry Auto Service sí tiene web propia; Humberto's Barber Shop dio direcciones contradictorias entre fuentes). Estos 3 sí los pude confirmar:
+
+## Lista
+
+- **Checo's Auto Repair** (121 West St, Lawrence) — No tiene web propia. Lo único que aparece como "sitio" es `checoautorepair.localsearch.com`, un micrositio auto-generado por Thryv desde su ficha de Yellow Pages: solo teléfono, dirección, horario y una reseña. Sin lista de servicios, sin precios, sin formulario de contacto. Su única presencia real que controlan es Instagram [@checo_auto](https://www.instagram.com/checo_auto/). Directorios como Loc8NearMe listan el campo "Website" como vacío. — contacto: (978) 725-8005 · 31 años en el negocio · 4.8★ con 107 reseñas en CARFAX
+- **Union Seafood & Meat Market** (208 S Broadway, Lawrence) — Solo página de Facebook, sin web. Yahoo Local lo lista sin website y **sin horarios**. Es una bodega latina con mostrador de carne/mariscos y comida dominicana para llevar atrás, pero no hay menú ni precios en ningún lado — solo videos sueltos en Facebook. — contacto: (978) 208-7504 · [facebook.com/Unionseafoodmeatmarket](https://www.facebook.com/Unionseafoodmeatmarket/)
+- **Methuen Family Restaurant** (246 Broadway, Methuen) — Solo Facebook (~2,100 likes), sin web propia; busqué `methuenfamilyrestaurant.com` y no existe. Su menú solo vive en plataformas de terceros (Zmenu, MenuPix) que ellos no controlan. Además los horarios están inconsistentes entre fuentes: unas dicen lun-vie 6am-2pm, otras todos los días 6am-2pm. — contacto: (978) 683-7050 · [facebook.com/methuenfamilyrestaurant](https://www.facebook.com/methuenfamilyrestaurant)
+
+## Notas de honestidad sobre la verificación
+
+- **Yelp me bloqueó** (403) en todas las fichas individuales, así que verifiqué el campo "website" cruzando directorios alternativos (Yahoo Local, YellowPages, Loc8NearMe) y buscando dominios directos. Es sólido, pero no es lo mismo que abrir Yelp o Google Maps a mano.
+- **No pude confirmar la fecha del último post** de ninguna de las páginas de Facebook (Facebook devolvió contenido truncado). Los tres tienen fichas actualizadas en Yelp entre abril y mayo de 2026, lo cual sugiere que siguen abiertos, pero vale la pena que **pases por el local o llames antes de invertir tiempo** en preparar una propuesta.
+- **Los emails no los encontré** para ninguno de los tres — solo teléfono. Para estos negocios el canal realista es WhatsApp o presencial, no email.
+
+## Por qué estos tres, en orden
+
+**Checo's** es tu mejor tiro: mismo giro que Gil's Muffler, a ~10 minutos, 31 años operando y 4.8★ — tiene reputación pero cero forma de capitalizarla online. Le puedes enseñar literalmente la app de Gil's y decir "esto lo hice para un taller como el tuyo aquí en Lawrence". La conversación se vende sola.
+
+**Union Seafood** es el que más pierde por no tener web: vende comida preparada y ni siquiera publica horarios. Un cliente que busca "dominican food near me" a las 7pm no tiene forma de saber si están abiertos.
+
+**Methuen Family Restaurant** es el más fácil de convencer con un argumento concreto: su menú está en manos de Zmenu y MenuPix, sitios que ellos no controlan y que pueden tener precios viejos. Eso es un problema tangible, no una venta abstracta de "necesitas presencia digital".
+
+**Sources:**
+- [Yelp — Checo, 121 West St, Lawrence](https://www.yelp.com/biz/checo-lawrence)
+- [Loc8NearMe — Checo's Auto Repair](https://www.loc8nearme.com/massachusetts/lawrence/checos-auto-repair/4399665/)
+- [YellowPages — Checo Auto Repair](https://www.yellowpages.com/lawrence-ma/mip/checo-auto-repair-11369773)
+- [Instagram — @checo_auto](https://www.instagram.com/checo_auto/)
+- [Yelp — Union Seafood & Meat Market](https://www.yelp.com/biz/union-seafood-and-meat-market-lawrence)
+- [Yahoo Local — Union Seafood & Meat Market](https://local.yahoo.com/info-223931512-union-seafood-meat-market-lawrence/)
+- [Facebook — Union Seafood & Meat Market](https://www.facebook.com/Unionseafoodmeatmarket/)
+- [Yelp — Methuen Family Restaurant](https://www.yelp.com/biz/methuen-family-restaurant-methuen)
+- [Tripadvisor — Methuen Family Restaurant](https://www.tripadvisor.com/Restaurant_Review-g41677-d10041611-Reviews-Methuen_Family_Restaurant-Methuen_Massachusetts.html)
+- [Zmenu — Methuen Family Restaurant](https://www.zmenu.com/methuen-family-restaurant-methuen-online-menu/)
+
+### Clientes inactivos (Gil Muffler) — 2026-08-07
+## No hay ningún cliente para contactar
+
+La consulta no devolvió resultados. **La lista está vacía: no hay clientes que lleven más de 90 días sin volver, ni clientes sin facturar.**
+
+**Por qué:** la base de datos ahora mismo tiene muy poco movimiento registrado:
+
+| Dato | Valor |
+|---|---|
+| Clientes registrados | 2 |
+| Facturas registradas | 2 |
+| Factura más antigua | 28 de julio de 2026 |
+| Factura más reciente | 5 de agosto de 2026 |
+
+Las dos únicas facturas son de hace pocos días (hoy es 7 de agosto), así que ambos clientes están "al día" y ninguno cae en el filtro de 90 días. Tampoco hay clientes sin ninguna factura asociada.
+
+**Lo que esto sugiere, Luis:** con solo 2 clientes y 2 facturas, parece que la base todavía no tiene cargado el histórico real del taller — es más bien datos de prueba. Esta consulta de "clientes dormidos" va a ser útil de verdad cuando estén migrados los clientes y facturas viejos desde AutoRepairBill. Mientras tanto siempre va a salir vacía, no porque no tengas clientes dormidos en la vida real, sino porque la app aún no los conoce.
+
+Si quieres, cuando tengas el histórico cargado vuelvo a correr exactamente la misma consulta y te armo la lista de contacto.
+
