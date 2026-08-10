@@ -362,3 +362,39 @@ Las dos únicas facturas son de hace pocos días (hoy es 7 de agosto), así que 
 
 Si quieres, cuando tengas el histórico cargado vuelvo a correr exactamente la misma consulta y te armo la lista de contacto.
 
+## Briefing 2026-08-10
+He verificado cada uno con varias fuentes antes de listarlo. Aquí van los 3:
+
+- **Mejia Market** (colmado/grocery, 206 Lawrence St, Lawrence MA 01841) — No tiene web propia. Lo único que aparece como "sitio web" es una página auto-generada de Yellow Pages/Thryv (`mejiamarket10875561.localsearch.com`) que la abrí y solo muestra nombre, dirección, teléfono y un botón genérico de "Contact Us" — sin horarios, sin productos, sin fotos, sin nada. No le encontré ni ficha de Facebook activa. — contacto: (978) 975-2245
+
+- **Alex's Barbershop** (barbería, 242 Broadway, Lawrence MA 01840) — Sin web propia; solo ficha de Facebook y perfiles de terceros (Yelp, Groupon, Booksy). No aparecen horarios en ninguna fuente que revisé, y el teléfono está inconsistente entre directorios, que es justo el síntoma de no tener una página que sea la fuente oficial. — contacto: (978) 655-7263 (Yellow Pages) o (978) 902-3767 (BestProsInTown) — hay que confirmar cuál es el bueno al llamar
+
+- **RMN Autocare** (taller mecánico, 203 S Broadway, Lawrence MA 01843) — Taller familiar desde 1965, sin dominio propio. Solo tiene una página gratis de un constructor tipo plantilla (`rmn-autocare.edan.io`) más Facebook; los horarios (L-V 8am-4pm) solo viven en directorios como Loc8NearMe y Yelp, no en algo que ellos controlen. Sin lista de servicios, precios ni forma de pedir cita. — contacto: (978) 688-2020 · Facebook: facebook.com/RmnAutocareCenter
+
+**Dos cosas honestas sobre la verificación:**
+
+1. La página `edan.io` de RMN me devolvió error 403 y no la pude abrir, así que confirmé que *existe* ese enlace y que es un subdominio de un constructor gratuito, pero no pude leer su contenido. Si quieres ir a por ellos, ábrela tú primero desde el celular para ver qué tan básica está.
+2. RMN Autocare es un taller — competencia directa de Gil's Muffler. Por un lado es el mejor encaje posible para tu venta (le enseñas literalmente la app que le hiciste a un taller de la misma ciudad); por otro, puede incomodar a Gil. Tú decides si eso es un problema.
+
+**Extra verificado, por si descartas RMN:** **Imagenes Barbershop** (49 Haverhill St, Lawrence) — página de Facebook sin horarios ni web, y sus barberos se anuncian sueltos en Booksy/Fresha (Fresha incluso aclara que el negocio no está afiliado a ellos). Contacto: (978) 688-0388.
+
+Sources: [Yelp – barberías Lawrence](https://www.yelp.com/search?cflt=barbers&find_loc=Lawrence%2C+MA), [Yellow Pages – barberos Lawrence](https://www.yellowpages.com/lawrence-ma/barbers), [BestProsInTown – Alex's Barber Shop](https://www.bestprosintown.com/ma/lawrence/alexs-barber-shop-/), [Loc8NearMe – RMN Autocare](https://www.loc8nearme.com/massachusetts/lawrence/rmn-autocare/5323312/), [Yelp – RMN Autocare](https://www.yelp.com/biz/rmn-autocare-lawrence), [Yelp – Mejia Market](https://www.yelp.com/biz/mejia-market-lawrence), [Fresha – Imagenes Barbershop](https://www.fresha.com/lvp/imagenes-barbershop-haverhill-street-lawrence-JyWJAX)
+
+### Clientes inactivos (Gil Muffler) — 2026-08-10
+## No hay ningún cliente para contactar
+
+La consulta corrió bien y **no devolvió ningún resultado**. Es decir: no hay clientes que lleven más de 90 días sin volver, ni clientes sin ninguna factura.
+
+**Pero ojo con el contexto** — revisé la base y ahora mismo tiene muy pocos datos:
+
+| Dato | Valor |
+|---|---|
+| Clientes registrados | 2 |
+| Facturas registradas | 2 |
+| Factura más antigua | 28 jul 2026 |
+| Factura más reciente | 5 ago 2026 |
+
+Los dos clientes tienen factura, y ambas son de hace menos de dos semanas. Por eso ninguno cae en el filtro de 90 días — el resultado vacío es correcto, pero simplemente porque todavía no hay historial suficiente en la base.
+
+**Qué significa esto para Luis:** la consulta funciona y sirve, pero como lista de "clientes a recontactar" no va a dar nada útil hasta que haya varios meses de facturas cargadas. Vale la pena volver a correrla más adelante, cuando el taller lleve un tiempo facturando desde la app.
+
