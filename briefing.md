@@ -398,3 +398,46 @@ Los dos clientes tienen factura, y ambas son de hace menos de dos semanas. Por e
 
 **Qué significa esto para Luis:** la consulta funciona y sirve, pero como lista de "clientes a recontactar" no va a dar nada útil hasta que haya varios meses de facturas cargadas. Vale la pena volver a correrla más adelante, cuando el taller lleve un tiempo facturando desde la app.
 
+## Briefing 2026-08-11
+Verifiqué unos 15 negocios y descarté los que ya tienen web real (Fred's Auto, Leo & Sons, KG Auto, Piro's Bakery, Taqueria Del Pueblo, El Tesoro, Jessy's Place). Estos 3 pasaron la verificación:
+
+- **A&M Auto Body, Inc.** (341 S Broadway, Lawrence) — Tiene el dominio `amautobodyinc.com` comprado, pero solo muestra "New WordPress website is being built and will be published soon". Sin horarios, sin teléfono, sin servicios, sin formulario. Peor: la página tiene inyectados montones de enlaces de spam ajenos al negocio, señal de que el WordPress quedó abandonado o hackeado. Su información real (horarios lun-vie 8-5, teléfono) solo aparece en directorios de terceros — contacto: (978) 208-8651
+- **Sanchez Tire Shop** (664 Essex St, Lawrence) — Sin web propia de ningún tipo; solo Facebook ("Sanchez Auto Service") y fichas de terceros. Los horarios se contradicen entre fuentes (una dice lun-vie 8-7, otra 7am-12am diario) y no hay lista de servicios ni precios en ningún lado oficial. Trabaja 24 horas para pinchazos, algo que un cliente urgido no puede confirmar en línea — contacto: (978) 984-7097
+- **Sweet Grace Heavenly Cakes** (98-100 Essex St, Lawrence) — Cero web propia pese a tener ~9,000 seguidores en Instagram. Los bizcochos personalizados se piden por DM o por DoorDash, o sea que paga comisión de plataforma por pedidos que podría recibir directo. No hay catálogo de sabores, tamaños ni precios, ni formulario de encargo con fecha del evento — contacto: (978) 258-9418 / IG @sweetgraceheavenlycakes
+
+Dos notas honestas sobre lo que no pude cerrar:
+- **Jimenez Supermarket** (117 Newbury St) parece tener solo una micro-página autogenerada (`jimenez-lawrence.edan.io`), pero el servidor me bloqueó tres veces y no pude ver el contenido. Es un candidato posible, no verificado.
+- **Imagenes Barbershop** lo descarté porque Yelp lo marca cerrado y no lo pude confirmar. En general las barberías de Lawrence ya resuelven citas con Booksy/Fresha, así que son un mal blanco para vender web.
+
+De los tres, A&M es el mejor primer contacto: es del mismo giro que Gil's Muffler (tu prueba social encaja directo), está a unas cuadras del taller en South Broadway, y ya demostró que quiere web porque compró el dominio — solo se le quedó a medias y ahora le hace daño.
+
+Sources:
+- [A&M Auto Body — Yahoo Local](https://local.yahoo.com/info-212515588-am-auto-body-lawrence/)
+- [amautobodyinc.com](https://amautobodyinc.com)
+- [A&M Auto Body — Yelp](https://www.yelp.com/biz/a-and-m-auto-body-lawrence)
+- [Sanchez Tire Shop — Acima locations](https://locations.acima.com/massachusetts/lawrence/664-essex-st/)
+- [Sanchez Tire Shop — Yelp](https://www.yelp.com/biz/sanchez-tire-shop-lawrence)
+- [Sanchez Auto Service — Facebook](https://www.facebook.com/100093095558397/)
+- [Sweet Grace Heavenly Cakes — Cakes.com](https://preview.cakeordering.com/us/bakeries/ma/lawrence/sweet-grace-heavenly-cakes)
+- [Sweet Grace Heavenly Cakes — Instagram](https://www.instagram.com/sweetgraceheavenlycakes/)
+- [Sweet Grace Heavenly Cakes — DoorDash](https://www.doordash.com/store/sweet-grace-heavenly-cakes-lawrence-876366/)
+- [Jimenez Supermarket — Yelp](https://www.yelp.com/biz/jimenez-supermarket-lawrence)
+- [Fred's Auto Repair (descartado, tiene web)](https://www.fredsautorepairllc.com/)
+- [Leo & Sons (descartado, tiene web)](https://leosons.com/)
+- [KG Auto Repair (descartado, tiene web)](https://eager-mccarthy-a5538e.netlify.app/)
+- [Piro's Bakery (descartado, tiene web)](https://www.pirosbakery.com/)
+
+### Clientes inactivos (Gil Muffler) — 2026-08-11
+## No hay clientes para contactar
+
+La consulta no devolvió ningún cliente. Nadie cumple el criterio de "más de 90 días sin volver" ni "nunca facturado".
+
+**Por qué:** ahora mismo la base de datos tiene solo **2 clientes** y **2 facturas**, y las dos facturas son recientes:
+
+- Factura más antigua: **28 de julio de 2026**
+- Factura más reciente: **5 de agosto de 2026**
+
+Los dos clientes registrados tienen factura, y la más vieja tiene apenas ~2 semanas — muy lejos de los 90 días. Así que la lista sale vacía porque no hay a quién llamar, no porque la consulta fallara.
+
+**Una nota, Luis:** con solo 2 clientes y 2 facturas, esto parece ser todavía datos de prueba y no el historial real del taller. Si esperabas ver los clientes de verdad de Gil's Muffler aquí, entonces falta cargar/migrar el historial desde AutoRepairBill — dime si quieres que revisemos eso. Cuando el historial real esté cargado, esta misma consulta sí va a ser útil para sacar la lista de clientes dormidos.
+
