@@ -195,6 +195,14 @@
     addToast(message, isError ? "error" : "success");
   }
 
+  function mostrarConfirmacionGuardado() {
+    const el = document.createElement("div");
+    el.className = "guardado-check-overlay";
+    el.innerHTML = '<svg class="icon" aria-hidden="true"><use href="#icon-check-circle"></use></svg>';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 750);
+  }
+
   function addToast(message, type, opts) {
     opts = opts || {};
     const stack = document.getElementById("toast-stack");
@@ -279,13 +287,34 @@
     });
   }
 
-  function pedirMetodoPago(message) {
+  function pedirMetodoPago(message, montoTotal) {
     return new Promise((resolve) => {
       document.getElementById("metodo-pago-message").textContent = message || t("metodo_pago_mensaje");
       const backdrop = document.getElementById("modal-metodo-pago");
       const cancelBtn = document.getElementById("metodo-pago-cancel");
       const closeBtn = backdrop.querySelector("[data-close-modal]");
       const botones = Array.from(backdrop.querySelectorAll(".btn-metodo-pago"));
+      const opcionesSimple = document.getElementById("metodo-pago-opciones-simple");
+      const btnMostrarDividir = document.getElementById("btn-mostrar-dividir-pago");
+      const formDividir = document.getElementById("metodo-pago-dividir-form");
+      const btnConfirmarDividido = document.getElementById("btn-confirmar-pago-dividido");
+      const monto1Input = document.getElementById("pago-dividido-monto-1");
+      const monto2Input = document.getElementById("pago-dividido-monto-2");
+      const restaEl = document.getElementById("pago-dividido-resta");
+      const total = Number(montoTotal) || 0;
+
+      opcionesSimple.hidden = false;
+      btnMostrarDividir.hidden = false;
+      formDividir.hidden = true;
+      monto1Input.value = total.toFixed(2);
+      monto2Input.value = "0";
+
+      const actualizarResta = () => {
+        const resta = total - (parseFloat(monto1Input.value) || 0) - (parseFloat(monto2Input.value) || 0);
+        restaEl.textContent = money(resta);
+        restaEl.style.color = Math.abs(resta) < 0.01 ? "var(--success)" : "var(--danger)";
+      };
+      actualizarResta();
 
       let done = false;
       const cleanup = (result) => {
@@ -295,19 +324,40 @@
         cancelBtn.removeEventListener("click", onCancel);
         closeBtn.removeEventListener("click", onCancel);
         backdrop.removeEventListener("click", onBackdrop);
+        btnMostrarDividir.removeEventListener("click", onMostrarDividir);
+        btnConfirmarDividido.removeEventListener("click", onConfirmarDividido);
+        monto1Input.removeEventListener("input", actualizarResta);
+        monto2Input.removeEventListener("input", actualizarResta);
         closeModal("modal-metodo-pago");
         resolve(result);
       };
-      const onBtnClick = (e) => cleanup(e.currentTarget.dataset.metodo);
+      const onBtnClick = (e) =>
+        cleanup({ metodo_pago: e.currentTarget.dataset.metodo, monto_metodo_1: total, metodo_pago_2: null, monto_metodo_2: null });
       const onCancel = () => cleanup(null);
       const onBackdrop = (e) => {
         if (e.target === backdrop) cleanup(null);
       };
+      const onMostrarDividir = () => {
+        opcionesSimple.hidden = true;
+        btnMostrarDividir.hidden = true;
+        formDividir.hidden = false;
+      };
+      const onConfirmarDividido = () =>
+        cleanup({
+          metodo_pago: document.getElementById("pago-dividido-metodo-1").value,
+          monto_metodo_1: parseFloat(monto1Input.value) || 0,
+          metodo_pago_2: document.getElementById("pago-dividido-metodo-2").value,
+          monto_metodo_2: parseFloat(monto2Input.value) || 0,
+        });
 
       botones.forEach((btn) => btn.addEventListener("click", onBtnClick));
       cancelBtn.addEventListener("click", onCancel);
       closeBtn.addEventListener("click", onCancel);
       backdrop.addEventListener("click", onBackdrop);
+      btnMostrarDividir.addEventListener("click", onMostrarDividir);
+      btnConfirmarDividido.addEventListener("click", onConfirmarDividido);
+      monto1Input.addEventListener("input", actualizarResta);
+      monto2Input.addEventListener("input", actualizarResta);
       openModal("modal-metodo-pago");
     });
   }
@@ -635,7 +685,15 @@
 
   function initNav() {
     document.querySelectorAll(".nav-item").forEach((btn) => {
-      btn.addEventListener("click", () => goToView(btn.dataset.view));
+      btn.addEventListener("click", () => {
+        if (btn.dataset.action === "nuevo-cliente") {
+          openClienteModal(null);
+          return;
+        }
+        goToView(btn.dataset.view);
+        if (btn.dataset.view === "invoices-due") renderInvoicesReporte("pendiente");
+        if (btn.dataset.view === "invoices-paid") renderInvoicesReporte("pagada");
+      });
     });
   }
 
@@ -676,12 +734,6 @@
     document.addEventListener("keydown", (e) => {
       const typing = e.target.matches("input, textarea, select");
 
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        openGlobalSearch();
-        return;
-      }
-
       if (e.key === "Escape") {
         if (closeTopModal()) e.preventDefault();
         return;
@@ -714,162 +766,23 @@
     });
   }
 
-  // ---------------- buscador global ----------------
-
-  function openGlobalSearch() {
-    const input = document.getElementById("global-search-input");
-    input.value = "";
-    renderGlobalSearchResults("");
-    openModal("modal-global-search");
-    setTimeout(() => input.focus(), 50);
-  }
-
-  function renderGlobalSearchResults(query) {
-    const q = query.trim().toLowerCase();
-    const container = document.getElementById("global-search-results");
-
-    if (!q) {
-      container.innerHTML = '<p class="search-empty">Escribe para buscar en Clientes, Órdenes, Facturas, Presupuestos y Reservas.</p>';
-      return;
-    }
-
-    const clientes = state.clientes
-      .filter(
-        (c) =>
-          (c.nombre || "").toLowerCase().includes(q) ||
-          (c.telefono || "").toLowerCase().includes(q) ||
-          state.vehiculos.some((v) => v.cliente_id === c.id && (v.placa || "").toLowerCase().includes(q))
-      )
-      .slice(0, 5);
-    const ordenes = state.ordenes
-      .filter((o) => String(o.numero).includes(q) || (o.clientes && o.clientes.nombre.toLowerCase().includes(q)) || (o.diagnostico || "").toLowerCase().includes(q))
-      .slice(0, 5);
-    const facturas = state.facturas.filter((f) => String(f.numero).includes(q) || (f.clientes && f.clientes.nombre.toLowerCase().includes(q))).slice(0, 5);
-    const estimados = state.estimados.filter((e) => String(e.numero).includes(q) || (e.clientes && e.clientes.nombre.toLowerCase().includes(q))).slice(0, 5);
-    const citas = state.citas.filter((c) => (c.servicio || "").toLowerCase().includes(q) || (c.clientes && c.clientes.nombre.toLowerCase().includes(q))).slice(0, 5);
-
-    if (!clientes.length && !ordenes.length && !facturas.length && !estimados.length && !citas.length) {
-      container.innerHTML = '<p class="search-empty">Sin resultados para "' + escapeHtml(query) + '".</p>';
-      return;
-    }
-
-    let html = "";
-    if (clientes.length) {
-      html += '<div class="search-group-title">Clientes</div>';
-      html += clientes
-        .map(
-          (c) =>
-            '<div class="search-result-item" data-search-tipo="cliente" data-search-id="' +
-            c.id +
-            '">' +
-            avatarHtml(c.nombre, "avatar-sm") +
-            '<span class="search-result-title">' +
-            escapeHtml(c.nombre) +
-            '</span><span class="search-result-meta">' +
-            escapeHtml(c.telefono || "") +
-            "</span></div>"
-        )
-        .join("");
-    }
-    if (ordenes.length) {
-      html += '<div class="search-group-title">Órdenes de servicio</div>';
-      html += ordenes
-        .map(
-          (o) =>
-            '<div class="search-result-item" data-search-tipo="orden" data-search-id="' +
-            o.id +
-            '"><span class="search-result-title">#' +
-            String(o.numero).padStart(4, "0") +
-            " — " +
-            escapeHtml(o.clientes ? o.clientes.nombre : "—") +
-            '</span><span class="search-result-meta">' +
-            escapeHtml(etapaLabel(o.etapa)) +
-            "</span></div>"
-        )
-        .join("");
-    }
-    if (facturas.length) {
-      html += '<div class="search-group-title">Facturas</div>';
-      html += facturas
-        .map(
-          (f) =>
-            '<div class="search-result-item" data-search-tipo="factura" data-search-id="' +
-            f.id +
-            '"><span class="search-result-title">#' +
-            String(f.numero).padStart(4, "0") +
-            " — " +
-            escapeHtml(f.clientes ? f.clientes.nombre : "—") +
-            '</span><span class="search-result-meta">' +
-            money(f.total) +
-            "</span></div>"
-        )
-        .join("");
-    }
-
-    if (estimados.length) {
-      html += '<div class="search-group-title">Presupuestos</div>';
-      html += estimados
-        .map(
-          (e) =>
-            '<div class="search-result-item" data-search-tipo="estimado" data-search-id="' +
-            e.id +
-            '"><span class="search-result-title">#' +
-            String(e.numero).padStart(4, "0") +
-            " — " +
-            escapeHtml(e.clientes ? e.clientes.nombre : "—") +
-            '</span><span class="search-result-meta">' +
-            money(e.total) +
-            "</span></div>"
-        )
-        .join("");
-    }
-    if (citas.length) {
-      html += '<div class="search-group-title">Reservas</div>';
-      html += citas
-        .map(
-          (c) =>
-            '<div class="search-result-item" data-search-tipo="cita" data-search-id="' +
-            c.id +
-            '"><span class="search-result-title">' +
-            escapeHtml(c.servicio || "Cita") +
-            " — " +
-            escapeHtml(c.clientes ? c.clientes.nombre : "—") +
-            '</span><span class="search-result-meta">' +
-            escapeHtml(formatDate(c.fecha)) +
-            "</span></div>"
-        )
-        .join("");
-    }
-
-    container.innerHTML = html;
-
-    container.querySelectorAll("[data-search-id]").forEach((el) => {
-      el.addEventListener("click", () => {
-        const tipo = el.dataset.searchTipo;
-        const id = el.dataset.searchId;
-        closeModal("modal-global-search");
-        if (tipo === "cliente") {
-          goToView("clientes");
-          openClienteDetalle(state.clientes.find((c) => c.id === id));
-        } else if (tipo === "orden") {
-          goToView("ordenes");
-          openOrdenModal(state.ordenes.find((o) => o.id === id));
-        } else if (tipo === "factura") {
-          goToView("facturas");
-          openFacturaModal(state.facturas.find((f) => f.id === id));
-        } else if (tipo === "estimado") {
-          goToView("estimados");
-          openEstimadoModal(state.estimados.find((e) => e.id === id));
-        } else if (tipo === "cita") {
-          goToView("reservas");
-          openReservaModal(state.citas.find((c) => c.id === id));
-        }
-      });
-    });
-  }
-
   function showView(name) {
-    ["setup", "dashboard", "clientes", "reservas", "ordenes", "inventario", "llamadas", "facturas", "estimados", "registro-diario", "configuracion"].forEach((v) => {
+    [
+      "setup",
+      "dashboard",
+      "clientes",
+      "cliente-detalle",
+      "reservas",
+      "ordenes",
+      "inventario",
+      "llamadas",
+      "facturas",
+      "invoices-due",
+      "invoices-paid",
+      "estimados",
+      "registro-diario",
+      "configuracion",
+    ].forEach((v) => {
       const el = document.getElementById("view-" + v);
       if (v === name) {
         el.hidden = false;
@@ -1006,6 +919,12 @@
     return [v.marca, v.modelo, v.anio].filter(Boolean).join(" ") || t("vehiculo_sin_marca_modelo");
   }
 
+  function ultimoServicioVehiculo(vehiculoId) {
+    const ordenesVehiculo = state.ordenes.filter((o) => o.vehiculo_id === vehiculoId && o.fecha_recepcion);
+    if (!ordenesVehiculo.length) return null;
+    return ordenesVehiculo.reduce((max, o) => (o.fecha_recepcion > max ? o.fecha_recepcion : max), ordenesVehiculo[0].fecha_recepcion);
+  }
+
   function cargarZXing() {
     if (window.ZXing) return Promise.resolve();
     return new Promise((resolve, reject) => {
@@ -1079,6 +998,10 @@
     document.getElementById("vehiculo-vin").value = vehiculo ? vehiculo.vin || "" : "";
     document.getElementById("vehiculo-kilometraje").value = vehiculo ? vehiculo.kilometraje || "" : "";
     document.getElementById("vehiculo-notas").value = vehiculo ? vehiculo.notas || "" : "";
+    document.getElementById("vehiculo-recordatorio-activo").checked = vehiculo ? !!vehiculo.recordatorio_activo : false;
+    document.getElementById("vehiculo-recordatorio-frecuencia").value = vehiculo ? vehiculo.recordatorio_frecuencia_meses || 3 : 3;
+    document.getElementById("vehiculo-recordatorio-ultima").value = vehiculo && vehiculo.recordatorio_ultima_fecha ? vehiculo.recordatorio_ultima_fecha : "";
+    document.getElementById("vehiculo-recordatorio-proxima").value = vehiculo && vehiculo.recordatorio_proxima_fecha ? vehiculo.recordatorio_proxima_fecha : "";
     document.getElementById("btn-eliminar-vehiculo").hidden = !vehiculo;
 
     const historialWrap = document.getElementById("vehiculo-historial-wrap");
@@ -1149,6 +1072,10 @@
       vin: document.getElementById("vehiculo-vin").value.trim(),
       kilometraje: document.getElementById("vehiculo-kilometraje").value.trim(),
       notas: document.getElementById("vehiculo-notas").value.trim(),
+      recordatorio_activo: document.getElementById("vehiculo-recordatorio-activo").checked,
+      recordatorio_frecuencia_meses: parseInt(document.getElementById("vehiculo-recordatorio-frecuencia").value, 10) || 3,
+      recordatorio_ultima_fecha: document.getElementById("vehiculo-recordatorio-ultima").value || null,
+      recordatorio_proxima_fecha: document.getElementById("vehiculo-recordatorio-proxima").value || null,
     };
 
     let error;
@@ -1446,6 +1373,7 @@
       const vehiculo = vehiculosCliente.length ? vehiculoLabel(vehiculosCliente[0]) + extra : "";
       const placa = vehiculosCliente.length ? (vehiculosCliente[0].placa || "—") + extra : "—";
       const ultimaFecha = ultimaFacturaFecha(c.id);
+      const meses = mesesSinVenir(c.id);
       const actions = [
         { key: "detalle", icon: "eye", label: t("btn_ver_detalle") },
         { key: "factura", icon: "file-text", label: t("btn_crear_factura") },
@@ -1453,13 +1381,34 @@
         { key: "eliminar", icon: "trash", label: t("btn_eliminar"), danger: true },
       ];
       tr.innerHTML =
-        "<td>" + avatarHtml(c.nombre) + escapeHtml(c.nombre) + " " + etiquetasPillsHtml(c.etiquetas) + "</td>" +
+        '<td><button type="button" class="cliente-nombre-btn" data-cliente-nombre-id="' +
+        c.id +
+        '" aria-label="' +
+        t("btn_ver_detalle") +
+        " " +
+        escapeHtml(c.nombre) +
+        '" style="display:inline-flex;align-items:center;gap:.5rem;background:none;border:none;padding:0;cursor:pointer;font:inherit;color:inherit;text-align:left;">' +
+        avatarHtml(c.nombre) +
+        escapeHtml(c.nombre) +
+        "</button> " +
+        etiquetasPillsHtml(c.etiquetas) +
+        (esClienteFrecuente(c.id) ? '<span class="pill pill-vip">' + t("pill_cliente_vip") + "</span>" : "") +
+        (meses
+          ? '<span class="pill pill-inactivo" title="' + t("aviso_no_ha_vuelto_title") + '">' + t("aviso_no_ha_vuelto_meses", { meses }) + "</span>"
+          : "") +
+        "</td>" +
         "<td>" + escapeHtml(c.telefono || "—") + "</td>" +
         "<td>" + escapeHtml(vehiculo || "—") + "</td>" +
         "<td>" + escapeHtml(placa) + "</td>" +
         "<td>" + (ultimaFecha ? escapeHtml(formatDate(ultimaFecha)) : "Nunca") + "</td>" +
         "<td>" + rowActionsHtml(c.id, actions) + "</td>";
       tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll("[data-cliente-nombre-id]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        openClienteDetalle(state.clientes.find((c) => c.id === btn.dataset.clienteNombreId));
+      });
     });
 
     wireRowActions(tbody, {
@@ -1475,6 +1424,76 @@
     goToView("facturas");
     await openFacturaModal(null);
     document.getElementById("factura-cliente").value = cliente.nombre;
+  }
+
+  function crearReservaParaCliente(cliente) {
+    if (!cliente) return;
+    goToView("reservas");
+    openReservaModal(null);
+    document.getElementById("reserva-cliente").value = cliente.nombre;
+    populateReservaVehiculoSelect(cliente.id, null);
+  }
+
+  async function crearOrdenParaCliente(cliente) {
+    if (!cliente) return;
+    goToView("ordenes");
+    await openOrdenModal(null);
+    document.getElementById("orden-cliente").value = cliente.id;
+    populateOrdenVehiculoSelect(cliente.id, null);
+  }
+
+  async function nuevoPagoParaCliente(cliente) {
+    if (!cliente) return;
+    const pendientes = state.facturas.filter((f) => f.cliente_id === cliente.id && f.estado === "pendiente");
+    if (!pendientes.length) {
+      showToast(t("sin_facturas_pendientes_cliente"), true);
+      return;
+    }
+    if (pendientes.length > 1) {
+      showToast(t("varias_facturas_pendientes_msg"), true);
+      return;
+    }
+    await marcarFacturaPagada(pendientes[0].id);
+    openClienteDetalle(state.clientes.find((c) => c.id === cliente.id));
+  }
+
+  function imprimirEstadoCuentaCliente(cliente, cuentaLineas, saldoPendiente) {
+    const cfg = state.configNegocio || {};
+    const nombreNegocio = cfg.nombre_negocio || "Gil Muffler";
+
+    const lineasHtml = cuentaLineas.length
+      ? "<table><thead><tr><th>" + t("col_fecha") + "</th><th>" + t("col_detalle") + "</th><th>" + t("col_monto") + "</th></tr></thead><tbody>" +
+        cuentaLineas
+          .map(
+            (l) =>
+              "<tr><td>" + escapeHtml(formatDate(l.fecha)) + "</td><td>" + escapeHtml(l.texto) + "</td><td>" + (l.monto < 0 ? "-" : "") + money(Math.abs(l.monto)) + "</td></tr>"
+          )
+          .join("") +
+        "</tbody></table>"
+      : "<p>" + t("cuenta_corriente_vacio") + "</p>";
+
+    const html =
+      "<!doctype html><html><head><meta charset='utf-8'><title>" +
+      escapeHtml(cliente.nombre) +
+      " — " + t("estado_cuenta_titulo") + "</title><style>" +
+      "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:2.5rem;max-width:40rem;margin:0 auto;}" +
+      "h1{font-size:1.3rem;margin:0 0 .2rem;}" +
+      ".sub{color:#68707e;font-size:.85rem;margin:0 0 1.2rem;}" +
+      "table{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:1rem;}" +
+      "th,td{text-align:left;padding:.4rem .5rem;border:1px solid #ccc;}" +
+      "th{background:#eef0f1;text-transform:uppercase;font-size:.72rem;}" +
+      ".saldo{font-size:1.1rem;font-weight:800;margin-top:1rem;}" +
+      "@media print{body{padding:0;}}" +
+      "</style></head><body>" +
+      "<h1>" + escapeHtml(nombreNegocio) + "</h1>" +
+      "<p class='sub'>" + t("historial_impreso_el") + escapeHtml(formatDate(todayISO())) + "</p>" +
+      "<p><strong>" + t("col_cliente") + ":</strong> " + escapeHtml([cliente.nombre, cliente.apellido].filter(Boolean).join(" ")) +
+      "<br><strong>" + t("col_telefono") + ":</strong> " + escapeHtml(cliente.telefono || "—") + "</p>" +
+      lineasHtml +
+      "<p class='saldo'>" + t("saldo_cuenta_label") + ": " + money(saldoPendiente) + "</p>" +
+      "</body></html>";
+
+    openPrintWindow(html);
   }
 
   function deleteClienteRow(id, btn) {
@@ -1496,20 +1515,23 @@
 
   function openClienteDetalle(cliente) {
     if (!cliente) return;
-    const titleEl = document.getElementById("modal-cliente-detalle-title");
-    titleEl.innerHTML =
-      '<button type="button" class="breadcrumb-link" id="breadcrumb-clientes">Clientes</button><span class="breadcrumb-sep">›</span>' +
-      escapeHtml(cliente.nombre);
-    document.getElementById("breadcrumb-clientes").addEventListener("click", () => {
-      closeModal("modal-cliente-detalle");
-      goToView("clientes");
-    });
+    document.querySelectorAll(".nav-item").forEach((b) => b.classList.toggle("is-active", b.dataset.view === "clientes"));
+    document.getElementById("modal-cliente-detalle-title").textContent = cliente.nombre;
+    document.getElementById("btn-cliente-detalle-volver").onclick = () => goToView("clientes");
+
+    const desdeEl = document.getElementById("cliente-detalle-desde");
+    desdeEl.textContent = cliente.created_at ? t("cliente_desde_label", { fecha: formatDate(cliente.created_at) }) : "";
+
+    const vehiculoPrincipal = state.vehiculos.find((v) => v.cliente_id === cliente.id);
+    const carroChipEl = document.getElementById("cliente-detalle-carro-chip");
+    carroChipEl.textContent = vehiculoPrincipal ? vehiculoLabel(vehiculoPrincipal) : "";
+    carroChipEl.hidden = !vehiculoPrincipal;
 
     const facturaBtn = document.getElementById("btn-detalle-crear-factura");
-    facturaBtn.onclick = () => {
-      closeModal("modal-cliente-detalle");
-      crearFacturaParaCliente(cliente);
-    };
+    facturaBtn.onclick = () => crearFacturaParaCliente(cliente);
+    document.getElementById("btn-detalle-nueva-reserva").onclick = () => crearReservaParaCliente(cliente);
+    document.getElementById("btn-detalle-nueva-orden").onclick = () => crearOrdenParaCliente(cliente);
+    document.getElementById("btn-detalle-nuevo-pago").onclick = () => nuevoPagoParaCliente(cliente);
 
     const totalGastado = state.facturas
       .filter((f) => f.cliente_id === cliente.id && f.estado === "pagada")
@@ -1547,8 +1569,9 @@
     const vehiculosEl = document.getElementById("cliente-detalle-vehiculos");
     vehiculosEl.innerHTML = vehiculosCliente.length
       ? vehiculosCliente
-          .map(
-            (v) =>
+          .map((v) => {
+            const ultimoServicio = ultimoServicioVehiculo(v.id);
+            return (
               '<div class="detalle-list-item is-clickable" data-vehiculo-id="' +
               v.id +
               '"><span style="flex:1;">' +
@@ -1557,8 +1580,13 @@
               escapeHtml(v.placa || "Sin placa") +
               "</span><span>" +
               escapeHtml(v.kilometraje ? v.kilometraje + " mi" : "—") +
+              "</span><span>" +
+              t("ultimo_servicio_label") +
+              ": " +
+              (ultimoServicio ? escapeHtml(formatDate(ultimoServicio)) : t("sin_ultimo_servicio")) +
               "</span></div>"
-          )
+            );
+          })
           .join("")
       : '<p class="detalle-empty">Este cliente todavía no tiene vehículos registrados.</p>';
     vehiculosEl.querySelectorAll("[data-vehiculo-id]").forEach((row) => {
@@ -1668,6 +1696,56 @@
     document.getElementById("cliente-detalle-historial-search").oninput = renderHistorialFiltrado;
     renderHistorialFiltrado();
 
+    const cuentaLineas = [];
+    facturasCliente.forEach((f) => {
+      if (f.estado === "cancelada") return;
+      cuentaLineas.push({
+        fecha: f.fecha,
+        texto: "Factura #" + String(f.numero).padStart(4, "0"),
+        monto: Number(f.total),
+        facturaId: f.estado === "pendiente" ? f.id : null,
+      });
+      if (f.estado === "pagada") {
+        cuentaLineas.push({
+          fecha: f.fecha_pagada || f.fecha,
+          texto: t("pago_recibido_label") + (f.metodo_pago ? " (" + metodoPagoLabel(f.metodo_pago) + ")" : ""),
+          monto: -Number(f.total),
+        });
+      }
+    });
+    cuentaLineas.sort((a, b) => (a.fecha < b.fecha ? 1 : a.fecha > b.fecha ? -1 : 0));
+
+    document.getElementById("cliente-detalle-cuenta-saldo").innerHTML =
+      "<div><span>" + t("saldo_cuenta_label") + "</span><strong class='" + (saldoPendiente > 0 ? "saldo-pendiente" : "") + "'>" + money(saldoPendiente) + "</strong></div>";
+
+    const cuentaEl = document.getElementById("cliente-detalle-cuenta");
+    cuentaEl.innerHTML = cuentaLineas.length
+      ? cuentaLineas
+          .map(
+            (l) =>
+              '<div class="detalle-list-item"><span class="historial-fecha">' +
+              escapeHtml(formatDate(l.fecha)) +
+              "</span><span style=\"flex:1;\">" +
+              escapeHtml(l.texto) +
+              "</span><span>" +
+              (l.monto < 0 ? "-" : "") +
+              money(Math.abs(l.monto)) +
+              "</span>" +
+              (l.facturaId
+                ? '<button type="button" class="btn-ghost btn-marcar-pagada-cuenta" data-factura-id="' + l.facturaId + '">' + t("btn_marcar_pagada") + "</button>"
+                : "") +
+              "</div>"
+          )
+          .join("")
+      : '<p class="detalle-empty">' + t("cuenta_corriente_vacio") + "</p>";
+
+    cuentaEl.querySelectorAll(".btn-marcar-pagada-cuenta").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        await marcarFacturaPagada(btn.dataset.facturaId);
+        openClienteDetalle(state.clientes.find((c) => c.id === cliente.id));
+      });
+    });
+
     const tareasCliente = state.tareas.filter((tarea) => tarea.cliente_id === cliente.id);
     const tareasEl = document.getElementById("cliente-detalle-tareas");
     tareasEl.innerHTML = tareasCliente.length
@@ -1686,8 +1764,11 @@
     document.getElementById("btn-detalle-imprimir").onclick = () => {
       imprimirHistorialCliente(cliente, vehiculosCliente, historial, tareasCliente, totalGastado);
     };
+    document.getElementById("btn-detalle-estado-cuenta").onclick = () => {
+      imprimirEstadoCuentaCliente(cliente, cuentaLineas, saldoPendiente);
+    };
 
-    openModal("modal-cliente-detalle");
+    showView("cliente-detalle");
   }
 
   function imprimirHistorialCliente(cliente, vehiculos, historial, tareas, totalGastado) {
@@ -1838,6 +1919,18 @@
     return facturasCliente.reduce((max, f) => (f.fecha > max ? f.fecha : max), facturasCliente[0].fecha);
   }
 
+  function esClienteFrecuente(clienteId) {
+    return state.facturas.filter((f) => f.cliente_id === clienteId).length >= 3;
+  }
+
+  function mesesSinVenir(clienteId) {
+    const ultima = ultimaFacturaFecha(clienteId);
+    if (!ultima) return null;
+    const dias = Math.floor((Date.parse(todayISO()) - Date.parse(ultima)) / 86400000);
+    if (dias < 90) return null;
+    return Math.floor(dias / 30);
+  }
+
   function filterClientes() {
     const q = document.getElementById("clientes-search").value.trim().toLowerCase();
     const soloInactivos = document.getElementById("clientes-filter-inactivos").checked;
@@ -1848,7 +1941,11 @@
             (c.nombre || "").toLowerCase().includes(q) ||
             (c.telefono || "").toLowerCase().includes(q) ||
             (c.etiquetas || "").toLowerCase().includes(q) ||
-            state.vehiculos.some((v) => v.cliente_id === c.id && (v.placa || "").toLowerCase().includes(q))
+            state.vehiculos.some(
+              (v) =>
+                v.cliente_id === c.id &&
+                ((v.placa || "").toLowerCase().includes(q) || vehiculoLabel(v).toLowerCase().includes(q))
+            )
           );
         });
     if (soloInactivos) {
@@ -1886,6 +1983,7 @@
   async function saveCliente(e) {
     e.preventDefault();
     const id = document.getElementById("cliente-id").value;
+    const esNuevo = !id;
     const nombre = document.getElementById("cliente-nombre").value.trim();
     const apellido = document.getElementById("cliente-apellido").value.trim();
     const vehiculoMarca = document.getElementById("cliente-vehiculo-marca").value.trim();
@@ -1941,6 +2039,11 @@
     closeModal("modal-cliente");
     showToast("Cliente guardado.");
     await refreshClientes();
+
+    if (esNuevo) {
+      const cliente = state.clientes.find((c) => c.id === clienteId);
+      if (cliente) openClienteDetalle(cliente);
+    }
   }
 
   async function deleteCliente() {
@@ -2004,11 +2107,16 @@
       tr.innerHTML =
         '<td><input type="checkbox" class="factura-select" data-id="' + f.id + '"' + (facturasSeleccionadas.has(f.id) ? " checked" : "") + " /></td>" +
         "<td>#" + String(f.numero).padStart(4, "0") + "</td>" +
-        "<td>" + avatarHtml(clienteNombre, "avatar-sm") + escapeHtml(clienteNombre) + "</td>" +
+        "<td>" + avatarHtml(clienteNombre, "avatar-sm") + escapeHtml(clienteNombre) + " " + etiquetasPillsHtml(f.etiquetas) + "</td>" +
         "<td>" + escapeHtml(formatDate(f.fecha)) + "</td>" +
         "<td>" + money(f.total) + "</td>" +
-        '<td><span class="pill pill-' + f.estado + '">' + estadoFacturaLabel(f.estado) + "</span>" +
-        (f.estado === "pagada" && f.metodo_pago ? ' <span class="metodo-pago-tag">' + escapeHtml(metodoPagoLabel(f.metodo_pago)) + "</span>" : "") +
+        '<td><span class="pill pill-' + f.estado + '">' + estadoFacturaIconSvg(f.estado) + estadoFacturaLabel(f.estado) + "</span>" +
+        (f.estado === "pagada" && f.metodo_pago
+          ? ' <span class="metodo-pago-tag">' +
+            escapeHtml(metodoPagoLabel(f.metodo_pago)) +
+            (f.metodo_pago_2 ? " + " + escapeHtml(metodoPagoLabel(f.metodo_pago_2)) : "") +
+            "</span>"
+          : "") +
         (vencida ? ' <span class="pill pill-vencida" title="' + t("factura_vencida_title", { n: FACTURA_DIAS_VENCIMIENTO }) + '">' + t("factura_vencida_pill") + "</span>" : "") +
         "</td>" +
         "<td>" + rowActionsHtml(f.id, actions) + "</td>";
@@ -2099,9 +2207,23 @@
   async function bulkMarcarPagadas() {
     if (!facturasSeleccionadas.size) return;
     const ids = Array.from(facturasSeleccionadas);
-    const metodoPago = await pedirMetodoPago(t("metodo_pago_bulk_mensaje", { n: ids.length }));
-    if (!metodoPago) return;
-    const { error } = await sb.from("facturas").update({ estado: "pagada", metodo_pago: metodoPago }).in("id", ids);
+    const montoTotal = ids.reduce((sum, fid) => {
+      const f = state.facturas.find((x) => x.id === fid);
+      return sum + (f ? Number(f.total) : 0);
+    }, 0);
+    const pago = await pedirMetodoPago(t("metodo_pago_bulk_mensaje", { n: ids.length }), montoTotal);
+    if (!pago) return;
+    const { error } = await sb
+      .from("facturas")
+      .update({
+        estado: "pagada",
+        metodo_pago: pago.metodo_pago,
+        monto_metodo_1: pago.monto_metodo_1,
+        metodo_pago_2: pago.metodo_pago_2,
+        monto_metodo_2: pago.monto_metodo_2,
+        fecha_pagada: todayISO(),
+      })
+      .in("id", ids);
     if (error) {
       showToast(t("error_marcar_facturas"), true);
       return;
@@ -2127,9 +2249,20 @@
   }
 
   async function marcarFacturaPagada(id) {
-    const metodoPago = await pedirMetodoPago();
-    if (!metodoPago) return;
-    const { error } = await sb.from("facturas").update({ estado: "pagada", metodo_pago: metodoPago }).eq("id", id);
+    const factura = state.facturas.find((f) => f.id === id);
+    const pago = await pedirMetodoPago(null, factura ? factura.total : 0);
+    if (!pago) return;
+    const { error } = await sb
+      .from("facturas")
+      .update({
+        estado: "pagada",
+        metodo_pago: pago.metodo_pago,
+        monto_metodo_1: pago.monto_metodo_1,
+        metodo_pago_2: pago.metodo_pago_2,
+        monto_metodo_2: pago.monto_metodo_2,
+        fecha_pagada: todayISO(),
+      })
+      .eq("id", id);
     if (error) {
       showToast(t("error_marcar_pagada"), true);
       return;
@@ -2216,8 +2349,8 @@
     };
     const estadoInfo = ESTADO_ESTILO[factura.estado] || { label: estadoFacturaLabel(factura.estado), color: "#68707e" };
 
-    const laborItem = items.find((it) => it.descripcion === "Mano de obra");
-    const otrosItems = items.filter((it) => it !== laborItem);
+    const laborItems = items.filter((it) => it.tipo === "labor" || (!it.tipo && it.descripcion === "Mano de obra"));
+    const otrosItems = items.filter((it) => !laborItems.includes(it));
     const subtotalNum = Number(factura.subtotal) || 0;
     const tasaImpuesto = subtotalNum > 0 ? Number(factura.impuesto) / subtotalNum : 0;
 
@@ -2272,7 +2405,7 @@
       );
     }
 
-    const laborHtml = tablaSeccion(t("mano_obra_seccion_titulo"), laborItem ? [laborItem] : [], false);
+    const laborHtml = tablaSeccion(t("mano_obra_seccion_titulo"), laborItems, false);
     const partsHtml = tablaSeccion(t("parts_seccion_titulo"), otrosItems, true);
 
     const notasHtml = factura.notas
@@ -2322,7 +2455,7 @@
       colorAcento +
       ";padding-bottom:1rem;margin-bottom:1.2rem;display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;}" +
       ".header-brand{display:flex;align-items:center;gap:.8rem;}" +
-      ".header-brand img{height:3.2rem;width:3.2rem;object-fit:cover;object-position:68% 55%;border-radius:8px;flex:none;}" +
+      ".header-brand img{height:4.4rem;width:4.4rem;object-fit:cover;object-position:68% 55%;border-radius:8px;flex:none;}" +
       ".header h1{font-size:1.4rem;margin:0;color:#1f2430;}" +
       ".header .contacto{font-size:.78rem;color:#68707e;text-align:right;line-height:1.5;}" +
       ".titulo{text-align:center;margin:1.4rem 0 .3rem;}" +
@@ -2399,7 +2532,11 @@
       money(factura.subtotal) +
       "</span></div><div><span>" + t("col_impuesto_simple") + "</span><span>" +
       money(factura.impuesto) +
-      "</span></div><div><span>" + t("total_a_pagar_label") + "</span><span>" +
+      "</span></div>" +
+      (factura.descuento
+        ? "<div><span>" + t("descuento_label") + "</span><span>-" + money(factura.descuento) + "</span></div>"
+        : "") +
+      "<div><span>" + t("total_a_pagar_label") + "</span><span>" +
       money(factura.total) +
       "</span></div></div>" +
       "</div>" +
@@ -2449,7 +2586,7 @@
       "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:2.5rem;max-width:40rem;margin:0 auto;}" +
       ".header{border-bottom:3px solid #d5601a;padding-bottom:1rem;margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;}" +
       ".header-brand{display:flex;align-items:center;gap:.8rem;}" +
-      ".header-brand img{height:3rem;width:3rem;object-fit:cover;object-position:68% 55%;border-radius:8px;flex:none;}" +
+      ".header-brand img{height:4.2rem;width:4.2rem;object-fit:cover;object-position:68% 55%;border-radius:8px;flex:none;}" +
       ".header h1{font-size:1.5rem;margin:0;color:#d5601a;}" +
       ".header .contacto{font-size:.8rem;color:#68707e;text-align:right;}" +
       ".meta{display:flex;justify-content:space-between;margin-bottom:1.5rem;font-size:.9rem;gap:1rem;}" +
@@ -2525,7 +2662,7 @@
       colorAcento +
       ";padding-bottom:1rem;margin-bottom:1.2rem;display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;}" +
       ".header-brand{display:flex;align-items:center;gap:.8rem;}" +
-      ".header-brand img{height:3.2rem;width:3.2rem;object-fit:cover;object-position:68% 55%;border-radius:8px;flex:none;}" +
+      ".header-brand img{height:4.4rem;width:4.4rem;object-fit:cover;object-position:68% 55%;border-radius:8px;flex:none;}" +
       ".header h1{font-size:1.4rem;margin:0;color:#1f2430;}" +
       ".header .contacto{font-size:.78rem;color:#68707e;text-align:right;line-height:1.5;}" +
       ".titulo{text-align:center;margin:1.4rem 0 .3rem;}" +
@@ -2703,6 +2840,36 @@
     openPrintWindow(html);
   }
 
+  function mostrarQrReporteTrabajo(mecanicoId, mecanicoNombre) {
+    const fecha = document.getElementById("registro-fecha").value || todayISO();
+    const params = new URLSearchParams({ mecanico: mecanicoId, fecha });
+    const url =
+      (typeof LAN_ORIGIN !== "undefined" && LAN_ORIGIN ? LAN_ORIGIN : location.origin) +
+      location.pathname.replace(/index\.html$/, "") +
+      "reportar-trabajo.html?" +
+      params.toString();
+
+    const qr = qrcode(0, "M");
+    qr.addData(url);
+    qr.make();
+    const qrDataUrl = qr.createDataURL(8, 8);
+
+    const html =
+      "<!doctype html><html><head><meta charset='utf-8'><title>QR — " + t("reporte_trabajo_titulo") + "</title><style>" +
+      "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:3rem;text-align:center;}" +
+      "h1{font-size:1.3rem;margin-bottom:.5rem;}" +
+      "p{color:#68707e;margin-top:0;}" +
+      "img{margin-top:1.5rem;}" +
+      "@media print{body{padding:0;}}" +
+      "</style></head><body>" +
+      "<h1>" + escapeHtml(mecanicoNombre) + "</h1>" +
+      "<p>" + t("escanea_qr_reporte_trabajo") + "</p>" +
+      "<img src='" + qrDataUrl + "' alt='QR' />" +
+      "</body></html>";
+
+    openPrintWindow(html);
+  }
+
   function capitalize(s) {
     return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
   }
@@ -2710,6 +2877,12 @@
   const ESTADO_FACTURA_LABELS = { pendiente: "Sin pagar", pagada: "Pagada", cancelada: "Cancelada" };
   function estadoFacturaLabel(estado) {
     return ESTADO_FACTURA_LABELS[estado] || capitalize(estado);
+  }
+
+  const ESTADO_FACTURA_ICONS = { pagada: "check-circle", pendiente: "alert-circle" };
+  function estadoFacturaIconSvg(estado) {
+    const icon = ESTADO_FACTURA_ICONS[estado];
+    return icon ? '<svg class="icon" aria-hidden="true"><use href="#icon-' + icon + '"></use></svg>' : "";
   }
 
   const METODO_PAGO_LABELS = { efectivo: "Efectivo", tarjeta: "Tarjeta", cheque: "Cheque" };
@@ -2731,6 +2904,68 @@
     return f[field] || "";
   }
 
+  function renderInvoicesReporte(estado) {
+    const tbodyId = estado === "pagada" ? "invoices-paid-tbody" : "invoices-due-tbody";
+    const emptyId = estado === "pagada" ? "invoices-paid-empty" : "invoices-due-empty";
+    const tbody = document.getElementById(tbodyId);
+    const empty = document.getElementById(emptyId);
+
+    const list = state.facturas.filter((f) => f.estado === estado).sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
+
+    empty.hidden = list.length !== 0;
+    if (!list.length) {
+      empty.textContent = estado === "pagada" ? "Todavía no hay facturas pagadas." : "No hay facturas pendientes de pago.";
+      tbody.innerHTML = "";
+      return;
+    }
+
+    tbody.innerHTML = list
+      .map((f) => {
+        const vehiculo = state.vehiculos.find((v) => v.cliente_id === f.cliente_id);
+        const fecha = estado === "pagada" ? f.fecha_pagada || f.fecha : f.fecha;
+        const actions = [
+          { key: "ver", icon: "eye", label: t("btn_ver_editar") },
+          { key: "imprimir", icon: "printer", label: t("btn_imprimir_simple") },
+        ];
+        return (
+          '<tr><td><button type="button" class="cliente-nombre-btn" data-invoice-cliente-id="' +
+          f.cliente_id +
+          '">#' +
+          String(f.numero).padStart(4, "0") +
+          "</button></td><td>" +
+          '<button type="button" class="cliente-nombre-btn" data-invoice-cliente-id="' +
+          f.cliente_id +
+          '">' +
+          escapeHtml(f.clientes ? f.clientes.nombre : "—") +
+          "</button></td><td>" +
+          escapeHtml((vehiculo && vehiculo.placa) || "NONE") +
+          "</td><td>" +
+          escapeHtml((vehiculo && vehiculo.marca) || "—") +
+          "</td><td>" +
+          escapeHtml((vehiculo && vehiculo.modelo) || "—") +
+          "</td><td>" +
+          money(f.total) +
+          "</td><td>" +
+          escapeHtml(formatDate(fecha)) +
+          "</td><td>" +
+          rowActionsHtml(f.id, actions) +
+          "</td></tr>"
+        );
+      })
+      .join("");
+
+    wireRowActions(tbody, {
+      ver: (id) => openFacturaModal(state.facturas.find((f) => f.id === id)),
+      imprimir: (id) => printFactura(id),
+    });
+
+    tbody.querySelectorAll("[data-invoice-cliente-id]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        openClienteDetalle(state.clientes.find((c) => c.id === btn.dataset.invoiceClienteId));
+      });
+    });
+  }
+
   function filterFacturas() {
     const q = document.getElementById("facturas-search").value.trim().toLowerCase();
     const estado = document.getElementById("facturas-filter-estado").value;
@@ -2740,7 +2975,13 @@
     const list = state.facturas.filter((f) => {
       const clienteNombre = (f.clientes ? f.clientes.nombre : "").toLowerCase();
       const numero = String(f.numero);
-      const matchesQ = !q || clienteNombre.includes(q) || numero.includes(q);
+      const etiquetas = (f.etiquetas || "").toLowerCase();
+      const matchesQ =
+        !q ||
+        clienteNombre.includes(q) ||
+        numero.includes(q) ||
+        etiquetas.includes(q) ||
+        state.vehiculos.some((v) => v.cliente_id === f.cliente_id && (v.placa || "").toLowerCase().includes(q));
       const matchesEstado = !estado || f.estado === estado;
       const matchesMetodoPago = !metodoPago || f.metodo_pago === metodoPago;
       const matchesDesde = !desde || f.fecha >= desde;
@@ -2800,21 +3041,64 @@
   function addItemRow(item) {
     const tbody = document.getElementById("factura-items-tbody");
     const tr = document.createElement("tr");
+    const costo = item ? (item.costo_unitario != null ? item.costo_unitario : item.precio_unitario) : 0;
+    const markup = item && item.markup_pct != null ? item.markup_pct : 0;
     tr.innerHTML =
-      '<td><input type="text" class="item-desc" placeholder="' + t("col_descripcion") + '" value="' +
+      '<td><input type="text" class="item-desc" list="piezas-datalist" placeholder="' + t("col_descripcion") + '" value="' +
       (item ? escapeHtml(item.descripcion) : "") +
       '" /></td>' +
       '<td><input type="number" class="item-cant" min="0" step="0.01" value="' +
       (item ? item.cantidad : 1) +
       '" /></td>' +
-      '<td><input type="number" class="item-precio" min="0" step="0.01" value="' +
-      (item ? item.precio_unitario : 0) +
+      '<td><input type="number" class="item-costo" min="0" step="0.01" value="' +
+      costo +
+      '" /></td>' +
+      '<td><input type="number" class="item-markup" min="0" step="0.01" value="' +
+      markup +
       '" /></td>' +
       '<td class="item-subtotal">$0.00</td>' +
       '<td><button type="button" class="item-remove" title="' + t("quitar_linea_title") + '">&times;</button></td>';
     tbody.appendChild(tr);
 
-    tr.querySelectorAll(".item-cant, .item-precio").forEach((input) => {
+    tr.querySelectorAll(".item-cant, .item-costo, .item-markup").forEach((input) => {
+      input.addEventListener("input", recalcTotals);
+    });
+    tr.querySelector(".item-desc").addEventListener("input", (e) => {
+      const pieza = state.piezas.find((p) => p.nombre === e.target.value);
+      if (pieza) {
+        tr.querySelector(".item-costo").value = pieza.costo != null ? pieza.costo : pieza.precio_venta;
+        recalcTotals();
+      }
+    });
+    tr.querySelector(".item-remove").addEventListener("click", () => {
+      tr.remove();
+      recalcTotals();
+    });
+
+    recalcTotals();
+  }
+
+  function addLaborRow(item) {
+    const tbody = document.getElementById("factura-labor-tbody");
+    const tr = document.createElement("tr");
+    const horas = item ? (item.horas != null ? item.horas : 1) : 1;
+    const tarifa = item ? (item.tarifa != null ? item.tarifa : item.precio_unitario) : 0;
+    tr.innerHTML =
+      '<td><input type="text" class="labor-desc" placeholder="' + t("col_descripcion") + '" value="' +
+      (item ? escapeHtml(item.descripcion) : "") +
+      '" /></td>' +
+      '<td><input type="number" class="labor-horas" min="0" step="0.25" value="' +
+      horas +
+      '" /></td>' +
+      '<td><input type="number" class="labor-tarifa" min="0" step="0.01" value="' +
+      tarifa +
+      '" /></td>' +
+      '<td class="labor-costo">$0.00</td>' +
+      '<td class="labor-subtotal">$0.00</td>' +
+      '<td><button type="button" class="item-remove" title="' + t("quitar_linea_title") + '">&times;</button></td>';
+    tbody.appendChild(tr);
+
+    tr.querySelectorAll(".labor-horas, .labor-tarifa").forEach((input) => {
       input.addEventListener("input", recalcTotals);
     });
     tr.querySelector(".item-remove").addEventListener("click", () => {
@@ -2826,30 +3110,47 @@
   }
 
   function recalcTotals() {
-    let subtotal = 0;
-    document.querySelectorAll("#factura-items-tbody tr").forEach((tr) => {
-      const cant = parseFloat(tr.querySelector(".item-cant").value) || 0;
-      const precio = parseFloat(tr.querySelector(".item-precio").value) || 0;
-      const rowSubtotal = cant * precio;
-      tr.querySelector(".item-subtotal").textContent = money(rowSubtotal);
-      subtotal += rowSubtotal;
+    let totalLabor = 0;
+    document.querySelectorAll("#factura-labor-tbody tr").forEach((tr) => {
+      const horas = parseFloat(tr.querySelector(".labor-horas").value) || 0;
+      const tarifa = parseFloat(tr.querySelector(".labor-tarifa").value) || 0;
+      const rowTotal = horas * tarifa;
+      tr.querySelector(".labor-costo").textContent = money(tarifa);
+      tr.querySelector(".labor-subtotal").textContent = money(rowTotal);
+      totalLabor += rowTotal;
     });
 
-    const labor = parseFloat(document.getElementById("factura-labor").value) || 0;
-    subtotal += labor;
+    let totalParts = 0;
+    document.querySelectorAll("#factura-items-tbody tr").forEach((tr) => {
+      const cant = parseFloat(tr.querySelector(".item-cant").value) || 0;
+      const costo = parseFloat(tr.querySelector(".item-costo").value) || 0;
+      const markup = parseFloat(tr.querySelector(".item-markup").value) || 0;
+      const precioUnitario = costo * (1 + markup / 100);
+      const rowSubtotal = cant * precioUnitario;
+      tr.querySelector(".item-subtotal").textContent = money(rowSubtotal);
+      totalParts += rowSubtotal;
+    });
 
+    const subtotal = totalLabor + totalParts;
     const pct = parseFloat(document.getElementById("factura-impuesto-pct").value) || 0;
     const impuestoMonto = subtotal * (pct / 100);
-    const total = subtotal + impuestoMonto;
+    const descuento = parseFloat(document.getElementById("factura-descuento").value) || 0;
+    const total = Math.max(0, subtotal + impuestoMonto - descuento);
 
-    document.getElementById("factura-subtotal").textContent = money(subtotal);
+    document.getElementById("factura-total-labor").textContent = money(totalLabor);
+    document.getElementById("factura-total-parts").textContent = money(totalParts);
     document.getElementById("factura-impuesto-monto").textContent = money(impuestoMonto);
+    document.getElementById("factura-descuento-monto").textContent = money(descuento);
     document.getElementById("factura-total").textContent = money(total);
+    document.getElementById("factura-total-arriba").textContent = money(total);
   }
 
   async function openFacturaModal(factura) {
     document.getElementById("modal-factura-title").textContent = factura ? "Editar factura" : "Nueva factura";
     document.getElementById("factura-id").value = factura ? factura.id : "";
+    const notaVencida = document.getElementById("factura-vencida-nota");
+    notaVencida.hidden = !(factura && facturaVencida(factura));
+    if (!notaVencida.hidden) notaVencida.textContent = t("factura_vencida_nota_form", { n: FACTURA_DIAS_VENCIMIENTO });
     document.getElementById("factura-orden-id").value = factura && factura.orden_id ? factura.orden_id : "";
     const nota = document.getElementById("factura-orden-nota");
     if (factura && factura.orden_id) {
@@ -2888,6 +3189,16 @@
     document.getElementById("factura-estado").value = factura ? factura.estado : "pendiente";
     document.getElementById("factura-metodo-pago").value = factura ? factura.metodo_pago || "" : "";
     document.getElementById("factura-notas").value = factura ? factura.notas || "" : "";
+    document.getElementById("factura-etiquetas").value = factura ? factura.etiquetas || "" : "";
+    document.getElementById("factura-descuento").value = factura ? factura.descuento || 0 : 0;
+
+    const cfg = state.configNegocio || {};
+    document.getElementById("factura-form-logo").src = cfg.logo_url || LOGO_DATA_URI;
+    document.getElementById("factura-form-nombre-negocio").textContent = cfg.nombre_negocio || "Gil's Muffler Inc";
+    document.getElementById("factura-form-datos-negocio").innerHTML = [cfg.direccion, cfg.telefono, cfg.email]
+      .filter(Boolean)
+      .map(escapeHtml)
+      .join("<br>");
 
     const subtotalNum = factura ? Number(factura.subtotal) : 0;
     const tasaDefault = state.configNegocio ? Number(state.configNegocio.tasa_impuesto_default) || 0 : 0;
@@ -2895,20 +3206,17 @@
     document.getElementById("factura-impuesto-pct").value = impuestoPct ? impuestoPct.toFixed(2) : 0;
 
     document.getElementById("factura-items-tbody").innerHTML = "";
+    document.getElementById("factura-labor-tbody").innerHTML = "";
     document.getElementById("btn-eliminar-factura").hidden = !factura;
 
     if (factura) {
       const items = await fetchFacturaItems(factura.id);
-      const laborItem = items.find((it) => it.descripcion === "Mano de obra");
-      document.getElementById("factura-labor").value = laborItem ? laborItem.precio_unitario : 0;
-      const otrosItems = items.filter((it) => it !== laborItem);
-      if (otrosItems.length) {
-        otrosItems.forEach(addItemRow);
-      } else {
-        addItemRow(null);
-      }
+      const laborItems = items.filter((it) => it.tipo === "labor" || (!it.tipo && it.descripcion === "Mano de obra"));
+      const parteItems = items.filter((it) => !laborItems.includes(it));
+      laborItems.forEach(addLaborRow);
+      parteItems.forEach(addItemRow);
+      if (!parteItems.length) addItemRow(null);
     } else {
-      document.getElementById("factura-labor").value = 0;
       addItemRow(null);
     }
 
@@ -2917,32 +3225,43 @@
   }
 
   function collectItems() {
-    const rows = document.querySelectorAll("#factura-items-tbody tr");
     const items = [];
-    rows.forEach((tr, idx) => {
-      const descripcion = tr.querySelector(".item-desc").value.trim();
-      const cantidad = parseFloat(tr.querySelector(".item-cant").value) || 0;
-      const precio = parseFloat(tr.querySelector(".item-precio").value) || 0;
+
+    document.querySelectorAll("#factura-labor-tbody tr").forEach((tr) => {
+      const descripcion = tr.querySelector(".labor-desc").value.trim();
+      const horas = parseFloat(tr.querySelector(".labor-horas").value) || 0;
+      const tarifa = parseFloat(tr.querySelector(".labor-tarifa").value) || 0;
       if (!descripcion) return;
       items.push({
         descripcion,
-        cantidad,
-        precio_unitario: precio,
-        subtotal: cantidad * precio,
-        orden: idx,
+        cantidad: 1,
+        precio_unitario: horas * tarifa,
+        subtotal: horas * tarifa,
+        tipo: "labor",
+        horas,
+        tarifa,
+        orden: items.length,
       });
     });
 
-    const labor = parseFloat(document.getElementById("factura-labor").value) || 0;
-    if (labor > 0) {
+    document.querySelectorAll("#factura-items-tbody tr").forEach((tr) => {
+      const descripcion = tr.querySelector(".item-desc").value.trim();
+      const cantidad = parseFloat(tr.querySelector(".item-cant").value) || 0;
+      const costo = parseFloat(tr.querySelector(".item-costo").value) || 0;
+      const markup = parseFloat(tr.querySelector(".item-markup").value) || 0;
+      if (!descripcion) return;
+      const precioUnitario = costo * (1 + markup / 100);
       items.push({
-        descripcion: "Mano de obra",
-        cantidad: 1,
-        precio_unitario: labor,
-        subtotal: labor,
+        descripcion,
+        cantidad,
+        precio_unitario: precioUnitario,
+        subtotal: cantidad * precioUnitario,
+        tipo: "parte",
+        costo_unitario: costo,
+        markup_pct: markup,
         orden: items.length,
       });
-    }
+    });
 
     return items;
   }
@@ -2972,7 +3291,8 @@
     const subtotal = items.reduce((sum, it) => sum + it.subtotal, 0);
     const pct = parseFloat(document.getElementById("factura-impuesto-pct").value) || 0;
     const impuesto = subtotal * (pct / 100);
-    const total = subtotal + impuesto;
+    const descuento = parseFloat(document.getElementById("factura-descuento").value) || 0;
+    const total = Math.max(0, subtotal + impuesto - descuento);
 
     const ordenId = document.getElementById("factura-orden-id").value || null;
 
@@ -2982,12 +3302,21 @@
       estado: document.getElementById("factura-estado").value,
       subtotal,
       impuesto,
+      descuento,
       total,
       notas: document.getElementById("factura-notas").value.trim(),
+      etiquetas: document.getElementById("factura-etiquetas").value.trim(),
       orden_id: ordenId,
       mecanico_id: document.getElementById("factura-mecanico").value || null,
       metodo_pago: document.getElementById("factura-metodo-pago").value || null,
     };
+
+    if (!id) {
+      const posibleDuplicada = state.facturas.some(
+        (f) => f.cliente_id === clienteId && f.fecha === payload.fecha && Number(f.total) === total && f.estado !== "cancelada"
+      );
+      if (posibleDuplicada && !(await confirmDialog(t("factura_duplicada_confirm")))) return;
+    }
 
     let facturaId = id;
 
@@ -3014,6 +3343,7 @@
       showToast(t("error_guardado_parcial_factura"), true);
     } else {
       showToast("Factura guardada.");
+      mostrarConfirmacionGuardado();
     }
 
     if (ordenId) {
@@ -3148,7 +3478,7 @@
     const tbody = document.getElementById("estimado-items-tbody");
     const tr = document.createElement("tr");
     tr.innerHTML =
-      '<td><input type="text" class="item-desc" placeholder="' + t("col_descripcion") + '" value="' +
+      '<td><input type="text" class="item-desc" list="piezas-datalist" placeholder="' + t("col_descripcion") + '" value="' +
       (item ? escapeHtml(item.descripcion) : "") +
       '" /></td>' +
       '<td><input type="number" class="item-cant" min="0" step="0.01" value="' +
@@ -3412,7 +3742,9 @@
             return (
               '<div class="tarea-row" data-cita-id="' +
               c.id +
-              '">' +
+              '" style="border-left:3px solid ' +
+              nameColor(c.servicio || "") +
+              ';">' +
               '<div class="tarea-row-body">' +
               '<div class="tarea-row-title">' +
               escapeHtml(c.servicio || "Cita") +
@@ -3669,6 +4001,13 @@
     state.piezas = await fetchPiezas();
     renderPiezas(filterPiezas());
     renderDashboard();
+    populatePiezasDatalist();
+  }
+
+  function populatePiezasDatalist() {
+    const datalist = document.getElementById("piezas-datalist");
+    if (!datalist) return;
+    datalist.innerHTML = state.piezas.map((p) => '<option value="' + escapeHtml(p.nombre) + '">' + escapeHtml(p.nombre) + " — " + money(p.precio_venta) + "</option>").join("");
   }
 
   // ---------------- render: órdenes de servicio (kanban) ----------------
@@ -4243,15 +4582,25 @@
     document.getElementById("factura-metodo-pago").value = "";
     const tasaDefault = state.configNegocio ? Number(state.configNegocio.tasa_impuesto_default) || 0 : 0;
     document.getElementById("factura-impuesto-pct").value = tasaDefault;
-    document.getElementById("factura-labor").value = 0;
+    document.getElementById("factura-descuento").value = 0;
     document.getElementById("factura-notas").value = "";
+    document.getElementById("factura-etiquetas").value = "";
     document.getElementById("btn-eliminar-factura").hidden = true;
+
+    const cfgOrden = state.configNegocio || {};
+    document.getElementById("factura-form-logo").src = cfgOrden.logo_url || LOGO_DATA_URI;
+    document.getElementById("factura-form-nombre-negocio").textContent = cfgOrden.nombre_negocio || "Gil's Muffler Inc";
+    document.getElementById("factura-form-datos-negocio").innerHTML = [cfgOrden.direccion, cfgOrden.telefono, cfgOrden.email]
+      .filter(Boolean)
+      .map(escapeHtml)
+      .join("<br>");
 
     const nota = document.getElementById("factura-orden-nota");
     nota.hidden = false;
     nota.textContent = t("factura_generada_desde_orden", { numero: String(orden.numero).padStart(4, "0") });
 
     document.getElementById("factura-items-tbody").innerHTML = "";
+    document.getElementById("factura-labor-tbody").innerHTML = "";
     const piezasOrden = await fetchOrdenPiezas(orden.id);
     if (piezasOrden.length) {
       piezasOrden.forEach((op) => {
@@ -4707,6 +5056,86 @@
     await cargarRegistroDiario(nuevaFecha);
   }
 
+  async function cargarReportesTrabajoPendientes(avisar) {
+    const { data, error } = await sb
+      .from("reportes_trabajo")
+      .select("*")
+      .eq("revisado", false)
+      .order("creado_en", { ascending: true });
+
+    const panel = document.getElementById("registro-reportes-nuevos-panel");
+    const lista = document.getElementById("registro-reportes-nuevos-lista");
+    if (!panel || !lista) return;
+
+    if (error || !data || !data.length) {
+      panel.hidden = true;
+      lista.innerHTML = "";
+      return;
+    }
+
+    panel.hidden = false;
+    lista.innerHTML = data
+      .map((r) => {
+        const mecanico = state.mecanicos.find((m) => m.id === r.mecanico_id);
+        const total = (parseFloat(r.labor) || 0) + (parseFloat(r.piezas) || 0) + (parseFloat(r.otro) || 0);
+        return (
+          '<div class="reporte-pendiente-fila" data-reporte-id="' +
+          r.id +
+          '" style="display:flex;justify-content:space-between;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:1px solid var(--border);">' +
+          "<span><strong>" +
+          escapeHtml(mecanico ? mecanico.nombre : "?") +
+          "</strong> — " +
+          escapeHtml(r.carro || "—") +
+          " · " +
+          formatDate(r.fecha) +
+          " · <strong>" +
+          money(total) +
+          "</strong></span>" +
+          '<button type="button" class="btn-ghost btn-agregar-reporte-pendiente">' +
+          t("btn_agregar_a_fila") +
+          "</button></div>"
+        );
+      })
+      .join("");
+
+    lista.querySelectorAll(".btn-agregar-reporte-pendiente").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const fila = btn.closest(".reporte-pendiente-fila");
+        const reporte = data.find((r) => r.id === fila.dataset.reporteId);
+        if (reporte) agregarReportePendienteAFila(reporte);
+      });
+    });
+
+    if (avisar) showToast(t("reportes_nuevos_toast", { cantidad: data.length }));
+  }
+
+  async function agregarReportePendienteAFila(reporte) {
+    if (document.getElementById("registro-fecha").value !== reporte.fecha) {
+      await irAFechaRegistro(reporte.fecha);
+    }
+    const card = document.querySelector('.registro-mecanico-card[data-mecanico-id="' + reporte.mecanico_id + '"]');
+    if (!card) {
+      showToast(t("error_mecanico_no_encontrado"), true);
+      return;
+    }
+    addRegistroItemRow(card.querySelector(".registro-items-tbody"), {
+      carro: reporte.carro,
+      descripcion: reporte.descripcion,
+      labor: reporte.labor,
+      piezas: reporte.piezas,
+      otro: reporte.otro,
+      dinero_salida: 0,
+    });
+    registroDiarioSucio = true;
+    recalcularRegistroDiario();
+
+    const { error } = await sb.from("reportes_trabajo").update({ revisado: true }).eq("id", reporte.id);
+    if (error) showToast(t("error_marcar_reporte"), true);
+
+    showToast(t("reporte_agregado_msg"));
+    await cargarReportesTrabajoPendientes();
+  }
+
   const REGISTRO_COLUMNAS_DEF = {
     carro: { label: t("col_carro"), celda: (item) => '<input type="text" class="reg-carro" value="' + (item ? escapeHtml(item.carro || "") : "") + '" />' },
     descripcion: { label: t("col_descripcion"), celda: (item) => '<input type="text" class="reg-desc" value="' + (item ? escapeHtml(item.descripcion || "") : "") + '" />' },
@@ -4852,6 +5281,9 @@
           '<tbody class="registro-items-tbody"></tbody>' +
           "</table></div>" +
           '<button type="button" class="btn-ghost registro-add-fila" style="margin-top:.6rem;">+ Agregar fila</button>' +
+          '<button type="button" class="btn-ghost registro-qr-reporte" style="margin-top:.6rem;margin-left:.5rem;">' +
+          t("btn_qr_reporte_trabajo") +
+          "</button>" +
           "</div>"
       )
       .join("");
@@ -4866,6 +5298,15 @@
         recalcularRegistroDiario();
         const primerInput = tr.querySelector(".reg-carro");
         if (primerInput) primerInput.focus();
+      });
+    });
+
+    container.querySelectorAll(".registro-qr-reporte").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const card = btn.closest(".registro-mecanico-card");
+        const mecanicoId = card.dataset.mecanicoId;
+        const mecanico = state.mecanicos.find((m) => m.id === mecanicoId);
+        mostrarQrReporteTrabajo(mecanicoId, mecanico ? mecanico.nombre : "");
       });
     });
 
@@ -4946,6 +5387,14 @@
     document.getElementById("registro-resumen-piezas").textContent = money(piezasDia);
     document.getElementById("registro-resumen-otro").textContent = money(otroDia);
     document.getElementById("registro-resumen-dinero-salida").textContent = money(dineroSalidaDia);
+
+    const maxBarra = Math.max(laborDia, piezasDia, otroDia, 1);
+    document.getElementById("registro-dia-bar-labor").style.width = (laborDia / maxBarra) * 100 + "%";
+    document.getElementById("registro-dia-bar-piezas").style.width = (piezasDia / maxBarra) * 100 + "%";
+    document.getElementById("registro-dia-bar-otro").style.width = (otroDia / maxBarra) * 100 + "%";
+    document.getElementById("registro-dia-bar-labor-valor").textContent = money(laborDia);
+    document.getElementById("registro-dia-bar-piezas-valor").textContent = money(piezasDia);
+    document.getElementById("registro-dia-bar-otro-valor").textContent = money(otroDia);
 
     const cc = parseFloat(document.getElementById("registro-credit-card").value) || 0;
     const cash = parseFloat(document.getElementById("registro-cash").value) || 0;
@@ -5623,6 +6072,11 @@
     const hoy = todayISO();
     const mesActual = hoy.slice(0, 7);
 
+    const saludoEl = document.getElementById("dashboard-saludo");
+    const nombreActual = state.empleadoActualId ? nombreEmpleado(state.empleadoActualId) : "";
+    saludoEl.hidden = !nombreActual;
+    if (nombreActual) saludoEl.textContent = t("saludo_dashboard", { nombre: nombreActual });
+
     const ingresosMes = state.facturas
       .filter((f) => f.estado === "pagada" && (f.fecha || "").slice(0, 7) === mesActual)
       .reduce((sum, f) => sum + Number(f.total), 0);
@@ -5655,6 +6109,16 @@
     document.getElementById("kpi-facturas-pendientes-monto").textContent = money(pendientesMonto);
     document.getElementById("kpi-ordenes-activas").textContent = String(ordenesActivas.length);
     document.getElementById("kpi-stock-bajo").textContent = String(stockBajo.length);
+    document.querySelectorAll(".kpi-value").forEach((el) => {
+      el.classList.remove("is-updated");
+      requestAnimationFrame(() => el.classList.add("is-updated"));
+    });
+
+    const citasHoy = state.citas.filter((c) => c.fecha === hoy);
+    const cobradoHoy = state.facturas.filter((f) => f.estado === "pagada" && (f.fecha_pagada || f.fecha) === hoy).reduce((sum, f) => sum + Number(f.total), 0);
+    document.getElementById("hoy-citas").textContent = String(citasHoy.length);
+    document.getElementById("hoy-ordenes-activas").textContent = String(ordenesActivas.length);
+    document.getElementById("hoy-cobrado").textContent = money(cobradoHoy);
 
     const counts = document.getElementById("dashboard-etapa-counts");
     counts.innerHTML = ETAPAS.map((etapa) => {
@@ -5670,8 +6134,82 @@
     document.getElementById("pago-panel-pendientes-count").textContent = String(pendientesOrdenadas.length);
     document.getElementById("pago-panel-pagadas-count").textContent = String(pagadas.length);
 
+    const facturasVencidas = pendientes.filter((f) => facturaVencida(f));
+    const bannerVencidas = document.getElementById("dashboard-banner-vencidas");
+    bannerVencidas.hidden = !facturasVencidas.length;
+    if (facturasVencidas.length) {
+      const montoVencido = facturasVencidas.reduce((sum, f) => sum + Number(f.total), 0);
+      bannerVencidas.textContent = t("facturas_vencidas_dashboard", { n: facturasVencidas.length, monto: money(montoVencido) });
+    }
+
+    renderRecordatoriosPendientes();
     renderDashboardChart();
     updateQuickAccessBadges();
+  }
+
+  function renderRecordatoriosPendientes() {
+    const hoy = todayISO();
+    const panel = document.getElementById("dashboard-recordatorios-panel");
+    const lista = document.getElementById("dashboard-recordatorios-lista");
+
+    const pendientes = state.vehiculos.filter((v) => v.recordatorio_activo && v.recordatorio_proxima_fecha && v.recordatorio_proxima_fecha <= hoy);
+
+    if (!pendientes.length) {
+      panel.hidden = true;
+      lista.innerHTML = "";
+      return;
+    }
+
+    panel.hidden = false;
+    lista.innerHTML = pendientes
+      .map((v) => {
+        const cliente = state.clientes.find((c) => c.id === v.cliente_id);
+        return (
+          '<div class="detalle-list-item" data-vehiculo-recordatorio-id="' +
+          v.id +
+          '"><span style="flex:1;">' +
+          escapeHtml(cliente ? cliente.nombre : "—") +
+          " — " +
+          escapeHtml(vehiculoLabel(v)) +
+          "</span><span>" +
+          escapeHtml((cliente && cliente.telefono) || "—") +
+          "</span><span>" +
+          escapeHtml(formatDate(v.recordatorio_proxima_fecha)) +
+          '</span><button type="button" class="btn-ghost btn-ya-avise">' +
+          t("btn_ya_avise") +
+          "</button></div>"
+        );
+      })
+      .join("");
+
+    lista.querySelectorAll(".btn-ya-avise").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const fila = btn.closest("[data-vehiculo-recordatorio-id]");
+        marcarRecordatorioAvisado(fila.dataset.vehiculoRecordatorioId);
+      });
+    });
+  }
+
+  async function marcarRecordatorioAvisado(vehiculoId) {
+    const vehiculo = state.vehiculos.find((v) => v.id === vehiculoId);
+    if (!vehiculo) return;
+    const hoy = todayISO();
+    const proxima = new Date(hoy);
+    proxima.setMonth(proxima.getMonth() + (Number(vehiculo.recordatorio_frecuencia_meses) || 3));
+    const proximaISO = proxima.toISOString().slice(0, 10);
+
+    const { error } = await sb
+      .from("vehiculos")
+      .update({ recordatorio_ultima_fecha: hoy, recordatorio_proxima_fecha: proximaISO })
+      .eq("id", vehiculoId);
+    if (error) {
+      showToast(t("error_actualizar_recordatorio"), true);
+      return;
+    }
+    vehiculo.recordatorio_ultima_fecha = hoy;
+    vehiculo.recordatorio_proxima_fecha = proximaISO;
+    showToast(t("recordatorio_actualizado_msg"));
+    renderRecordatoriosPendientes();
   }
 
   function renderDashboardChart() {
@@ -5705,9 +6243,9 @@
     const barW = (W - gap * (n + 1)) / n;
 
     const styles = getComputedStyle(document.documentElement);
-    const accent = styles.getPropertyValue("--accent").trim() || "#d5601a";
     const textDim = styles.getPropertyValue("--text-dim").trim() || "#68707e";
     const textFaint = styles.getPropertyValue("--text-faint").trim() || "#98a1b0";
+    const barColores = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => styles.getPropertyValue("--series-" + n).trim()).filter(Boolean);
 
     ctx.font = "11px -apple-system, sans-serif";
     ctx.textAlign = "center";
@@ -5717,7 +6255,7 @@
       const h = (totales[i] / max) * plotH;
       const y = paddingTop + (plotH - h);
 
-      ctx.fillStyle = accent;
+      ctx.fillStyle = barColores.length ? barColores[i % barColores.length] : "#d5601a";
       if (ctx.roundRect) {
         ctx.beginPath();
         ctx.roundRect(x, y, barW, Math.max(h, 2), [4, 4, 0, 0]);
@@ -5787,8 +6325,6 @@
     });
 
     document.getElementById("btn-shortcuts-help").addEventListener("click", () => openModal("modal-shortcuts"));
-    document.getElementById("global-search-input").addEventListener("input", (e) => renderGlobalSearchResults(e.target.value));
-    document.getElementById("btn-open-search").addEventListener("click", openGlobalSearch);
 
     document.querySelectorAll("[data-goto]").forEach((el) => {
       const activate = () => {
@@ -5818,8 +6354,9 @@
     document.getElementById("form-factura").addEventListener("submit", saveFactura);
     document.getElementById("btn-eliminar-factura").addEventListener("click", deleteFactura);
     document.getElementById("btn-add-item").addEventListener("click", () => addItemRow(null));
+    document.getElementById("btn-add-labor").addEventListener("click", () => addLaborRow(null));
     document.getElementById("factura-impuesto-pct").addEventListener("input", recalcTotals);
-    document.getElementById("factura-labor").addEventListener("input", recalcTotals);
+    document.getElementById("factura-descuento").addEventListener("input", recalcTotals);
     document.getElementById("facturas-search").addEventListener("input", () => renderFacturas(filterFacturas()));
     document.getElementById("facturas-filter-estado").addEventListener("change", () => renderFacturas(filterFacturas()));
     document.getElementById("facturas-filter-metodo-pago").addEventListener("change", () => renderFacturas(filterFacturas()));
@@ -6081,10 +6618,58 @@
     await refreshEmpleados();
   }
 
+  async function bootSoloCliente(clienteId) {
+    const [
+      { data: cliente },
+      { data: vehiculos },
+      { data: telefonos },
+      { data: ordenes },
+      { data: facturas },
+      { data: estimados },
+      { data: citas },
+      { data: tareas },
+    ] = await Promise.all([
+      sb.from("clientes").select("*").eq("id", clienteId).maybeSingle(),
+      sb.from("vehiculos").select("*").eq("cliente_id", clienteId),
+      sb.from("cliente_telefonos").select("*").eq("cliente_id", clienteId),
+      sb.from("ordenes_servicio").select("*, clientes(nombre, apellido)").eq("cliente_id", clienteId),
+      sb.from("facturas").select("*, clientes(nombre, apellido, direccion, numero)").eq("cliente_id", clienteId),
+      sb.from("estimados").select("*, clientes(nombre, apellido)").eq("cliente_id", clienteId),
+      sb.from("citas").select("*").eq("cliente_id", clienteId),
+      sb.from("tareas").select("*").eq("cliente_id", clienteId),
+    ]);
+    await Promise.all([refreshPiezas(), refreshMecanicos(), refreshEmpleados(), refreshConfigNegocio()]);
+
+    if (!cliente) {
+      showToast(t("cliente_no_encontrado"), true);
+      history.replaceState(null, "", location.pathname);
+      return false;
+    }
+
+    state.clientes = [cliente];
+    state.vehiculos = vehiculos || [];
+    state.telefonos = telefonos || [];
+    state.ordenes = ordenes || [];
+    state.facturas = facturas || [];
+    state.estimados = estimados || [];
+    state.citas = citas || [];
+    state.tareas = tareas || [];
+
+    openClienteDetalle(cliente);
+    return true;
+  }
+
   async function boot() {
     initEvents();
     initKeyboardShortcuts();
     renderQuickAccess();
+
+    const clienteParam = new URLSearchParams(location.search).get("cliente");
+    if (clienteParam && (await bootSoloCliente(clienteParam))) {
+      verificarConexionReal();
+      return;
+    }
+
     await refreshClientes();
     await refreshPiezas();
     await refreshVehiculos();
@@ -6101,10 +6686,16 @@
     document.getElementById("registro-fecha").value = todayISO();
     state.registroDiarioFechaActual = todayISO();
     await cargarRegistroDiario(todayISO());
+    await cargarReportesTrabajoPendientes(true);
     await checkRegistroDiarioSinGuardar();
     await refreshLlamadas();
     renderDashboard();
     verificarConexionReal();
+
+    if (clienteParam) {
+      const cliente = state.clientes.find((c) => c.id === clienteParam);
+      if (cliente) openClienteDetalle(cliente);
+    }
   }
 
   if ("serviceWorker" in navigator) {

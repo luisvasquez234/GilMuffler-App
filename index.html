@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Gil Muffler — Panel interno</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f5d92'/%3E%3Cpath d='M7 18c0-3 2-5 5-5h4.5a4.5 4.5 0 0 1 0 9H12c-3 0-5-2-5-4z' fill='none' stroke='white' stroke-width='2' stroke-linejoin='round'/%3E%3Ccircle cx='23.2' cy='18' r='1.8' fill='white'/%3E%3C/svg%3E" />
+<link rel="icon" type="image/png" href="logo-muffler.png" />
 <link rel="manifest" href="manifest.json" />
 <link rel="apple-touch-icon" href="logo-muffler.png" />
 <meta name="theme-color" content="#d5601a" />
@@ -115,6 +115,9 @@
 </svg>
 
 <div id="login-gate" class="login-gate">
+  <svg class="login-bg-icon login-bg-icon-1" aria-hidden="true"><use href="#icon-muffler"></use></svg>
+  <svg class="login-bg-icon login-bg-icon-2" aria-hidden="true"><use href="#icon-wrench"></use></svg>
+  <svg class="login-bg-icon login-bg-icon-3" aria-hidden="true"><use href="#icon-car"></use></svg>
   <form id="login-form" class="login-card">
     <button type="button" class="idioma-toggle-btn link-btn" id="idioma-toggle-login" style="align-self:flex-end;margin-bottom:.5rem;">
       <svg class="icon" aria-hidden="true"><use href="#icon-globe"></use></svg>
@@ -143,22 +146,32 @@
       </div>
       <span class="brand-sub" data-i18n="panel_interno_label">Panel interno</span>
     </div>
-    <button id="btn-open-search" class="search-trigger" type="button">
-      <svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg>
-      <span data-i18n="buscar_placeholder">Buscar...</span>
-      <span class="search-trigger-kbd">Ctrl K</span>
-    </button>
     <nav class="nav">
-      <button class="nav-item is-active" data-view="dashboard"><svg class="icon" aria-hidden="true"><use href="#icon-home"></use></svg><span id="nav-dashboard-label">Gil's Muffler Inc</span></button>
-      <button class="nav-item" data-view="clientes"><svg class="icon" aria-hidden="true"><use href="#icon-user"></use></svg><span data-i18n="nav_clientes">Clientes</span></button>
-      <button class="nav-item" data-view="reservas"><svg class="icon" aria-hidden="true"><use href="#icon-calendar"></use></svg><span data-i18n="nav_reservas">Reservas</span></button>
-      <button class="nav-item" data-view="ordenes"><svg class="icon" aria-hidden="true"><use href="#icon-wrench"></use></svg><span data-i18n="nav_ordenes">Órdenes de servicio</span></button>
-      <button class="nav-item" data-view="inventario"><svg class="icon" aria-hidden="true"><use href="#icon-box"></use></svg><span data-i18n="nav_inventario">Inventario</span></button>
-      <button class="nav-item" data-view="llamadas"><svg class="icon" aria-hidden="true"><use href="#icon-phone"></use></svg><span data-i18n="nav_llamadas">Por llamar</span></button>
-      <button class="nav-item" data-view="facturas"><svg class="icon" aria-hidden="true"><use href="#icon-file-text"></use></svg><span data-i18n="nav_facturas">Facturas</span></button>
-      <button class="nav-item" data-view="estimados"><svg class="icon" aria-hidden="true"><use href="#icon-clipboard"></use></svg><span data-i18n="nav_estimados">Presupuestos</span></button>
-      <button class="nav-item" data-view="registro-diario"><svg class="icon" aria-hidden="true"><use href="#icon-hash"></use></svg><span data-i18n="nav_registro_diario">Registro diario</span></button>
-      <button class="nav-item" data-view="configuracion"><svg class="icon" aria-hidden="true"><use href="#icon-settings"></use></svg><span data-i18n="nav_configuracion">Configuración</span></button>
+      <div class="nav-group">
+        <button class="nav-item is-active" data-view="dashboard"><svg class="icon" aria-hidden="true"><use href="#icon-home"></use></svg><span id="nav-dashboard-label">Gil's Muffler Inc</span></button>
+      </div>
+      <div class="nav-group">
+        <button class="nav-item" data-action="nuevo-cliente"><svg class="icon" aria-hidden="true"><use href="#icon-user"></use></svg><span>New Client</span></button>
+        <button class="nav-item" data-view="clientes"><svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg><span>Search Client</span></button>
+      </div>
+      <div class="nav-group">
+        <button class="nav-item" data-view="reservas"><svg class="icon" aria-hidden="true"><use href="#icon-calendar"></use></svg><span data-i18n="nav_reservas">Reservas</span></button>
+        <button class="nav-item" data-view="ordenes"><svg class="icon" aria-hidden="true"><use href="#icon-wrench"></use></svg><span data-i18n="nav_ordenes">Órdenes de servicio</span></button>
+        <button class="nav-item" data-view="registro-diario"><svg class="icon" aria-hidden="true"><use href="#icon-hash"></use></svg><span data-i18n="nav_registro_diario">Registro diario</span></button>
+      </div>
+      <div class="nav-group">
+        <button class="nav-item" data-view="facturas"><svg class="icon" aria-hidden="true"><use href="#icon-file-text"></use></svg><span data-i18n="nav_facturas">Facturas</span></button>
+        <button class="nav-item" data-view="estimados"><svg class="icon" aria-hidden="true"><use href="#icon-clipboard"></use></svg><span data-i18n="nav_estimados">Presupuestos</span></button>
+        <button class="nav-item" data-view="llamadas"><svg class="icon" aria-hidden="true"><use href="#icon-phone"></use></svg><span data-i18n="nav_llamadas">Por llamar</span></button>
+        <button class="nav-item" data-view="inventario"><svg class="icon" aria-hidden="true"><use href="#icon-box"></use></svg><span data-i18n="nav_inventario">Inventario</span></button>
+      </div>
+      <div class="nav-group">
+        <button class="nav-item" data-view="invoices-due" style="--item-color:var(--danger);"><svg class="icon" aria-hidden="true"><use href="#icon-alert-circle"></use></svg><span>Invoice Due</span></button>
+        <button class="nav-item" data-view="invoices-paid" style="--item-color:#1a9c5a;"><svg class="icon" aria-hidden="true"><use href="#icon-check-circle"></use></svg><span>Paid Invoices</span></button>
+      </div>
+      <div class="nav-group">
+        <button class="nav-item" data-view="configuracion"><svg class="icon" aria-hidden="true"><use href="#icon-settings"></use></svg><span data-i18n="nav_configuracion">Configuración</span></button>
+      </div>
     </nav>
     <div class="sidebar-footer">
       <button id="idioma-toggle" class="idioma-toggle-btn link-btn" type="button">
@@ -193,26 +206,52 @@
       <header class="view-header">
         <div>
           <h1 id="dashboard-titulo">Gil's Muffler Inc</h1>
+          <p class="view-sub" id="dashboard-saludo" hidden></p>
           <p class="view-sub" data-i18n="dashboard_subtitulo">Resumen general del taller</p>
         </div>
       </header>
       <div class="quick-access-grid" id="dashboard-quick-access"></div>
+
+      <div class="hoy-resumen" id="dashboard-hoy-resumen">
+        <div class="hoy-item">
+          <svg class="icon" aria-hidden="true"><use href="#icon-calendar"></use></svg>
+          <span data-i18n="hoy_citas_label">Citas hoy</span>
+          <strong id="hoy-citas">0</strong>
+        </div>
+        <div class="hoy-item">
+          <svg class="icon" aria-hidden="true"><use href="#icon-wrench"></use></svg>
+          <span data-i18n="kpi_ordenes_activas">Órdenes activas</span>
+          <strong id="hoy-ordenes-activas">0</strong>
+        </div>
+        <div class="hoy-item">
+          <svg class="icon" aria-hidden="true"><use href="#icon-dollar"></use></svg>
+          <span data-i18n="hoy_cobrado_label">Cobrado hoy</span>
+          <strong id="hoy-cobrado">$0.00</strong>
+        </div>
+      </div>
+
+      <button type="button" class="banner-vencidas" id="dashboard-banner-vencidas" data-goto="facturas" data-goto-filter="pendiente" hidden></button>
+
       <div class="kpi-grid">
         <div class="kpi-card is-clickable" id="kpi-card-ingresos" data-goto="finanzas" role="button" tabindex="0">
+          <svg class="icon kpi-icon" aria-hidden="true"><use href="#icon-dollar"></use></svg>
           <span class="kpi-label" data-i18n="kpi_ingresos_mes">Ingresos este mes</span>
           <strong class="kpi-value" id="kpi-ingresos">$0.00</strong>
           <span class="kpi-sub" id="kpi-ingresos-comparacion" hidden></span>
         </div>
         <div class="kpi-card is-clickable" id="kpi-card-facturas-pendientes" data-goto="facturas" data-goto-filter="pendiente" role="button" tabindex="0">
+          <svg class="icon kpi-icon" aria-hidden="true"><use href="#icon-alert-circle"></use></svg>
           <span class="kpi-label" data-i18n="kpi_facturas_pendientes">Facturas pendientes</span>
           <strong class="kpi-value" id="kpi-facturas-pendientes">0</strong>
           <span class="kpi-sub" id="kpi-facturas-pendientes-monto">$0.00</span>
         </div>
         <div class="kpi-card is-clickable" id="kpi-card-ordenes-activas" data-goto="ordenes" role="button" tabindex="0">
+          <svg class="icon kpi-icon" aria-hidden="true"><use href="#icon-wrench"></use></svg>
           <span class="kpi-label" data-i18n="kpi_ordenes_activas">Órdenes activas</span>
           <strong class="kpi-value" id="kpi-ordenes-activas">0</strong>
         </div>
         <div class="kpi-card is-clickable" id="kpi-card-stock-bajo" data-goto="inventario" role="button" tabindex="0">
+          <svg class="icon kpi-icon" aria-hidden="true"><use href="#icon-box"></use></svg>
           <span class="kpi-label" data-i18n="kpi_stock_bajo">Piezas con stock bajo</span>
           <strong class="kpi-value" id="kpi-stock-bajo">0</strong>
         </div>
@@ -239,6 +278,11 @@
           <div class="pago-panel-body" id="pago-panel-pagadas"></div>
         </div>
       </div>
+      <div class="table-wrap" id="dashboard-recordatorios-panel" style="padding:1.5rem;" hidden>
+        <h2 style="font-size:1.05rem;margin-bottom:1rem;" data-i18n="recordatorios_pendientes_titulo">📅 Recordatorios de servicio pendientes</h2>
+        <div id="dashboard-recordatorios-lista"></div>
+      </div>
+
       <div class="table-wrap" style="padding:1.5rem;">
         <h2 style="font-size:1.05rem;margin-bottom:1rem;" data-i18n="ordenes_por_etapa_titulo">Órdenes por etapa</h2>
         <div class="etapa-counts" id="dashboard-etapa-counts"></div>
@@ -251,7 +295,7 @@
           <h1 data-i18n="nav_clientes">Clientes</h1>
           <p class="view-sub" data-i18n="clientes_subtitulo">Directorio de clientes del taller</p>
         </div>
-        <button class="btn-primary" id="btn-nuevo-cliente" type="button" data-i18n="btn_nuevo_cliente">+ Nuevo cliente</button>
+        <button class="btn-primary" id="btn-nuevo-cliente" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-user"></use></svg><span data-i18n="btn_nuevo_cliente">+ Nuevo cliente</span></button>
       </header>
       <div class="toolbar">
         <input type="search" id="clientes-search" placeholder="Buscar por nombre, teléfono o placa..." aria-label="Buscar clientes" data-i18n-placeholder="clientes_buscar_placeholder" data-i18n-aria-label="clientes_buscar_placeholder" />
@@ -282,7 +326,7 @@
           <h1><span class="view-title-mark"><img src="logo-muffler.png" alt="" /></span><span data-i18n="nav_facturas">Facturas</span></h1>
           <p class="view-sub" data-i18n="facturas_subtitulo">Historial de facturación</p>
         </div>
-        <button class="btn-primary" id="btn-nueva-factura" type="button" data-i18n="btn_nueva_factura">+ Nueva factura</button>
+        <button class="btn-primary" id="btn-nueva-factura" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-file-text"></use></svg><span data-i18n="btn_nueva_factura">+ Nueva factura</span></button>
       </header>
       <div class="bulk-bar" id="facturas-bulk-bar" hidden>
         <span id="facturas-bulk-count">0 seleccionadas</span>
@@ -330,6 +374,56 @@
       </div>
     </section>
 
+    <section id="view-invoices-due" class="view" hidden>
+      <header class="view-header">
+        <div>
+          <h1>Invoice Due</h1>
+          <p class="view-sub">Facturas sin pagar</p>
+        </div>
+      </header>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th>Invoice</th>
+            <th>Name</th>
+            <th>Reg</th>
+            <th>Make</th>
+            <th>Model</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="invoices-due-tbody"></tbody>
+        </table>
+        <div id="invoices-due-empty" class="empty-state" hidden></div>
+      </div>
+    </section>
+
+    <section id="view-invoices-paid" class="view" hidden>
+      <header class="view-header">
+        <div>
+          <h1>Paid Invoices</h1>
+          <p class="view-sub">Facturas ya pagadas, con la fecha en que se pagaron</p>
+        </div>
+      </header>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th>Invoice</th>
+            <th>Name</th>
+            <th>Reg</th>
+            <th>Make</th>
+            <th>Model</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="invoices-paid-tbody"></tbody>
+        </table>
+        <div id="invoices-paid-empty" class="empty-state" hidden></div>
+      </div>
+    </section>
+
     <section id="view-registro-diario" class="view" hidden>
       <header class="view-header">
         <div>
@@ -351,6 +445,11 @@
 
       <p id="registro-cerrado-banner" class="orden-nota" hidden data-i18n="registro_cerrado_banner">Este día está cerrado. No se puede editar hasta que lo reabras.</p>
       <p id="registro-mismatch-warning" class="orden-nota" hidden aria-live="polite" style="color:var(--danger);"></p>
+
+      <div id="registro-reportes-nuevos-panel" class="table-wrap" style="padding:1.25rem 1.5rem;margin-bottom:1.25rem;" hidden>
+        <h2 style="font-size:1rem;margin-bottom:.75rem;" data-i18n="reportes_nuevos_titulo">📱 Reportes nuevos de trabajadores</h2>
+        <div id="registro-reportes-nuevos-lista"></div>
+      </div>
 
       <div id="registro-buscar-panel" class="table-wrap" style="padding:1.25rem 1.5rem;margin-bottom:1.25rem;" hidden>
         <h2 style="font-size:1rem;margin-bottom:.75rem;" data-i18n="registro_buscar_titulo">Buscar carro o placa entre varios días</h2>
@@ -402,6 +501,24 @@
         </div>
       </div>
 
+      <div class="registro-dia-chart" id="registro-dia-chart">
+        <div class="registro-dia-chart-row">
+          <span data-i18n="kpi_labor_dia">Labor del día</span>
+          <div class="registro-dia-chart-track"><div class="registro-dia-chart-bar" id="registro-dia-bar-labor" style="--bar-color:var(--series-1);"></div></div>
+          <strong id="registro-dia-bar-labor-valor">$0.00</strong>
+        </div>
+        <div class="registro-dia-chart-row">
+          <span data-i18n="kpi_piezas_dia">Piezas del día</span>
+          <div class="registro-dia-chart-track"><div class="registro-dia-chart-bar" id="registro-dia-bar-piezas" style="--bar-color:var(--series-4);"></div></div>
+          <strong id="registro-dia-bar-piezas-valor">$0.00</strong>
+        </div>
+        <div class="registro-dia-chart-row">
+          <span data-i18n="kpi_otro_trabajo">Otro trabajo</span>
+          <div class="registro-dia-chart-track"><div class="registro-dia-chart-bar" id="registro-dia-bar-otro" style="--bar-color:var(--series-3);"></div></div>
+          <strong id="registro-dia-bar-otro-valor">$0.00</strong>
+        </div>
+      </div>
+
       <div id="registro-mecanicos-container"></div>
 
       <div class="table-wrap" style="padding:1.25rem 1.5rem;margin-bottom:1.25rem;">
@@ -438,7 +555,7 @@
           <h1 data-i18n="nav_reservas">Reservas</h1>
           <p class="view-sub" data-i18n="reservas_subtitulo">Agenda de citas próximas</p>
         </div>
-        <button class="btn-primary" id="btn-nueva-reserva" type="button" data-i18n="btn_nueva_reserva">+ Nueva reserva</button>
+        <button class="btn-primary" id="btn-nueva-reserva" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-calendar"></use></svg><span data-i18n="btn_nueva_reserva">+ Nueva reserva</span></button>
       </header>
       <div id="reservas-groups"></div>
     </section>
@@ -449,7 +566,7 @@
           <h1 data-i18n="nav_estimados">Presupuestos</h1>
           <p class="view-sub" data-i18n="estimados_subtitulo">Presupuestos que el cliente puede aprobar o rechazar</p>
         </div>
-        <button class="btn-primary" id="btn-nuevo-estimado" type="button" data-i18n="btn_nuevo_estimado">+ Nuevo presupuesto</button>
+        <button class="btn-primary" id="btn-nuevo-estimado" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-clipboard"></use></svg><span data-i18n="btn_nuevo_estimado">+ Nuevo presupuesto</span></button>
       </header>
       <div class="toolbar">
         <input type="search" id="estimados-search" placeholder="Buscar por cliente o número..." aria-label="Buscar presupuestos" data-i18n-placeholder="estimados_buscar_placeholder" data-i18n-aria-label="estimados_buscar_placeholder" />
@@ -509,7 +626,7 @@
             <h2 style="font-size:1.1rem;" data-i18n="col_gastos">Gastos</h2>
             <p class="view-sub" data-i18n="gastos_subtitulo">Registro de gastos del negocio</p>
           </div>
-          <button class="btn-primary" id="btn-nuevo-gasto" type="button" data-i18n="btn_nuevo_gasto">+ Nuevo gasto</button>
+          <button class="btn-primary" id="btn-nuevo-gasto" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-dollar"></use></svg><span data-i18n="btn_nuevo_gasto">+ Nuevo gasto</span></button>
         </header>
         <div class="table-wrap">
           <table class="data-table">
@@ -655,7 +772,7 @@
             <h2 style="font-size:1.1rem;margin:0;" data-i18n="tab_cuenta">My Account</h2>
             <p class="view-sub" data-i18n="cuenta_subtitulo">Tu sesión y los empleados con acceso al panel</p>
           </div>
-          <button class="btn-primary" id="btn-nuevo-empleado" type="button" data-i18n="btn_agregar_empleado">+ Agregar empleado</button>
+          <button class="btn-primary" id="btn-nuevo-empleado" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-user"></use></svg><span data-i18n="btn_agregar_empleado">+ Agregar empleado</span></button>
         </header>
         <div class="export-card" style="max-width:22rem;margin-bottom:1.5rem;">
           <h2 data-i18n="sesion_actual_titulo">Sesión actual</h2>
@@ -676,7 +793,7 @@
           <h1 data-i18n="nav_ordenes">Órdenes de servicio</h1>
           <p class="view-sub" data-i18n="ordenes_subtitulo">Seguimiento del trabajo en el taller</p>
         </div>
-        <button class="btn-primary" id="btn-nueva-orden" type="button" data-i18n="btn_nueva_orden">+ Nueva orden</button>
+        <button class="btn-primary" id="btn-nueva-orden" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-wrench"></use></svg><span data-i18n="btn_nueva_orden">+ Nueva orden</span></button>
       </header>
       <div class="toolbar">
         <input type="search" id="ordenes-search" placeholder="Buscar por cliente, vehículo o número..." aria-label="Buscar órdenes" data-i18n-placeholder="ordenes_buscar_placeholder" data-i18n-aria-label="ordenes_buscar_placeholder" />
@@ -694,7 +811,7 @@
           <button class="btn-ghost" id="btn-ver-rotacion" type="button" data-i18n="btn_ver_rotacion">Ver rotación de inventario</button>
           <button class="btn-ghost" id="btn-ver-historial-precios" type="button" data-i18n="btn_ver_historial_precios">Ver historial de precios</button>
           <button class="btn-ghost" id="btn-ver-reordenar" type="button" data-i18n="btn_ver_reordenar">Para reordenar</button>
-          <button class="btn-primary" id="btn-nueva-pieza" type="button" data-i18n="btn_nueva_pieza">+ Nueva pieza</button>
+          <button class="btn-primary" id="btn-nueva-pieza" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-box"></use></svg><span data-i18n="btn_nueva_pieza">+ Nueva pieza</span></button>
         </div>
       </header>
       <div class="toolbar">
@@ -724,7 +841,7 @@
         </div>
         <div class="toolbar" style="margin:0;">
           <button class="btn-ghost" id="btn-imprimir-qr-llamame" type="button" data-i18n="btn_imprimir_qr_llamame">Imprimir QR para el mostrador</button>
-          <button class="btn-primary" id="btn-nueva-llamada" type="button" data-i18n="btn_agregar_llamada">+ Agregar llamada</button>
+          <button class="btn-primary" id="btn-nueva-llamada" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-phone"></use></svg><span data-i18n="btn_agregar_llamada">+ Agregar llamada</span></button>
         </div>
       </header>
       <div class="table-wrap">
@@ -735,6 +852,108 @@
         <p id="llamadas-empty" class="empty-state" hidden data-i18n="llamadas_vacio">No hay llamadas pendientes ahora mismo.</p>
       </div>
     </section>
+    <section id="view-cliente-detalle" class="view" hidden>
+          <header class="view-header">
+            <div>
+              <h1 id="modal-cliente-detalle-title">Cliente</h1>
+              <p class="view-sub">
+                <button type="button" class="breadcrumb-link" id="btn-cliente-detalle-volver" style="font-size:.9rem;" data-i18n="volver_a_clientes">‹ Volver a Clientes</button>
+                <span class="pill pill-cliente-desde" id="cliente-detalle-desde"></span>
+                <span class="pill pill-carro-principal" id="cliente-detalle-carro-chip"></span>
+              </p>
+            </div>
+          </header>
+
+          <div class="cliente-accion-toolbar">
+            <button type="button" class="cliente-accion-btn" id="btn-detalle-nueva-reserva" style="--accion-color:#199e70;">
+              <svg class="icon" aria-hidden="true"><use href="#icon-calendar"></use></svg>
+              <span>New Booking</span>
+            </button>
+            <button type="button" class="cliente-accion-btn" id="btn-detalle-nueva-orden" style="--accion-color:#9085e9;">
+              <svg class="icon" aria-hidden="true"><use href="#icon-wrench"></use></svg>
+              <span>New RO</span>
+            </button>
+            <button type="button" class="cliente-accion-btn" id="btn-detalle-crear-factura" style="--accion-color:#d5601a;">
+              <svg class="icon" aria-hidden="true"><use href="#icon-file-text"></use></svg>
+              <span>New Invoice</span>
+            </button>
+            <button type="button" class="cliente-accion-btn" id="btn-detalle-nuevo-pago" style="--accion-color:#1a9c5a;">
+              <svg class="icon" aria-hidden="true"><use href="#icon-check-circle"></use></svg>
+              <span>New Payment</span>
+            </button>
+            <button type="button" class="cliente-accion-btn" id="btn-detalle-estado-cuenta" style="--accion-color:#3987e5;">
+              <svg class="icon" aria-hidden="true"><use href="#icon-printer"></use></svg>
+              <span>Client Statement</span>
+            </button>
+            <button type="button" class="cliente-accion-btn" id="btn-detalle-imprimir" style="--accion-color:#68707e;">
+              <svg class="icon" aria-hidden="true"><use href="#icon-printer"></use></svg>
+              <span data-i18n="btn_imprimir_simple">Imprimir</span>
+            </button>
+          </div>
+
+          <div class="ard-grid">
+            <div class="ard-col-izq">
+              <div class="ard-panel" style="--panel-color:#3987e5;">
+                <div class="ard-panel-header" data-i18n="detalle_cliente_titulo">Client Details</div>
+                <div id="cliente-detalle-info" class="ard-info-grid"></div>
+              </div>
+
+              <div class="ard-panel" style="--panel-color:#00a3a3;">
+                <div class="ard-panel-header">
+                  <span data-i18n="telefonos_titulo">Teléfonos</span>
+                  <button type="button" class="btn-ghost ard-add-btn" id="btn-detalle-agregar-telefono" data-i18n="btn_agregar_telefono">+ Agregar teléfono</button>
+                </div>
+                <div class="ard-panel-body">
+                  <div id="cliente-detalle-telefonos" class="detalle-list"></div>
+                  <div id="cliente-detalle-telefono-form" class="field-row" style="margin-top:.5rem;" hidden>
+                    <div class="field" style="flex:1;">
+                      <input type="tel" id="cliente-detalle-telefono-nuevo" placeholder="Número de teléfono" aria-label="Número de teléfono" data-i18n-placeholder="numero_telefono_label" data-i18n-aria-label="numero_telefono_label" />
+                    </div>
+                    <button type="button" class="btn-primary" id="btn-guardar-telefono-nuevo" data-i18n="btn_guardar">Guardar</button>
+                  </div>
+                </div>
+              </div>
+
+              <div id="detalle-tab-vehiculos" class="ard-panel" style="--panel-color:#9085e9;">
+                <div class="ard-panel-header">
+                  <span data-i18n="col_vehiculo">Vehículos</span>
+                  <button type="button" class="btn-ghost ard-add-btn" id="btn-detalle-agregar-vehiculo" data-i18n="btn_agregar_vehiculo">+ Agregar vehículo</button>
+                </div>
+                <div class="ard-panel-body">
+                  <div id="cliente-detalle-vehiculos" class="detalle-list"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="ard-col-der">
+              <div id="detalle-tab-cuenta" class="ard-panel ard-panel-money" style="--panel-color:#d5601a;">
+                <div class="ard-panel-header" data-i18n="tab_cuenta_corriente">Cuenta corriente</div>
+                <div class="ard-panel-body">
+                  <div id="cliente-detalle-cuenta-saldo" class="ard-saldo-grande"></div>
+                  <div id="cliente-detalle-cuenta" class="detalle-list"></div>
+                </div>
+              </div>
+
+              <div id="detalle-tab-historial" class="ard-panel" style="--panel-color:#d55181;">
+                <div class="ard-panel-header">
+                  <span data-i18n="historial_titulo">Historial</span>
+                  <input type="search" id="cliente-detalle-historial-search" class="ard-search" placeholder="Buscar en el historial..." aria-label="Buscar en el historial" data-i18n-placeholder="buscar_historial_placeholder" data-i18n-aria-label="buscar_historial_placeholder" />
+                </div>
+                <div class="ard-panel-body">
+                  <div id="cliente-detalle-historial" class="detalle-list"></div>
+                </div>
+              </div>
+
+              <div id="detalle-tab-tareas" class="ard-panel" style="--panel-color:#e66767;">
+                <div class="ard-panel-header" data-i18n="tareas_titulo">Tareas</div>
+                <div class="ard-panel-body">
+                  <div id="cliente-detalle-tareas" class="detalle-list"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+    </section>
+
   </main>
 </div>
 
@@ -970,11 +1189,25 @@
   <div class="modal modal-wide">
     <header class="modal-header">
       <h2 id="modal-factura-title">Nueva factura</h2>
+      <div class="factura-total-fijo" id="factura-total-fijo-wrap">
+        <span data-i18n="col_total">Total</span>
+        <strong id="factura-total-arriba">$0.00</strong>
+      </div>
       <button class="icon-btn" data-close-modal="modal-factura" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <form id="form-factura" class="modal-body">
       <input type="hidden" id="factura-id" />
       <input type="hidden" id="factura-orden-id" />
+
+      <div class="factura-form-header" id="factura-form-header">
+        <img id="factura-form-logo" src="" alt="" />
+        <div class="factura-form-negocio">
+          <h3 id="factura-form-nombre-negocio">Gil's Muffler Inc</h3>
+          <p id="factura-form-datos-negocio"></p>
+        </div>
+      </div>
+
+      <p id="factura-vencida-nota" class="orden-nota" hidden style="color:var(--danger);"></p>
       <p id="factura-orden-nota" class="orden-nota" hidden></p>
       <p id="factura-creado-por-nota" class="orden-nota" hidden></p>
       <p id="factura-garantia-nota" class="orden-nota" hidden></p>
@@ -997,10 +1230,6 @@
 
       <div class="field-row">
         <div class="field" style="max-width:16rem;">
-          <label for="factura-labor" data-i18n="mano_obra_label">Mano de obra (Labor)</label>
-          <input type="number" id="factura-labor" min="0" step="0.01" value="0" />
-        </div>
-        <div class="field" style="max-width:16rem;">
           <label for="factura-mecanico" data-i18n="mecanico_label">Mecánico</label>
           <select id="factura-mecanico">
             <option value="" data-i18n="sin_asignar_opcion">— Sin asignar —</option>
@@ -1017,24 +1246,55 @@
         </div>
       </div>
 
+      <datalist id="piezas-datalist"></datalist>
+
+      <label class="field-label-standalone" data-i18n="labor_seccion_label">Mano de obra (Labor)</label>
       <table class="items-table">
-        <thead><tr><th data-i18n="col_descripcion">Descripción</th><th data-i18n="col_cantidad">Cant.</th><th data-i18n="col_precio">Precio</th><th data-i18n="col_subtotal">Subtotal</th><th></th></tr></thead>
+        <thead><tr>
+          <th data-i18n="col_descripcion">Item</th>
+          <th data-i18n="col_horas">Horas</th>
+          <th data-i18n="col_tarifa">Tarifa</th>
+          <th data-i18n="col_costo">Costo</th>
+          <th data-i18n="col_subtotal">Total</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="factura-labor-tbody"></tbody>
+      </table>
+      <button type="button" class="btn-ghost" id="btn-add-labor" data-i18n="btn_agregar_labor">+ Agregar mano de obra</button>
+
+      <label class="field-label-standalone" style="margin-top:1.25rem;" data-i18n="parts_seccion_label">Piezas (Parts)</label>
+      <table class="items-table">
+        <thead><tr>
+          <th data-i18n="col_descripcion">Item</th>
+          <th data-i18n="col_cantidad">Cant.</th>
+          <th data-i18n="col_costo">Costo</th>
+          <th data-i18n="col_markup">Markup %</th>
+          <th data-i18n="col_subtotal">Total</th>
+          <th></th>
+        </tr></thead>
         <tbody id="factura-items-tbody"></tbody>
       </table>
-      <button type="button" class="btn-ghost" id="btn-add-item" data-i18n="btn_agregar_linea">+ Agregar línea</button>
+      <button type="button" class="btn-ghost" id="btn-add-item" data-i18n="btn_agregar_linea">+ Agregar pieza</button>
 
       <div class="totals">
         <div class="field-row">
           <div class="field"><label for="factura-impuesto-pct" data-i18n="impuesto_pct_label">Impuesto (%)</label><input type="number" id="factura-impuesto-pct" value="0" min="0" step="0.01" /></div>
+          <div class="field"><label for="factura-descuento" data-i18n="descuento_label">Descuento ($)</label><input type="number" id="factura-descuento" value="0" min="0" step="0.01" /></div>
           <div class="totals-numbers">
-            <div><span data-i18n="col_subtotal">Subtotal</span><strong id="factura-subtotal">$0.00</strong></div>
+            <div><span data-i18n="total_labor_label">Total labor</span><strong id="factura-total-labor">$0.00</strong></div>
+            <div><span data-i18n="total_parts_label">Total piezas</span><strong id="factura-total-parts">$0.00</strong></div>
             <div><span data-i18n="col_impuesto_simple">Impuesto</span><strong id="factura-impuesto-monto">$0.00</strong></div>
+            <div><span data-i18n="descuento_label">Descuento</span><strong id="factura-descuento-monto">$0.00</strong></div>
             <div class="total-final"><span data-i18n="col_total">Total</span><strong id="factura-total">$0.00</strong></div>
           </div>
         </div>
       </div>
 
       <div class="field"><label for="factura-notas" data-i18n="notas_label">Notas</label><textarea id="factura-notas" rows="2"></textarea></div>
+      <div class="field">
+        <label for="factura-etiquetas" data-i18n="etiquetas_rapidas_label">Etiquetas rápidas</label>
+        <input type="text" id="factura-etiquetas" placeholder="Ej. Garantía, Urgente" data-i18n-placeholder="etiquetas_factura_placeholder" />
+      </div>
 
       <footer class="modal-footer">
         <button type="button" class="btn-danger" id="btn-eliminar-factura" hidden data-i18n="btn_eliminar">Eliminar</button>
@@ -1163,6 +1423,26 @@
         <div class="field"><label for="vehiculo-kilometraje" data-i18n="kilometraje_actual_label">Kilometraje actual</label><input type="text" id="vehiculo-kilometraje" placeholder="ej. 85,000 millas" data-i18n-placeholder="kilometraje_placeholder" /></div>
       </div>
       <div class="field"><label for="vehiculo-notas" data-i18n="notas_label">Notas</label><textarea id="vehiculo-notas" rows="2"></textarea></div>
+
+      <label class="field-label-standalone" data-i18n="recordatorios_servicio_titulo">Recordatorios de servicio</label>
+      <div class="field-row" style="align-items:center;">
+        <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:var(--text-dim);white-space:nowrap;">
+          <input type="checkbox" id="vehiculo-recordatorio-activo" />
+          <span data-i18n="enviar_recordatorios_label">Enviar recordatorios</span>
+        </label>
+        <div class="field" style="max-width:12rem;">
+          <label for="vehiculo-recordatorio-frecuencia" data-i18n="frecuencia_label">Frecuencia</label>
+          <select id="vehiculo-recordatorio-frecuencia">
+            <option value="3" data-i18n="frecuencia_3_meses">Cada 3 meses</option>
+            <option value="6" data-i18n="frecuencia_6_meses">Cada 6 meses</option>
+            <option value="12" data-i18n="frecuencia_12_meses">Cada 12 meses</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="vehiculo-recordatorio-ultima" data-i18n="ultimo_recordatorio_label">Último recordatorio</label><input type="date" id="vehiculo-recordatorio-ultima" /></div>
+        <div class="field"><label for="vehiculo-recordatorio-proxima" data-i18n="proximo_recordatorio_label">Próximo recordatorio</label><input type="date" id="vehiculo-recordatorio-proxima" /></div>
+      </div>
 
       <div id="vehiculo-historial-wrap" hidden>
         <label class="field-label-standalone" data-i18n="historial_km_titulo">Historial de kilometraje</label>
@@ -1313,79 +1593,6 @@
   </div>
 </div>
 
-<div id="modal-cliente-detalle" class="modal-backdrop" hidden>
-  <div class="modal modal-wide">
-    <header class="modal-header">
-      <h2 id="modal-cliente-detalle-title">Cliente</h2>
-      <button class="icon-btn" data-close-modal="modal-cliente-detalle" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
-    </header>
-    <div class="modal-body">
-      <div id="cliente-detalle-info" class="cliente-detalle-info"></div>
-
-      <h3 class="detalle-subtitle">
-        <span data-i18n="telefonos_titulo">Teléfonos</span>
-        <button type="button" class="btn-ghost" id="btn-detalle-agregar-telefono" style="margin-left:.75rem;" data-i18n="btn_agregar_telefono">+ Agregar teléfono</button>
-      </h3>
-      <div id="cliente-detalle-telefonos" class="detalle-list"></div>
-      <div id="cliente-detalle-telefono-form" class="field-row" style="margin-top:.5rem;" hidden>
-        <div class="field" style="flex:1;">
-          <input type="tel" id="cliente-detalle-telefono-nuevo" placeholder="Número de teléfono" aria-label="Número de teléfono" data-i18n-placeholder="numero_telefono_label" data-i18n-aria-label="numero_telefono_label" />
-        </div>
-        <button type="button" class="btn-primary" id="btn-guardar-telefono-nuevo" data-i18n="btn_guardar">Guardar</button>
-      </div>
-
-      <div class="config-tabs">
-        <button type="button" class="config-tab is-active" data-detalle-tab="vehiculos" data-i18n="col_vehiculo">Vehículos</button>
-        <button type="button" class="config-tab" data-detalle-tab="historial" data-i18n="historial_titulo">Historial</button>
-        <button type="button" class="config-tab" data-detalle-tab="tareas" data-i18n="tareas_titulo">Tareas</button>
-      </div>
-
-      <div id="detalle-tab-vehiculos" class="config-tab-panel">
-        <h3 class="detalle-subtitle">
-          <span data-i18n="col_vehiculo">Vehículos</span>
-          <button type="button" class="btn-ghost" id="btn-detalle-agregar-vehiculo" style="margin-left:.75rem;" data-i18n="btn_agregar_vehiculo">+ Agregar vehículo</button>
-        </h3>
-        <div id="cliente-detalle-vehiculos" class="detalle-list"></div>
-      </div>
-
-      <div id="detalle-tab-historial" class="config-tab-panel" hidden>
-        <div class="toolbar" style="margin-top:0;">
-          <input type="search" id="cliente-detalle-historial-search" placeholder="Buscar en el historial..." aria-label="Buscar en el historial" data-i18n-placeholder="buscar_historial_placeholder" data-i18n-aria-label="buscar_historial_placeholder" />
-        </div>
-        <div id="cliente-detalle-historial" class="detalle-list"></div>
-      </div>
-
-      <div id="detalle-tab-tareas" class="config-tab-panel" hidden>
-        <h3 class="detalle-subtitle" data-i18n="tareas_titulo">Tareas</h3>
-        <div id="cliente-detalle-tareas" class="detalle-list"></div>
-      </div>
-
-      <footer class="modal-footer">
-        <button type="button" class="btn-ghost" id="btn-detalle-imprimir">
-          <svg class="icon" aria-hidden="true"><use href="#icon-printer"></use></svg>
-          <span data-i18n="btn_imprimir_simple">Imprimir</span>
-        </button>
-        <button type="button" class="btn-primary" id="btn-detalle-crear-factura">
-          <svg class="icon" aria-hidden="true"><use href="#icon-file-text"></use></svg>
-          <span data-i18n="btn_crear_factura">Crear factura</span>
-        </button>
-        <span class="spacer"></span>
-        <button type="button" class="btn-ghost" data-close-modal="modal-cliente-detalle" data-i18n="btn_cerrar">Cerrar</button>
-      </footer>
-    </div>
-  </div>
-</div>
-
-<div id="modal-global-search" class="modal-backdrop search-backdrop" hidden>
-  <div class="modal modal-wide search-modal">
-    <div class="search-input-row">
-      <svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg>
-      <input type="text" id="global-search-input" placeholder="Buscar clientes, órdenes o facturas..." aria-label="Buscar clientes, órdenes o facturas" autocomplete="off" data-i18n-placeholder="global_search_placeholder" data-i18n-aria-label="global_search_placeholder" />
-      <button class="icon-btn" data-close-modal="modal-global-search" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
-    </div>
-    <div id="global-search-results" class="search-results"></div>
-  </div>
-</div>
 
 <div id="modal-shortcuts" class="modal-backdrop" hidden>
   <div class="modal">
@@ -1394,7 +1601,6 @@
       <button class="icon-btn" data-close-modal="modal-shortcuts" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <div class="modal-body">
-      <div class="shortcut-row"><kbd>Ctrl</kbd> + <kbd>K</kbd><span data-i18n="shortcut_buscar_todo">Buscar en todo el sistema</span></div>
       <div class="shortcut-row"><kbd>/</kbd><span data-i18n="shortcut_buscar_vista">Buscar en la vista actual</span></div>
       <div class="shortcut-row"><kbd>N</kbd><span data-i18n="shortcut_crear_nuevo">Crear un registro nuevo en la vista actual</span></div>
       <div class="shortcut-row"><kbd>Esc</kbd><span data-i18n="shortcut_cerrar_ventana">Cerrar la ventana abierta</span></div>
@@ -1432,11 +1638,40 @@
     </header>
     <div class="modal-body">
       <p id="metodo-pago-message" data-i18n="metodo_pago_mensaje">Selecciona el método de pago para marcar esta factura como pagada.</p>
-      <div class="metodo-pago-opciones">
+      <div class="metodo-pago-opciones" id="metodo-pago-opciones-simple">
         <button type="button" class="btn-metodo-pago" data-metodo="efectivo" data-i18n="metodo_efectivo">Efectivo</button>
         <button type="button" class="btn-metodo-pago" data-metodo="tarjeta" data-i18n="metodo_tarjeta">Tarjeta</button>
         <button type="button" class="btn-metodo-pago" data-metodo="cheque" data-i18n="metodo_cheque">Cheque</button>
       </div>
+      <button type="button" class="btn-ghost" id="btn-mostrar-dividir-pago" style="margin-top:.75rem;" data-i18n="btn_dividir_pago">Dividir pago</button>
+
+      <div id="metodo-pago-dividir-form" hidden style="margin-top:.75rem;">
+        <div class="field-row">
+          <div class="field">
+            <label for="pago-dividido-metodo-1" data-i18n="metodo_1_label">Método 1</label>
+            <select id="pago-dividido-metodo-1">
+              <option value="efectivo" data-i18n="metodo_efectivo">Efectivo</option>
+              <option value="tarjeta" data-i18n="metodo_tarjeta">Tarjeta</option>
+              <option value="cheque" data-i18n="metodo_cheque">Cheque</option>
+            </select>
+          </div>
+          <div class="field"><label for="pago-dividido-monto-1" data-i18n="monto_1_label">Monto 1</label><input type="number" id="pago-dividido-monto-1" min="0" step="0.01" value="0" /></div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="pago-dividido-metodo-2" data-i18n="metodo_2_label">Método 2</label>
+            <select id="pago-dividido-metodo-2">
+              <option value="efectivo" data-i18n="metodo_efectivo">Efectivo</option>
+              <option value="tarjeta" data-i18n="metodo_tarjeta">Tarjeta</option>
+              <option value="cheque" data-i18n="metodo_cheque">Cheque</option>
+            </select>
+          </div>
+          <div class="field"><label for="pago-dividido-monto-2" data-i18n="monto_2_label">Monto 2</label><input type="number" id="pago-dividido-monto-2" min="0" step="0.01" value="0" /></div>
+        </div>
+        <p class="orden-nota"><span data-i18n="pago_dividido_resta_label">Falta por asignar</span>: <strong id="pago-dividido-resta">$0.00</strong></p>
+        <button type="button" class="btn-primary" id="btn-confirmar-pago-dividido" data-i18n="btn_confirmar_pago">Confirmar pago</button>
+      </div>
+
       <footer class="modal-footer">
         <span class="spacer"></span>
         <button type="button" class="btn-ghost" id="metodo-pago-cancel" data-i18n="btn_cancelar">Cancelar</button>

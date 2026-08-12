@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<link rel="icon" type="image/png" href="logo-muffler.png" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title data-i18n="reporte_trabajo_titulo">Reportar trabajo</title>
+<style>
+  body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:1.5rem;max-width:26rem;margin:0 auto;background:#f6f7f9;}
+  .card{position:relative;background:#fff;border-radius:12px;padding:1.75rem;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-top:2rem;}
+  .idioma-toggle{position:absolute;top:.9rem;right:.9rem;width:auto;margin:0;padding:.3rem .7rem;font-size:.75rem;font-weight:600;border-radius:999px;background:#f0f1f3;color:#68707e;border:1px solid #d7dade;cursor:pointer;}
+  .header{border-bottom:3px solid #d5601a;padding-bottom:1rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:.8rem;}
+  .header img{height:3rem;width:3rem;object-fit:cover;object-position:68% 55%;border-radius:8px;flex:none;}
+  .header h1{font-size:1.2rem;margin:0;color:#d5601a;}
+  p.sub{color:#68707e;font-size:.9rem;margin-top:0;}
+  label{display:block;font-size:.85rem;color:#68707e;margin-bottom:.3rem;margin-top:1rem;}
+  input{width:100%;padding:.7rem .8rem;border:1px solid #d7dade;border-radius:8px;font-size:1rem;box-sizing:border-box;}
+  .field-row{display:flex;gap:.6rem;}
+  .field-row > div{flex:1;}
+  button{width:100%;margin-top:1.5rem;padding:.9rem 1rem;border-radius:8px;border:none;background:#d5601a;color:#fff;font-size:1rem;font-weight:600;cursor:pointer;}
+  button:disabled{opacity:.6;cursor:default;}
+  .respuesta-msg{text-align:center;margin-top:1rem;font-weight:600;padding:.9rem;border-radius:8px;background:#e6f4ee;color:#1a7f5a;}
+  .respuesta-msg p{font-weight:400;font-size:.85rem;margin:.5rem 0 0;color:#1a7f5a;}
+  .error-msg{color:#d6293b;font-size:.85rem;margin-top:.5rem;}
+</style>
+</head>
+<body>
+  <div class="card" id="contenido">
+    <button type="button" class="idioma-toggle" id="idioma-toggle" data-i18n-toggle-label>English</button>
+    <div class="header">
+      <img id="logo-img" src="logo-muffler.png" alt="" />
+      <h1 id="nombre-negocio">Gil Muffler</h1>
+    </div>
+
+    <div id="login-box">
+      <p class="sub" data-i18n="reporte_trabajo_login_sub">Inicia sesión con tu cuenta de empleado para reportar tu trabajo.</p>
+      <form id="form-login">
+        <label for="login-email" data-i18n="campo_email">Email</label>
+        <input type="email" id="login-email" autocomplete="username" required />
+        <label for="login-password" data-i18n="campo_contrasena">Contraseña</label>
+        <input type="password" id="login-password" autocomplete="current-password" required />
+        <p class="error-msg" id="login-error" hidden data-i18n="login_error">Email o contraseña incorrectos.</p>
+        <button type="submit" data-i18n="btn_entrar">Entrar</button>
+      </form>
+    </div>
+
+    <div id="reporte-box" hidden>
+      <p class="sub" id="reporte-mecanico-sub"></p>
+      <p class="sub" data-i18n="reporte_trabajo_sub">Escribe el carro y el trabajo que hiciste.</p>
+      <form id="form-reporte">
+        <label for="carro" data-i18n="col_carro">Carro</label>
+        <input type="text" id="carro" required />
+        <label for="descripcion" data-i18n="col_descripcion">Descripción</label>
+        <input type="text" id="descripcion" />
+        <div class="field-row">
+          <div>
+            <label for="labor" data-i18n="mano_obra_corta">Labor</label>
+            <input type="number" id="labor" step="0.01" min="0" value="0" />
+          </div>
+          <div>
+            <label for="piezas" data-i18n="kpi_piezas_dia_corta">Piezas</label>
+            <input type="number" id="piezas" step="0.01" min="0" value="0" />
+          </div>
+          <div>
+            <label for="otro" data-i18n="otro_label">Otro</label>
+            <input type="number" id="otro" step="0.01" min="0" value="0" />
+          </div>
+        </div>
+        <p class="error-msg" id="reporte-error" hidden data-i18n="reporte_trabajo_error">No se pudo enviar el reporte. Intenta otra vez.</p>
+        <button type="submit" id="btn-enviar-reporte" data-i18n="enviar">Enviar</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="config.local.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    function escapeHtml(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    const sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+    const params = new URLSearchParams(location.search);
+    const mecanicoId = params.get("mecanico") || "";
+    const fecha = params.get("fecha") || "";
+
+    async function cargarConfigNegocio() {
+      const { data: cfg } = await sb.from("configuracion_negocio").select("*").eq("id", 1).maybeSingle();
+      const nombreNegocio = (cfg && cfg.nombre_negocio) || "Gil Muffler";
+      document.getElementById("nombre-negocio").textContent = nombreNegocio;
+      if (cfg && cfg.logo_url) document.getElementById("logo-img").src = cfg.logo_url;
+    }
+
+    async function mostrarPantallaReporte() {
+      document.getElementById("login-box").hidden = true;
+      document.getElementById("reporte-box").hidden = false;
+      const { data: mecanico } = await sb.from("mecanicos").select("nombre").eq("id", mecanicoId).maybeSingle();
+      document.getElementById("reporte-mecanico-sub").textContent =
+        (mecanico ? mecanico.nombre : "?") + (fecha ? " — " + fecha : "");
+    }
+
+    document.getElementById("form-login").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("login-email").value.trim();
+      const password = document.getElementById("login-password").value;
+      const errorEl = document.getElementById("login-error");
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) {
+        errorEl.hidden = false;
+        return;
+      }
+      errorEl.hidden = true;
+      await mostrarPantallaReporte();
+    });
+
+    document.getElementById("form-reporte").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const carro = document.getElementById("carro").value.trim();
+      const descripcion = document.getElementById("descripcion").value.trim();
+      const labor = parseFloat(document.getElementById("labor").value) || 0;
+      const piezas = parseFloat(document.getElementById("piezas").value) || 0;
+      const otro = parseFloat(document.getElementById("otro").value) || 0;
+      const errorEl = document.getElementById("reporte-error");
+      errorEl.hidden = true;
+
+      const btn = document.getElementById("btn-enviar-reporte");
+      btn.disabled = true;
+      btn.textContent = t("enviando");
+
+      const { error } = await sb.from("reportes_trabajo").insert({
+        mecanico_id: mecanicoId,
+        fecha: fecha || new Date().toISOString().slice(0, 10),
+        carro,
+        descripcion,
+        labor,
+        piezas,
+        otro,
+        revisado: false,
+      });
+
+      if (error) {
+        errorEl.hidden = false;
+        btn.disabled = false;
+        btn.textContent = t("enviar");
+        return;
+      }
+
+      const nombreNegocio = escapeHtml(document.getElementById("nombre-negocio").textContent);
+      const logoSrc = escapeHtml(document.getElementById("logo-img").src);
+      document.getElementById("contenido").innerHTML =
+        '<div class="header"><img src="' + logoSrc + '" alt="" /><h1>' + nombreNegocio + "</h1></div>" +
+        '<div class="respuesta-msg">' + t("reporte_trabajo_exito_titulo") +
+        "<p>" + t("reporte_trabajo_exito_texto") + "</p>" +
+        "</div>";
+    });
+
+    document.getElementById("idioma-toggle").addEventListener("click", () => {
+      setIdioma(getIdioma() === "es" ? "en" : "es");
+    });
+    aplicarIdioma();
+    cargarConfigNegocio();
+
+    sb.auth.getSession().then(({ data }) => {
+      if (data.session) mostrarPantallaReporte();
+    });
+  </script>
+</body>
+</html>
