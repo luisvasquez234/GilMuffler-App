@@ -441,3 +441,69 @@ Los dos clientes registrados tienen factura, y la más vieja tiene apenas ~2 sem
 
 **Una nota, Luis:** con solo 2 clientes y 2 facturas, esto parece ser todavía datos de prueba y no el historial real del taller. Si esperabas ver los clientes de verdad de Gil's Muffler aquí, entonces falta cargar/migrar el historial desde AutoRepairBill — dime si quieres que revisemos eso. Cuando el historial real esté cargado, esta misma consulta sí va a ser útil para sacar la lista de clientes dormidos.
 
+## Briefing 2026-08-12
+Verifiqué 8 negocios y descarté 5 porque sí tenían web propia. Estos 3 pasaron la verificación:
+
+- **Pollo Tipico** (190 Lawrence St, Lawrence) — No tiene web propia. Lo único que sale como "sitio web" en los directorios es una página autogenerada de Yellow Pages (`pollotipico.localsearch.com`), que el dueño no controla. El menú solo existe en apps de terceros (Yelp, Grubhub, Restaurantji) y los horarios varían según el directorio. — contacto: (978) 975-8013
+- **La Esquina del Sabor** (39 Manchester St, Lawrence) — Solo Facebook (`facebook.com/Sabor39`). Sin web propia. Los horarios están contradictorios entre fuentes: un sitio dice 8am–7pm todos los días, otro dice 8am–6pm de lunes a sábado y cerrado domingo. Un cliente no puede saber si está abierto. — contacto: (978) 258-1441 / facebook.com/Sabor39
+- **Methuen Family Restaurant** (246 Broadway, Methuen) — Solo Facebook. En Yelp el campo "sitio web" apunta a facebook.com, y en Restaurantji el campo de web está vacío. No hay menú oficial en ningún lado: los precios y platos solo aparecen en páginas de terceros que copian información. Tiene 758 reseñas y 4.2 estrellas, o sea que le va bien — solo le falta la web. — contacto: (978) 683-7050 / facebook.com/methuenfamilyrestaurant
+
+**Descartados durante la verificación** (para que veas que la revisión fue real): Royal House of Roast Beef (Methuen), Nelly's Kitchen (Haverhill), Fantini Bakery (Haverhill), El Caldero (Lawrence) y El Pez Dorado (Lawrence) — todos tienen web propia y funcionando.
+
+**Dos cosas que debes saber antes de contactarlos:**
+
+1. Los teléfonos y direcciones vienen de directorios, no los confirmé llamando. Vale la pena verificar el número al primer intento de contacto.
+2. Yelp y Facebook bloquearon la lectura directa de sus páginas (error 403), así que la confirmación de "no tiene web" la saqué de resultados de búsqueda y de directorios que sí pude leer (Restaurantji fue el más útil, porque muestra explícitamente si hay campo de web). Es evidencia sólida pero indirecta — si abres su ficha de Google en el celular y no ves botón de "Sitio web", queda confirmado en 5 segundos.
+
+Un candidato extra por si te sirve: **Kukito Barber Shop** (586 Haverhill St, Lawrence, (978) 397-6610) tampoco tiene web propia, pero sí usa Booksy y Fresha para citas, así que ya tiene resueltos horarios, precios y reservas. Lo dejé fuera de los 3 porque tu argumento de venta es más débil ahí.
+
+Los tres que te quedan son restaurantes, y ese es buen terreno para ti: puedes mostrar la app de Gil's Muffler como prueba de que construyes cosas reales que un negocio de Lawrence usa a diario.
+
+Sources:
+- [Restaurantji – Pollo Tipico](https://www.restaurantji.com/ma/lawrence/pollo-tipico-/)
+- [Yelp – Pollo Tipico](https://www.yelp.com/biz/pollo-tipico-lawrence)
+- [Yelp – La Esquina del Sabor](https://www.yelp.com/biz/la-esquina-del-sabor-lawrence)
+- [Facebook – La Esquina del Sabor](https://www.facebook.com/Sabor39/)
+- [Restaurantji – Methuen Family Restaurant](https://www.restaurantji.com/ma/methuen/methuen-family-restaurant-/)
+- [Yelp – Methuen Family Restaurant](https://www.yelp.com/biz/methuen-family-restaurant-methuen)
+- [Facebook – Methuen Family Restaurant](https://www.facebook.com/methuenfamilyrestaurant)
+- [royalhouseofroastbeef.com](https://www.royalhouseofroastbeef.com/) (descartado)
+- [nellyskitchenma.com](https://nellyskitchenma.com/) (descartado)
+- [fantinibakery.com](https://www.fantinibakery.com/) (descartado)
+- [elcalderorestaurantma.com](https://www.elcalderorestaurantma.com/) (descartado)
+- [elpezdoradolawrence.com](https://www.elpezdoradolawrence.com/) (descartado)
+- [Fresha – Kukito Barber Shop](https://www.fresha.com/lvp/kukito-barber-shop-haverhill-street-lawrence-174Z9)
+
+### Clientes inactivos (Gil Muffler) — 2026-08-12
+## Resultado
+
+La consulta corrió bien. Devolvió **2 clientes**, los dos sin ninguna factura:
+
+| Nombre | Teléfono | Última factura |
+|---|---|---|
+| luis | 9786907277 | nunca |
+| luis | (sin teléfono) | nunca |
+
+## Lo que esto significa
+
+**En la práctica no hay clientes reales que contactar todavía.** Los dos resultados parecen registros de prueba tuyos, no clientes del taller:
+
+- Los dos se llaman "luis"
+- Uno no tiene teléfono
+- Ninguno tiene factura
+
+El contexto de la base de datos lo confirma:
+
+- **4 clientes** en total
+- **2 facturas** en total, del 28 de julio y del 5 de agosto de 2026 — las dos de hace menos de 90 días
+- O sea: los 2 clientes que sí tienen factura vinieron hace poco y están bien; los otros 2 son los "luis" de prueba
+
+## Recomendación
+
+Esta consulta de "clientes que no han vuelto" te va a servir mucho, pero todavía no — la base tiene muy pocos datos. Para que dé resultados útiles necesitas al menos unos meses de facturas cargadas en la app.
+
+Dos cosas que sí puedes hacer ya:
+
+1. **Borrar los 2 clientes de prueba "luis"** para que no aparezcan en listas futuras. Si quieres, te doy los pasos para hacerlo.
+2. **Volver a correr esta consulta más adelante** — dentro de unos 3-4 meses de uso diario ya va a mostrar clientes de verdad que valga la pena llamar.
+
