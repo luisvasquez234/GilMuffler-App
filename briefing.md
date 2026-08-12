@@ -362,3 +362,148 @@ Las dos únicas facturas son de hace pocos días (hoy es 7 de agosto), así que 
 
 Si quieres, cuando tengas el histórico cargado vuelvo a correr exactamente la misma consulta y te armo la lista de contacto.
 
+## Briefing 2026-08-10
+He verificado cada uno con varias fuentes antes de listarlo. Aquí van los 3:
+
+- **Mejia Market** (colmado/grocery, 206 Lawrence St, Lawrence MA 01841) — No tiene web propia. Lo único que aparece como "sitio web" es una página auto-generada de Yellow Pages/Thryv (`mejiamarket10875561.localsearch.com`) que la abrí y solo muestra nombre, dirección, teléfono y un botón genérico de "Contact Us" — sin horarios, sin productos, sin fotos, sin nada. No le encontré ni ficha de Facebook activa. — contacto: (978) 975-2245
+
+- **Alex's Barbershop** (barbería, 242 Broadway, Lawrence MA 01840) — Sin web propia; solo ficha de Facebook y perfiles de terceros (Yelp, Groupon, Booksy). No aparecen horarios en ninguna fuente que revisé, y el teléfono está inconsistente entre directorios, que es justo el síntoma de no tener una página que sea la fuente oficial. — contacto: (978) 655-7263 (Yellow Pages) o (978) 902-3767 (BestProsInTown) — hay que confirmar cuál es el bueno al llamar
+
+- **RMN Autocare** (taller mecánico, 203 S Broadway, Lawrence MA 01843) — Taller familiar desde 1965, sin dominio propio. Solo tiene una página gratis de un constructor tipo plantilla (`rmn-autocare.edan.io`) más Facebook; los horarios (L-V 8am-4pm) solo viven en directorios como Loc8NearMe y Yelp, no en algo que ellos controlen. Sin lista de servicios, precios ni forma de pedir cita. — contacto: (978) 688-2020 · Facebook: facebook.com/RmnAutocareCenter
+
+**Dos cosas honestas sobre la verificación:**
+
+1. La página `edan.io` de RMN me devolvió error 403 y no la pude abrir, así que confirmé que *existe* ese enlace y que es un subdominio de un constructor gratuito, pero no pude leer su contenido. Si quieres ir a por ellos, ábrela tú primero desde el celular para ver qué tan básica está.
+2. RMN Autocare es un taller — competencia directa de Gil's Muffler. Por un lado es el mejor encaje posible para tu venta (le enseñas literalmente la app que le hiciste a un taller de la misma ciudad); por otro, puede incomodar a Gil. Tú decides si eso es un problema.
+
+**Extra verificado, por si descartas RMN:** **Imagenes Barbershop** (49 Haverhill St, Lawrence) — página de Facebook sin horarios ni web, y sus barberos se anuncian sueltos en Booksy/Fresha (Fresha incluso aclara que el negocio no está afiliado a ellos). Contacto: (978) 688-0388.
+
+Sources: [Yelp – barberías Lawrence](https://www.yelp.com/search?cflt=barbers&find_loc=Lawrence%2C+MA), [Yellow Pages – barberos Lawrence](https://www.yellowpages.com/lawrence-ma/barbers), [BestProsInTown – Alex's Barber Shop](https://www.bestprosintown.com/ma/lawrence/alexs-barber-shop-/), [Loc8NearMe – RMN Autocare](https://www.loc8nearme.com/massachusetts/lawrence/rmn-autocare/5323312/), [Yelp – RMN Autocare](https://www.yelp.com/biz/rmn-autocare-lawrence), [Yelp – Mejia Market](https://www.yelp.com/biz/mejia-market-lawrence), [Fresha – Imagenes Barbershop](https://www.fresha.com/lvp/imagenes-barbershop-haverhill-street-lawrence-JyWJAX)
+
+### Clientes inactivos (Gil Muffler) — 2026-08-10
+## No hay ningún cliente para contactar
+
+La consulta corrió bien y **no devolvió ningún resultado**. Es decir: no hay clientes que lleven más de 90 días sin volver, ni clientes sin ninguna factura.
+
+**Pero ojo con el contexto** — revisé la base y ahora mismo tiene muy pocos datos:
+
+| Dato | Valor |
+|---|---|
+| Clientes registrados | 2 |
+| Facturas registradas | 2 |
+| Factura más antigua | 28 jul 2026 |
+| Factura más reciente | 5 ago 2026 |
+
+Los dos clientes tienen factura, y ambas son de hace menos de dos semanas. Por eso ninguno cae en el filtro de 90 días — el resultado vacío es correcto, pero simplemente porque todavía no hay historial suficiente en la base.
+
+**Qué significa esto para Luis:** la consulta funciona y sirve, pero como lista de "clientes a recontactar" no va a dar nada útil hasta que haya varios meses de facturas cargadas. Vale la pena volver a correrla más adelante, cuando el taller lleve un tiempo facturando desde la app.
+
+## Briefing 2026-08-11
+Verifiqué unos 15 negocios y descarté los que ya tienen web real (Fred's Auto, Leo & Sons, KG Auto, Piro's Bakery, Taqueria Del Pueblo, El Tesoro, Jessy's Place). Estos 3 pasaron la verificación:
+
+- **A&M Auto Body, Inc.** (341 S Broadway, Lawrence) — Tiene el dominio `amautobodyinc.com` comprado, pero solo muestra "New WordPress website is being built and will be published soon". Sin horarios, sin teléfono, sin servicios, sin formulario. Peor: la página tiene inyectados montones de enlaces de spam ajenos al negocio, señal de que el WordPress quedó abandonado o hackeado. Su información real (horarios lun-vie 8-5, teléfono) solo aparece en directorios de terceros — contacto: (978) 208-8651
+- **Sanchez Tire Shop** (664 Essex St, Lawrence) — Sin web propia de ningún tipo; solo Facebook ("Sanchez Auto Service") y fichas de terceros. Los horarios se contradicen entre fuentes (una dice lun-vie 8-7, otra 7am-12am diario) y no hay lista de servicios ni precios en ningún lado oficial. Trabaja 24 horas para pinchazos, algo que un cliente urgido no puede confirmar en línea — contacto: (978) 984-7097
+- **Sweet Grace Heavenly Cakes** (98-100 Essex St, Lawrence) — Cero web propia pese a tener ~9,000 seguidores en Instagram. Los bizcochos personalizados se piden por DM o por DoorDash, o sea que paga comisión de plataforma por pedidos que podría recibir directo. No hay catálogo de sabores, tamaños ni precios, ni formulario de encargo con fecha del evento — contacto: (978) 258-9418 / IG @sweetgraceheavenlycakes
+
+Dos notas honestas sobre lo que no pude cerrar:
+- **Jimenez Supermarket** (117 Newbury St) parece tener solo una micro-página autogenerada (`jimenez-lawrence.edan.io`), pero el servidor me bloqueó tres veces y no pude ver el contenido. Es un candidato posible, no verificado.
+- **Imagenes Barbershop** lo descarté porque Yelp lo marca cerrado y no lo pude confirmar. En general las barberías de Lawrence ya resuelven citas con Booksy/Fresha, así que son un mal blanco para vender web.
+
+De los tres, A&M es el mejor primer contacto: es del mismo giro que Gil's Muffler (tu prueba social encaja directo), está a unas cuadras del taller en South Broadway, y ya demostró que quiere web porque compró el dominio — solo se le quedó a medias y ahora le hace daño.
+
+Sources:
+- [A&M Auto Body — Yahoo Local](https://local.yahoo.com/info-212515588-am-auto-body-lawrence/)
+- [amautobodyinc.com](https://amautobodyinc.com)
+- [A&M Auto Body — Yelp](https://www.yelp.com/biz/a-and-m-auto-body-lawrence)
+- [Sanchez Tire Shop — Acima locations](https://locations.acima.com/massachusetts/lawrence/664-essex-st/)
+- [Sanchez Tire Shop — Yelp](https://www.yelp.com/biz/sanchez-tire-shop-lawrence)
+- [Sanchez Auto Service — Facebook](https://www.facebook.com/100093095558397/)
+- [Sweet Grace Heavenly Cakes — Cakes.com](https://preview.cakeordering.com/us/bakeries/ma/lawrence/sweet-grace-heavenly-cakes)
+- [Sweet Grace Heavenly Cakes — Instagram](https://www.instagram.com/sweetgraceheavenlycakes/)
+- [Sweet Grace Heavenly Cakes — DoorDash](https://www.doordash.com/store/sweet-grace-heavenly-cakes-lawrence-876366/)
+- [Jimenez Supermarket — Yelp](https://www.yelp.com/biz/jimenez-supermarket-lawrence)
+- [Fred's Auto Repair (descartado, tiene web)](https://www.fredsautorepairllc.com/)
+- [Leo & Sons (descartado, tiene web)](https://leosons.com/)
+- [KG Auto Repair (descartado, tiene web)](https://eager-mccarthy-a5538e.netlify.app/)
+- [Piro's Bakery (descartado, tiene web)](https://www.pirosbakery.com/)
+
+### Clientes inactivos (Gil Muffler) — 2026-08-11
+## No hay clientes para contactar
+
+La consulta no devolvió ningún cliente. Nadie cumple el criterio de "más de 90 días sin volver" ni "nunca facturado".
+
+**Por qué:** ahora mismo la base de datos tiene solo **2 clientes** y **2 facturas**, y las dos facturas son recientes:
+
+- Factura más antigua: **28 de julio de 2026**
+- Factura más reciente: **5 de agosto de 2026**
+
+Los dos clientes registrados tienen factura, y la más vieja tiene apenas ~2 semanas — muy lejos de los 90 días. Así que la lista sale vacía porque no hay a quién llamar, no porque la consulta fallara.
+
+**Una nota, Luis:** con solo 2 clientes y 2 facturas, esto parece ser todavía datos de prueba y no el historial real del taller. Si esperabas ver los clientes de verdad de Gil's Muffler aquí, entonces falta cargar/migrar el historial desde AutoRepairBill — dime si quieres que revisemos eso. Cuando el historial real esté cargado, esta misma consulta sí va a ser útil para sacar la lista de clientes dormidos.
+
+## Briefing 2026-08-12
+Verifiqué 8 negocios y descarté 5 porque sí tenían web propia. Estos 3 pasaron la verificación:
+
+- **Pollo Tipico** (190 Lawrence St, Lawrence) — No tiene web propia. Lo único que sale como "sitio web" en los directorios es una página autogenerada de Yellow Pages (`pollotipico.localsearch.com`), que el dueño no controla. El menú solo existe en apps de terceros (Yelp, Grubhub, Restaurantji) y los horarios varían según el directorio. — contacto: (978) 975-8013
+- **La Esquina del Sabor** (39 Manchester St, Lawrence) — Solo Facebook (`facebook.com/Sabor39`). Sin web propia. Los horarios están contradictorios entre fuentes: un sitio dice 8am–7pm todos los días, otro dice 8am–6pm de lunes a sábado y cerrado domingo. Un cliente no puede saber si está abierto. — contacto: (978) 258-1441 / facebook.com/Sabor39
+- **Methuen Family Restaurant** (246 Broadway, Methuen) — Solo Facebook. En Yelp el campo "sitio web" apunta a facebook.com, y en Restaurantji el campo de web está vacío. No hay menú oficial en ningún lado: los precios y platos solo aparecen en páginas de terceros que copian información. Tiene 758 reseñas y 4.2 estrellas, o sea que le va bien — solo le falta la web. — contacto: (978) 683-7050 / facebook.com/methuenfamilyrestaurant
+
+**Descartados durante la verificación** (para que veas que la revisión fue real): Royal House of Roast Beef (Methuen), Nelly's Kitchen (Haverhill), Fantini Bakery (Haverhill), El Caldero (Lawrence) y El Pez Dorado (Lawrence) — todos tienen web propia y funcionando.
+
+**Dos cosas que debes saber antes de contactarlos:**
+
+1. Los teléfonos y direcciones vienen de directorios, no los confirmé llamando. Vale la pena verificar el número al primer intento de contacto.
+2. Yelp y Facebook bloquearon la lectura directa de sus páginas (error 403), así que la confirmación de "no tiene web" la saqué de resultados de búsqueda y de directorios que sí pude leer (Restaurantji fue el más útil, porque muestra explícitamente si hay campo de web). Es evidencia sólida pero indirecta — si abres su ficha de Google en el celular y no ves botón de "Sitio web", queda confirmado en 5 segundos.
+
+Un candidato extra por si te sirve: **Kukito Barber Shop** (586 Haverhill St, Lawrence, (978) 397-6610) tampoco tiene web propia, pero sí usa Booksy y Fresha para citas, así que ya tiene resueltos horarios, precios y reservas. Lo dejé fuera de los 3 porque tu argumento de venta es más débil ahí.
+
+Los tres que te quedan son restaurantes, y ese es buen terreno para ti: puedes mostrar la app de Gil's Muffler como prueba de que construyes cosas reales que un negocio de Lawrence usa a diario.
+
+Sources:
+- [Restaurantji – Pollo Tipico](https://www.restaurantji.com/ma/lawrence/pollo-tipico-/)
+- [Yelp – Pollo Tipico](https://www.yelp.com/biz/pollo-tipico-lawrence)
+- [Yelp – La Esquina del Sabor](https://www.yelp.com/biz/la-esquina-del-sabor-lawrence)
+- [Facebook – La Esquina del Sabor](https://www.facebook.com/Sabor39/)
+- [Restaurantji – Methuen Family Restaurant](https://www.restaurantji.com/ma/methuen/methuen-family-restaurant-/)
+- [Yelp – Methuen Family Restaurant](https://www.yelp.com/biz/methuen-family-restaurant-methuen)
+- [Facebook – Methuen Family Restaurant](https://www.facebook.com/methuenfamilyrestaurant)
+- [royalhouseofroastbeef.com](https://www.royalhouseofroastbeef.com/) (descartado)
+- [nellyskitchenma.com](https://nellyskitchenma.com/) (descartado)
+- [fantinibakery.com](https://www.fantinibakery.com/) (descartado)
+- [elcalderorestaurantma.com](https://www.elcalderorestaurantma.com/) (descartado)
+- [elpezdoradolawrence.com](https://www.elpezdoradolawrence.com/) (descartado)
+- [Fresha – Kukito Barber Shop](https://www.fresha.com/lvp/kukito-barber-shop-haverhill-street-lawrence-174Z9)
+
+### Clientes inactivos (Gil Muffler) — 2026-08-12
+## Resultado
+
+La consulta corrió bien. Devolvió **2 clientes**, los dos sin ninguna factura:
+
+| Nombre | Teléfono | Última factura |
+|---|---|---|
+| luis | 9786907277 | nunca |
+| luis | (sin teléfono) | nunca |
+
+## Lo que esto significa
+
+**En la práctica no hay clientes reales que contactar todavía.** Los dos resultados parecen registros de prueba tuyos, no clientes del taller:
+
+- Los dos se llaman "luis"
+- Uno no tiene teléfono
+- Ninguno tiene factura
+
+El contexto de la base de datos lo confirma:
+
+- **4 clientes** en total
+- **2 facturas** en total, del 28 de julio y del 5 de agosto de 2026 — las dos de hace menos de 90 días
+- O sea: los 2 clientes que sí tienen factura vinieron hace poco y están bien; los otros 2 son los "luis" de prueba
+
+## Recomendación
+
+Esta consulta de "clientes que no han vuelto" te va a servir mucho, pero todavía no — la base tiene muy pocos datos. Para que dé resultados útiles necesitas al menos unos meses de facturas cargadas en la app.
+
+Dos cosas que sí puedes hacer ya:
+
+1. **Borrar los 2 clientes de prueba "luis"** para que no aparezcan en listas futuras. Si quieres, te doy los pasos para hacerlo.
+2. **Volver a correr esta consulta más adelante** — dentro de unos 3-4 meses de uso diario ya va a mostrar clientes de verdad que valga la pena llamar.
+
