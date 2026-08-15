@@ -112,6 +112,15 @@
     <path d="M18 12h2.5"/>
     <path d="M20.5 9.5l2.7 2.5-2.7 2.5"/>
   </symbol>
+  <symbol id="icon-tire" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="9"/>
+    <circle cx="12" cy="12" r="4"/>
+    <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4" stroke-width="1.5"/>
+  </symbol>
+  <symbol id="icon-bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 2l8.66 5v10L12 22l-8.66-5V7z"/>
+    <circle cx="12" cy="12" r="3"/>
+  </symbol>
 </svg>
 
 <div id="login-gate" class="login-gate">
@@ -227,6 +236,26 @@
           <svg class="icon" aria-hidden="true"><use href="#icon-dollar"></use></svg>
           <span data-i18n="hoy_cobrado_label">Cobrado hoy</span>
           <strong id="hoy-cobrado">$0.00</strong>
+          <span class="kpi-sub" id="hoy-cobrado-comparacion" hidden></span>
+        </div>
+      </div>
+
+      <div class="dashboard-widgets-grid">
+        <div class="table-wrap" style="padding:1.25rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;">
+            <h2 style="font-size:1.05rem;margin:0;" data-i18n="mini_calendario_titulo">Calendario de citas</h2>
+            <div style="display:flex;gap:.4rem;align-items:center;">
+              <button type="button" class="icon-btn" id="btn-dashboard-calendario-anterior" aria-label="Mes anterior" data-i18n-aria-label="mes_anterior_label">‹</button>
+              <span id="dashboard-calendario-mes-label" style="font-size:.85rem;font-weight:700;min-width:7rem;text-align:center;display:inline-block;"></span>
+              <button type="button" class="icon-btn" id="btn-dashboard-calendario-siguiente" aria-label="Mes siguiente" data-i18n-aria-label="mes_siguiente_label">›</button>
+            </div>
+          </div>
+          <div class="mini-cal-grid" id="dashboard-mini-calendario-grid"></div>
+        </div>
+
+        <div class="table-wrap" style="padding:1.25rem;">
+          <h2 style="font-size:1.05rem;margin-bottom:1rem;" data-i18n="mecanico_mes_titulo">🏆 Mecánico del mes</h2>
+          <div id="dashboard-mecanico-mes" style="display:flex;align-items:center;gap:.9rem;"></div>
         </div>
       </div>
 
@@ -302,6 +331,10 @@
         <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:var(--text-dim);white-space:nowrap;">
           <input type="checkbox" id="clientes-filter-inactivos" />
           <span data-i18n="clientes_solo_inactivos">Solo inactivos (90+ días sin factura)</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:var(--text-dim);white-space:nowrap;">
+          <input type="checkbox" id="clientes-filter-dealers" />
+          <span data-i18n="clientes_solo_dealers">Solo dealers</span>
         </label>
       </div>
       <div class="table-wrap">
@@ -440,6 +473,7 @@
           <button class="btn-ghost" id="btn-toggle-calendario-registro" type="button" data-i18n="btn_ver_calendario">Ver calendario</button>
           <button class="btn-ghost" id="btn-exportar-registro-diario" type="button" data-i18n="btn_descargar_csv">Descargar CSV</button>
           <button class="btn-ghost" id="btn-imprimir-registro-diario" type="button" data-i18n="btn_imprimir_dia">Imprimir día</button>
+          <button class="btn-ghost" id="btn-ver-reportes-ocultos" type="button" data-i18n="btn_ver_reportes_ocultos">Ver reportes aceptados sin mostrar</button>
         </div>
       </header>
 
@@ -544,6 +578,7 @@
           <button class="btn-ghost" id="btn-cerrar-registro-diario" type="button" data-i18n="btn_cerrar_dia">Cerrar día</button>
           <button class="btn-ghost" id="btn-reabrir-registro-diario" type="button" hidden data-i18n="btn_reabrir_dia">Reabrir día</button>
           <span class="spacer"></span>
+          <span class="view-sub" id="registro-autosave-estado" aria-live="polite" style="margin:0;"></span>
           <button class="btn-primary" id="btn-guardar-registro-diario" type="button" data-i18n="btn_guardar_registro">Guardar registro del día</button>
         </footer>
       </div>
@@ -805,22 +840,32 @@
       <header class="view-header">
         <div>
           <h1 data-i18n="nav_inventario">Inventario</h1>
-          <p class="view-sub" data-i18n="inventario_subtitulo">Piezas y stock del taller</p>
+          <p class="view-sub"><span data-i18n="inventario_subtitulo">Piezas y stock del taller</span> · <span id="inventario-total-invertido-label" data-i18n="inventario_total_invertido_label">Invertido:</span> <strong id="inventario-total-invertido"></strong></p>
         </div>
-        <div style="display:flex;gap:.6rem;">
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
           <button class="btn-ghost" id="btn-ver-rotacion" type="button" data-i18n="btn_ver_rotacion">Ver rotación de inventario</button>
           <button class="btn-ghost" id="btn-ver-historial-precios" type="button" data-i18n="btn_ver_historial_precios">Ver historial de precios</button>
           <button class="btn-ghost" id="btn-ver-reordenar" type="button" data-i18n="btn_ver_reordenar">Para reordenar</button>
+          <button class="btn-ghost" id="btn-recibir-pedido" type="button">
+            <svg class="icon" aria-hidden="true"><use href="#icon-box"></use></svg>
+            <span data-i18n="btn_recibir_pedido">Recibir pedido</span>
+          </button>
+          <button class="btn-ghost" id="btn-escanear-pieza" type="button">
+            <svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg>
+            <span data-i18n="btn_escanear_pieza">Escanear pieza</span>
+          </button>
           <button class="btn-primary" id="btn-nueva-pieza" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-box"></use></svg><span data-i18n="btn_nueva_pieza">+ Nueva pieza</span></button>
         </div>
       </header>
       <div class="toolbar">
         <input type="search" id="piezas-search" placeholder="Buscar por nombre o SKU..." aria-label="Buscar piezas" data-i18n-placeholder="piezas_buscar_placeholder" data-i18n-aria-label="piezas_buscar_placeholder" />
+        <input type="text" id="piezas-escaner-usb-input" autocomplete="off" data-i18n-placeholder="escaner_usb_pieza_placeholder" placeholder="¿Lector USB? Haz clic aquí y escanea el código de la pieza" />
       </div>
       <div class="table-wrap">
         <table class="data-table">
           <thead><tr>
             <th data-sort-key="nombre" class="is-sortable" data-i18n="col_nombre">Nombre</th>
+            <th data-i18n="col_categoria">Categoría</th>
             <th data-sort-key="sku" class="is-sortable">SKU</th>
             <th data-sort-key="stock" class="is-sortable" data-i18n="col_stock">Stock</th>
             <th data-sort-key="costo" class="is-sortable" data-i18n="col_costo">Costo</th>
@@ -894,7 +939,10 @@
           <div class="ard-grid">
             <div class="ard-col-izq">
               <div class="ard-panel" style="--panel-color:#3987e5;">
-                <div class="ard-panel-header" data-i18n="detalle_cliente_titulo">Client Details</div>
+                <div class="ard-panel-header">
+                  <span data-i18n="detalle_cliente_titulo">Client Details</span>
+                  <button type="button" class="btn-ghost ard-add-btn" id="btn-detalle-editar-cliente" data-i18n="btn_editar">Editar</button>
+                </div>
                 <div id="cliente-detalle-info" class="ard-info-grid"></div>
               </div>
 
@@ -954,6 +1002,159 @@
           </div>
     </section>
 
+    <section id="view-cliente-nuevo" class="view" hidden>
+      <header class="view-header">
+        <div>
+          <h1 data-i18n="nuevo_cliente_titulo">Nuevo cliente</h1>
+          <p class="view-sub"><button type="button" class="breadcrumb-link" id="btn-cliente-nuevo-volver" data-i18n="volver_a_clientes">‹ Volver a Clientes</button></p>
+        </div>
+      </header>
+      <div id="cliente-nuevo-vista-slot">
+      <div id="cliente-form-bloque">
+      <div class="cliente-nuevo-preview">
+      <img id="cliente-nuevo-preview-logo" class="cliente-nuevo-preview-logo" alt="" />
+      <span id="cliente-nuevo-preview-avatar"></span>
+      <div>
+      <strong id="cliente-nuevo-preview-nombre" data-i18n="nuevo_cliente_preview_default">Nuevo cliente</strong>
+      <span class="view-sub" id="cliente-nuevo-preview-auto"></span>
+      </div>
+      </div>
+      <div class="cliente-nuevo-scan-toolbar">
+      <button type="button" class="btn-ghost" id="btn-escanear-licencia">
+      <svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg>
+      <span data-i18n="btn_escanear_licencia">Escanear licencia</span>
+      </button>
+      <button type="button" class="btn-ghost" id="btn-escanear-placa">
+      <svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg>
+      <span data-i18n="btn_escanear_placa">Escanear matrícula (beta)</span>
+      </button>
+      </div>
+      <div class="field cliente-escaner-usb-field">
+      <label for="cliente-escaner-usb-input" data-i18n="escaner_usb_label">¿Tienes un lector de códigos USB? Haz clic aquí y escanea la licencia</label>
+      <input type="text" id="cliente-escaner-usb-input" autocomplete="off" data-i18n-placeholder="escaner_usb_placeholder" placeholder="Haz clic aquí y escanea el código de barras de la licencia" />
+      </div>
+      <form id="form-cliente" class="modal-body">
+      <input type="hidden" id="cliente-id" />
+      <p class="campo-aviso" id="cliente-borrador-aviso" aria-live="polite" hidden>
+      <span data-i18n="borrador_cliente_aviso">Recuperamos un borrador que no habías guardado.</span>
+      <button type="button" class="btn-ghost" id="btn-descartar-borrador-cliente" data-i18n="btn_descartar_borrador">Descartar</button>
+      </p>
+
+      <div class="cliente-nuevo-seccion-bar">
+      <svg class="icon" aria-hidden="true"><use href="#icon-wrench"></use></svg>
+      <span id="cliente-form-seccion-bar" data-i18n="cliente_vehiculo_seccion_titulo">Nuevo cliente / Vehículo</span>
+      </div>
+
+      <div class="cliente-nuevo-columnas">
+      <div class="cliente-nuevo-col">
+      <div class="ard-panel" style="--panel-color:#3987e5;">
+      <div class="ard-panel-header"><svg class="icon" aria-hidden="true"><use href="#icon-user"></use></svg><span data-i18n="detalle_cliente_titulo">Datos del cliente</span></div>
+      <div class="ard-panel-body cliente-nuevo-panel-body">
+      <div class="field">
+      <label for="cliente-nombre"><svg class="icon field-icon" aria-hidden="true"><use href="#icon-user"></use></svg><span data-i18n="nombre_requerido_label">Nombre *</span></label>
+      <div class="campo-con-badge"><input type="text" id="cliente-nombre" required /><span class="campo-requerido-badge" data-i18n="campo_requerido_badge">Requerido</span></div>
+      </div>
+      <div class="field">
+      <label for="cliente-apellido"><svg class="icon field-icon" aria-hidden="true"><use href="#icon-user"></use></svg><span data-i18n="apellido_requerido_label">Apellido *</span></label>
+      <div class="campo-con-badge"><input type="text" id="cliente-apellido" required /><span class="campo-requerido-badge" data-i18n="campo_requerido_badge">Requerido</span></div>
+      </div>
+      <div class="field">
+      <label for="cliente-direccion"><svg class="icon field-icon" aria-hidden="true"><use href="#icon-map-pin"></use></svg><span data-i18n="config_direccion">Dirección</span></label>
+      <input type="text" id="cliente-direccion" />
+      </div>
+      <div class="field">
+      <label for="cliente-telefono"><svg class="icon field-icon" aria-hidden="true"><use href="#icon-phone"></use></svg><span data-i18n="col_telefono">Teléfono</span></label>
+      <input type="text" id="cliente-telefono" />
+      <p class="campo-aviso" id="cliente-telefono-aviso" aria-live="polite" hidden></p>
+      </div>
+      <div class="field">
+      <label for="cliente-email"><svg class="icon field-icon" aria-hidden="true"><use href="#icon-mail"></use></svg><span data-i18n="campo_email">Email</span></label>
+      <input type="email" id="cliente-email" />
+      </div>
+      <div class="field">
+      <label for="cliente-etiquetas" data-i18n="etiquetas_label">Etiquetas (separadas por coma)</label>
+      <input type="text" id="cliente-etiquetas" placeholder="Ej. VIP, flotilla" data-i18n-placeholder="etiquetas_placeholder" />
+      <div class="etiquetas-rapidas">
+      <button type="button" class="etiqueta-rapida-btn" data-etiqueta="VIP" aria-pressed="false" data-i18n="etiqueta_rapida_vip">VIP</button>
+      <button type="button" class="etiqueta-rapida-btn" data-etiqueta="Flotilla" aria-pressed="false" data-i18n="etiqueta_rapida_flotilla">Flotilla</button>
+      <button type="button" class="etiqueta-rapida-btn" data-etiqueta="Taxi" aria-pressed="false" data-i18n="etiqueta_rapida_taxi">Taxi</button>
+      <button type="button" class="etiqueta-rapida-btn" data-etiqueta="Referido" aria-pressed="false" data-i18n="etiqueta_rapida_referido">Referido</button>
+      <button type="button" class="etiqueta-rapida-btn" data-etiqueta="Dealer" aria-pressed="false" data-i18n="etiqueta_rapida_dealer">Dealer</button>
+      </div>
+      </div>
+      </div>
+      </div>
+      </div>
+
+      <div class="cliente-nuevo-col">
+      <div class="ard-panel" style="--panel-color:#9085e9;">
+      <div class="ard-panel-header"><svg class="icon" aria-hidden="true"><use href="#icon-car"></use></svg><span data-i18n="col_vehiculo">Vehículo</span></div>
+      <div class="ard-panel-body cliente-nuevo-panel-body">
+      <div class="field">
+      <label for="cliente-vehiculo-marca" data-i18n="marca_requerido_label">Marca *</label>
+      <div class="campo-con-badge"><input type="text" id="cliente-vehiculo-marca" list="marcas-vehiculo-datalist" required /><span class="campo-requerido-badge" data-i18n="campo_requerido_badge">Requerido</span></div>
+      </div>
+      <div class="field">
+      <label for="cliente-vehiculo-modelo" data-i18n="modelo_requerido_label">Modelo *</label>
+      <div class="campo-con-badge"><input type="text" id="cliente-vehiculo-modelo" required /><span class="campo-requerido-badge" data-i18n="campo_requerido_badge">Requerido</span></div>
+      </div>
+      <div class="field">
+      <label for="cliente-vehiculo-anio" data-i18n="anio_requerido_label">Año *</label>
+      <div class="campo-con-badge"><input type="text" id="cliente-vehiculo-anio" required /><span class="campo-requerido-badge" data-i18n="campo_requerido_badge">Requerido</span></div>
+      <p class="campo-aviso" id="cliente-vehiculo-anio-aviso" aria-live="polite" hidden></p>
+      </div>
+      <div class="field">
+      <label for="cliente-vehiculo-placa" data-i18n="col_placa">Placa</label>
+      <input type="text" id="cliente-vehiculo-placa" />
+      </div>
+      <div class="field">
+      <label for="cliente-vehiculo-kilometraje" data-i18n="kilometraje_label">Kilometraje</label>
+      <input type="text" id="cliente-vehiculo-kilometraje" />
+      </div>
+      </div>
+      </div>
+      </div>
+      </div>
+
+      <div class="field"><label for="cliente-notas"><svg class="icon field-icon" aria-hidden="true"><use href="#icon-edit"></use></svg><span data-i18n="notas_label">Notas</span></label><textarea id="cliente-notas" rows="2"></textarea></div>
+      <datalist id="marcas-vehiculo-datalist">
+      <option value="Toyota"></option>
+      <option value="Honda"></option>
+      <option value="Ford"></option>
+      <option value="Chevrolet"></option>
+      <option value="Nissan"></option>
+      <option value="Hyundai"></option>
+      <option value="Kia"></option>
+      <option value="Jeep"></option>
+      <option value="Dodge"></option>
+      <option value="Ram"></option>
+      <option value="GMC"></option>
+      <option value="BMW"></option>
+      <option value="Mercedes-Benz"></option>
+      <option value="Volkswagen"></option>
+      <option value="Subaru"></option>
+      <option value="Mazda"></option>
+      <option value="Lexus"></option>
+      <option value="Audi"></option>
+      <option value="Chrysler"></option>
+      <option value="Buick"></option>
+      <option value="Acura"></option>
+      <option value="Infiniti"></option>
+      <option value="Mitsubishi"></option>
+      <option value="Volvo"></option>
+      </datalist>
+      <footer class="modal-footer">
+      <button type="button" class="btn-danger" id="btn-eliminar-cliente" hidden data-i18n="btn_eliminar">Eliminar</button>
+      <p class="campo-aviso" id="cliente-campos-faltantes" aria-live="polite" hidden style="margin:0;"></p>
+      <span class="spacer"></span>
+      <button type="button" class="btn-ghost" id="btn-cliente-cancelar" data-i18n="btn_cancelar">Cancelar</button>
+      <button type="submit" class="btn-primary" data-i18n="btn_guardar">Guardar</button>
+      </footer>
+      </form>
+      </div>
+      </div>
+    </section>
+
   </main>
 </div>
 
@@ -1006,43 +1207,15 @@
 </div>
 
 <div id="modal-cliente" class="modal-backdrop" hidden>
-  <div class="modal">
+  <div class="modal modal-xwide">
     <header class="modal-header">
-      <h2 id="modal-cliente-title">Nuevo cliente</h2>
+      <h2 id="modal-cliente-title" data-i18n="editar_cliente_titulo">Editar cliente</h2>
       <button class="icon-btn" data-close-modal="modal-cliente" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
-    <form id="form-cliente" class="modal-body">
-      <input type="hidden" id="cliente-id" />
-      <div class="field-row">
-        <div class="field"><label for="cliente-nombre"><svg class="icon field-icon" aria-hidden="true"><use href="#icon-user"></use></svg><span data-i18n="nombre_requerido_label">Nombre *</span></label><input type="text" id="cliente-nombre" required /></div>
-        <div class="field"><label for="cliente-apellido"><svg class="icon field-icon" aria-hidden="true"><use href="#icon-user"></use></svg><span data-i18n="apellido_requerido_label">Apellido *</span></label><input type="text" id="cliente-apellido" required /></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label for="cliente-telefono"><svg class="icon field-icon" aria-hidden="true"><use href="#icon-phone"></use></svg><span data-i18n="col_telefono">Teléfono</span></label><input type="text" id="cliente-telefono" /></div>
-        <div class="field"><label for="cliente-email"><svg class="icon field-icon" aria-hidden="true"><use href="#icon-mail"></use></svg><span data-i18n="campo_email">Email</span></label><input type="email" id="cliente-email" /></div>
-      </div>
-      <div class="field"><label for="cliente-direccion"><svg class="icon field-icon" aria-hidden="true"><use href="#icon-map-pin"></use></svg><span data-i18n="config_direccion">Dirección</span></label><input type="text" id="cliente-direccion" /></div>
-      <div class="field"><label for="cliente-etiquetas" data-i18n="etiquetas_label">Etiquetas (separadas por coma)</label><input type="text" id="cliente-etiquetas" placeholder="Ej. VIP, flotilla" data-i18n-placeholder="etiquetas_placeholder" /></div>
-      <div class="field-label-standalone" data-i18n="col_vehiculo">Vehículo</div>
-      <div class="field-row">
-        <div class="field"><label for="cliente-vehiculo-marca" data-i18n="marca_requerido_label">Marca *</label><input type="text" id="cliente-vehiculo-marca" required /></div>
-        <div class="field"><label for="cliente-vehiculo-modelo" data-i18n="modelo_requerido_label">Modelo *</label><input type="text" id="cliente-vehiculo-modelo" required /></div>
-        <div class="field"><label for="cliente-vehiculo-anio" data-i18n="anio_requerido_label">Año *</label><input type="text" id="cliente-vehiculo-anio" required /></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label for="cliente-vehiculo-placa" data-i18n="col_placa">Placa</label><input type="text" id="cliente-vehiculo-placa" /></div>
-        <div class="field"><label for="cliente-vehiculo-kilometraje" data-i18n="kilometraje_label">Kilometraje</label><input type="text" id="cliente-vehiculo-kilometraje" /></div>
-      </div>
-      <div class="field"><label for="cliente-notas"><svg class="icon field-icon" aria-hidden="true"><use href="#icon-edit"></use></svg><span data-i18n="notas_label">Notas</span></label><textarea id="cliente-notas" rows="2"></textarea></div>
-      <footer class="modal-footer">
-        <button type="button" class="btn-danger" id="btn-eliminar-cliente" hidden data-i18n="btn_eliminar">Eliminar</button>
-        <span class="spacer"></span>
-        <button type="button" class="btn-ghost" data-close-modal="modal-cliente" data-i18n="btn_cancelar">Cancelar</button>
-        <button type="submit" class="btn-primary" data-i18n="btn_guardar">Guardar</button>
-      </footer>
-    </form>
+    <div id="cliente-modal-slot"></div>
   </div>
 </div>
+
 
 <div id="modal-empleado" class="modal-backdrop" hidden>
   <div class="modal">
@@ -1132,11 +1305,27 @@
 <div id="modal-estimado" class="modal-backdrop" hidden>
   <div class="modal modal-wide">
     <header class="modal-header">
-      <h2 id="modal-estimado-title">Nuevo presupuesto</h2>
+      <div style="display:flex;align-items:center;gap:.5rem;">
+        <span id="estimado-estado-icono" style="font-size:1.25rem;line-height:1;"></span>
+        <h2 id="modal-estimado-title">Nuevo presupuesto</h2>
+      </div>
+      <div class="estimado-total-fijo" id="estimado-total-fijo-wrap">
+        <span data-i18n="col_total">Total</span>
+        <strong id="estimado-total-arriba">$0.00</strong>
+      </div>
       <button class="icon-btn" data-close-modal="modal-estimado" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <form id="form-estimado" class="modal-body">
       <input type="hidden" id="estimado-id" />
+
+      <div class="estimado-form-header" id="estimado-form-header">
+        <img id="estimado-form-logo" src="" alt="" />
+        <div class="estimado-form-negocio">
+          <h3 id="estimado-form-nombre-negocio">Gil's Muffler Inc</h3>
+          <p id="estimado-form-datos-negocio"></p>
+        </div>
+      </div>
+
       <div class="field-row">
         <div class="field">
           <label for="estimado-cliente" data-i18n="cliente_requerido_label">Cliente *</label>
@@ -1371,20 +1560,47 @@
       <div class="field"><label for="pieza-nombre" data-i18n="nombre_requerido_label">Nombre *</label><input type="text" id="pieza-nombre" required /></div>
       <div class="field-row">
         <div class="field"><label for="pieza-sku">SKU</label><input type="text" id="pieza-sku" /></div>
-        <div class="field"><label for="pieza-categoria" data-i18n="col_categoria">Categoría</label><input type="text" id="pieza-categoria" /></div>
+        <div class="field">
+          <label for="pieza-categoria" data-i18n="col_categoria">Categoría</label>
+          <select id="pieza-categoria">
+            <option value="Escape / Mofle" data-i18n="categoria_escape">Escape / Mofle</option>
+            <option value="Llantas" data-i18n="categoria_llantas">Llantas</option>
+            <option value="Tornillería" data-i18n="categoria_tornilleria">Tornillería</option>
+            <option value="Frenos" data-i18n="categoria_frenos">Frenos</option>
+            <option value="Aceite y Filtros" data-i18n="categoria_aceite">Aceite y Filtros</option>
+            <option value="Otros" data-i18n="categoria_otros">Otros</option>
+          </select>
+        </div>
       </div>
       <div class="field-row">
         <div class="field"><label for="pieza-costo" data-i18n="col_costo">Costo</label><input type="number" id="pieza-costo" min="0" step="0.01" value="0" /></div>
         <div class="field"><label for="pieza-precio" data-i18n="col_precio_venta">Precio de venta</label><input type="number" id="pieza-precio" min="0" step="0.01" value="0" /></div>
       </div>
       <div class="field-row">
-        <div class="field"><label for="pieza-stock" data-i18n="col_stock_actual">Stock actual</label><input type="number" id="pieza-stock" min="0" step="0.01" value="0" /></div>
+        <div class="field">
+          <label for="pieza-stock" data-i18n="col_stock_actual">Stock actual</label>
+          <div class="campo-con-badge">
+            <button type="button" class="btn-ghost pieza-stock-ajuste-btn" id="btn-pieza-stock-menos" aria-label="-1">−1</button>
+            <input type="number" id="pieza-stock" min="0" step="0.01" value="0" />
+            <button type="button" class="btn-ghost pieza-stock-ajuste-btn" id="btn-pieza-stock-mas" aria-label="+1">+1</button>
+          </div>
+        </div>
         <div class="field"><label for="pieza-stock-minimo" data-i18n="stock_minimo_label">Stock mínimo</label><input type="number" id="pieza-stock-minimo" min="0" step="0.01" value="0" /></div>
       </div>
-      <div class="field"><label for="pieza-proveedor" data-i18n="col_proveedor">Proveedor</label><input type="text" id="pieza-proveedor" /></div>
+      <div class="field-row">
+        <div class="field"><label for="pieza-proveedor" data-i18n="col_proveedor">Proveedor</label><input type="text" id="pieza-proveedor" /></div>
+        <div class="field"><label for="pieza-ubicacion" data-i18n="ubicacion_label">Ubicación (ej. Estante A3)</label><input type="text" id="pieza-ubicacion" data-i18n-placeholder="ubicacion_placeholder" placeholder="Ej. Estante A3" /></div>
+      </div>
       <div class="field"><label for="pieza-notas" data-i18n="notas_label">Notas</label><textarea id="pieza-notas" rows="2"></textarea></div>
+
+      <div id="pieza-historial-wrap" hidden>
+        <label class="field-label-standalone" data-i18n="historial_movimientos_titulo">Historial de movimientos</label>
+        <div id="pieza-historial" class="detalle-list"></div>
+      </div>
+
       <footer class="modal-footer">
         <button type="button" class="btn-danger" id="btn-eliminar-pieza" hidden data-i18n="btn_eliminar">Eliminar</button>
+        <button type="button" class="btn-ghost" id="btn-imprimir-etiqueta-pieza" hidden data-i18n="btn_imprimir_etiqueta">Imprimir etiqueta</button>
         <span class="spacer"></span>
         <button type="button" class="btn-ghost" data-close-modal="modal-pieza" data-i18n="btn_cancelar">Cancelar</button>
         <button type="submit" class="btn-primary" data-i18n="btn_guardar">Guardar</button>
@@ -1403,7 +1619,7 @@
       <input type="hidden" id="vehiculo-id" />
       <input type="hidden" id="vehiculo-cliente-id" />
       <div class="field-row">
-        <div class="field"><label for="vehiculo-marca" data-i18n="campo_marca">Marca</label><input type="text" id="vehiculo-marca" /></div>
+        <div class="field"><label for="vehiculo-marca" data-i18n="campo_marca">Marca</label><input type="text" id="vehiculo-marca" list="marcas-vehiculo-datalist" /></div>
         <div class="field"><label for="vehiculo-modelo" data-i18n="campo_modelo">Modelo</label><input type="text" id="vehiculo-modelo" /></div>
       </div>
       <div class="field-row">
@@ -1453,9 +1669,23 @@
         <button type="button" class="btn-danger" id="btn-eliminar-vehiculo" hidden data-i18n="btn_eliminar">Eliminar</button>
         <span class="spacer"></span>
         <button type="button" class="btn-ghost" data-close-modal="modal-vehiculo" data-i18n="btn_cancelar">Cancelar</button>
+        <button type="button" class="btn-ghost" id="btn-guardar-y-agregar-otro-vehiculo" hidden data-i18n="btn_guardar_y_agregar_otro">Guardar y agregar otro</button>
         <button type="submit" class="btn-primary" data-i18n="btn_guardar">Guardar</button>
       </footer>
     </form>
+  </div>
+</div>
+
+<div id="modal-reportes-ocultos" class="modal-backdrop" hidden>
+  <div class="modal modal-wide">
+    <header class="modal-header">
+      <h2 data-i18n="reportes_ocultos_titulo">Reportes aceptados sin mostrar</h2>
+      <button class="icon-btn" data-close-modal="modal-reportes-ocultos" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
+    </header>
+    <div class="modal-body">
+      <p class="view-sub" style="margin-top:0;" data-i18n="reportes_ocultos_desc">Estos reportes de trabajadores se aceptaron y cuentan en el total del día, pero no aparecen como fila en la tabla de ningún mecánico.</p>
+      <div id="reportes-ocultos-lista" class="detalle-list"></div>
+    </div>
   </div>
 </div>
 
@@ -1470,6 +1700,70 @@
       <video id="video-escaner-vin" style="width:100%;border-radius:8px;background:#000;" muted playsinline></video>
       <p id="escaner-vin-estado" class="view-sub" style="margin-top:.6rem;" data-i18n="iniciando_camara">Iniciando cámara...</p>
     </div>
+  </div>
+</div>
+
+<div id="modal-escaner-licencia" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2 data-i18n="escanear_licencia_titulo">Escanear licencia</h2>
+      <button class="icon-btn" data-close-modal="modal-escaner-licencia" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
+    </header>
+    <div class="modal-body">
+      <p class="view-sub" style="margin-top:0;" data-i18n="escanear_licencia_desc">Apunta la cámara al código de barras de atrás de la licencia de conducir.</p>
+      <video id="video-escaner-licencia" style="width:100%;border-radius:8px;background:#000;" muted playsinline></video>
+      <p id="escaner-licencia-estado" class="view-sub" style="margin-top:.6rem;" data-i18n="iniciando_camara">Iniciando cámara...</p>
+    </div>
+  </div>
+</div>
+
+<div id="modal-escaner-placa" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2 data-i18n="escanear_placa_titulo">Escanear matrícula</h2>
+      <button class="icon-btn" data-close-modal="modal-escaner-placa" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
+    </header>
+    <div class="modal-body">
+      <p class="view-sub" style="margin-top:0;" data-i18n="escanear_placa_desc">Apunta la cámara a la placa y presiona "Capturar". Esta función es experimental y puede no leer bien la placa — revisa siempre el resultado.</p>
+      <video id="video-escaner-placa" style="width:100%;border-radius:8px;background:#000;" muted playsinline></video>
+      <canvas id="canvas-escaner-placa" style="display:none;"></canvas>
+      <p id="escaner-placa-estado" class="view-sub" style="margin-top:.6rem;" data-i18n="iniciando_camara">Iniciando cámara...</p>
+      <button type="button" class="btn-primary" id="btn-capturar-placa" style="margin-top:.6rem;" data-i18n="btn_capturar_placa">Capturar</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-escaner-pieza" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2 data-i18n="escanear_pieza_titulo">Escanear pieza</h2>
+      <button class="icon-btn" data-close-modal="modal-escaner-pieza" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
+    </header>
+    <div class="modal-body">
+      <p class="view-sub" style="margin-top:0;" data-i18n="escanear_pieza_desc">Apunta la cámara al código de barras de la pieza.</p>
+      <video id="video-escaner-pieza" style="width:100%;border-radius:8px;background:#000;" muted playsinline></video>
+      <p id="escaner-pieza-estado" class="view-sub" style="margin-top:.6rem;" data-i18n="iniciando_camara">Iniciando cámara...</p>
+    </div>
+  </div>
+</div>
+
+<div id="modal-recibir-pedido" class="modal-backdrop" hidden>
+  <div class="modal modal-wide">
+    <header class="modal-header">
+      <h2 data-i18n="recibir_pedido_titulo">Recibir pedido</h2>
+      <button class="icon-btn" data-close-modal="modal-recibir-pedido" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
+    </header>
+    <div class="modal-body">
+      <p class="view-sub" style="margin-top:0;" data-i18n="recibir_pedido_desc">Escanea o escribe el SKU de cada pieza que llegó — se va sumando a la lista. Cuando termines, confirma para actualizar el stock de todas de una vez.</p>
+      <input type="text" id="recibir-pedido-input" autocomplete="off" data-i18n-placeholder="recibir_pedido_input_placeholder" placeholder="Escanea o escribe el SKU y presiona Enter" />
+      <div id="recibir-pedido-lista" class="detalle-list" style="margin-top:1rem;"></div>
+      <p class="detalle-empty" id="recibir-pedido-vacio" data-i18n="recibir_pedido_vacio">Todavía no has agregado ninguna pieza.</p>
+    </div>
+    <footer class="modal-footer">
+      <span class="spacer"></span>
+      <button type="button" class="btn-ghost" data-close-modal="modal-recibir-pedido" data-i18n="btn_cancelar">Cancelar</button>
+      <button type="button" class="btn-primary" id="btn-confirmar-recibir-pedido" data-i18n="btn_confirmar_recepcion">Confirmar recepción</button>
+    </footer>
   </div>
 </div>
 
@@ -1495,7 +1789,7 @@
       </div>
       <p id="orden-vehiculo-legacy" class="orden-nota" hidden></p>
       <div id="orden-vehiculo-nuevo" class="field-row" hidden>
-        <div class="field"><label for="orden-nuevo-vehiculo-marca" data-i18n="campo_marca">Marca</label><input type="text" id="orden-nuevo-vehiculo-marca" /></div>
+        <div class="field"><label for="orden-nuevo-vehiculo-marca" data-i18n="campo_marca">Marca</label><input type="text" id="orden-nuevo-vehiculo-marca" list="marcas-vehiculo-datalist" /></div>
         <div class="field"><label for="orden-nuevo-vehiculo-modelo" data-i18n="campo_modelo">Modelo</label><input type="text" id="orden-nuevo-vehiculo-modelo" /></div>
         <div class="field"><label for="orden-nuevo-vehiculo-anio" data-i18n="campo_anio">Año</label><input type="text" id="orden-nuevo-vehiculo-anio" /></div>
         <div class="field"><label for="orden-nuevo-vehiculo-placa" data-i18n="col_placa">Placa</label><input type="text" id="orden-nuevo-vehiculo-placa" /></div>

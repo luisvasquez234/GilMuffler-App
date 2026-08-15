@@ -22,12 +22,17 @@
     registroDiarioSinGuardarAyer: 0,
     llamadas: [],
     telefonos: [],
+    clienteDetalleActualId: null,
+    piezaStockHistorial: [],
   };
 
   let finanzasAnio = null;
 
   let sb = null;
   let zxingReaderInstancia = null;
+  let zxingLicenciaInstancia = null;
+  let placaStreamInstancia = null;
+  let zxingPiezaInstancia = null;
   let ordenPiezasOriginal = [];
 
   const ETAPAS = [
@@ -421,6 +426,18 @@
       zxingReaderInstancia.reset();
       zxingReaderInstancia = null;
     }
+    if (id === "modal-escaner-licencia" && zxingLicenciaInstancia) {
+      zxingLicenciaInstancia.reset();
+      zxingLicenciaInstancia = null;
+    }
+    if (id === "modal-escaner-placa" && placaStreamInstancia) {
+      placaStreamInstancia.getTracks().forEach((track) => track.stop());
+      placaStreamInstancia = null;
+    }
+    if (id === "modal-escaner-pieza" && zxingPiezaInstancia) {
+      zxingPiezaInstancia.reset();
+      zxingPiezaInstancia = null;
+    }
     const el = document.getElementById(id);
     el.classList.remove("is-open");
     if (prefersReducedMotion()) {
@@ -622,7 +639,26 @@
 
   // ---------------- auth gate ----------------
 
+  let vistaAlCargar = null;
+
+  function vistaInicialNombre() {
+    const clienteParam = new URLSearchParams(location.search).get("cliente");
+    if (clienteParam) return "cliente-detalle";
+    return vistaAlCargar ? vistaAlCargar.nombre : "dashboard";
+  }
+
+  function mostrarVistaInicial() {
+    const nombre = vistaInicialNombre();
+    const navName = nombre === "cliente-detalle" ? "clientes" : nombre;
+    document.querySelectorAll(".nav-item").forEach((b) => {
+      const coincide = nombre === "cliente-nuevo" ? b.dataset.action === "nuevo-cliente" : b.dataset.view === navName;
+      b.classList.toggle("is-active", coincide);
+    });
+    showView(nombre);
+  }
+
   function initAuth() {
+    vistaAlCargar = leerUltimaVista();
     const gate = document.getElementById("login-gate");
     const app = document.getElementById("app");
 
@@ -653,7 +689,7 @@
       if (data.session) {
         gate.hidden = true;
         app.hidden = false;
-        showView("dashboard");
+        mostrarVistaInicial();
         boot();
       }
     });
@@ -668,7 +704,7 @@
         error.hidden = true;
         gate.hidden = true;
         app.hidden = false;
-        showView("dashboard");
+        mostrarVistaInicial();
         boot();
       } else {
         error.hidden = false;
@@ -687,7 +723,7 @@
     document.querySelectorAll(".nav-item").forEach((btn) => {
       btn.addEventListener("click", () => {
         if (btn.dataset.action === "nuevo-cliente") {
-          openClienteModal(null);
+          abrirNuevoClienteView();
           return;
         }
         goToView(btn.dataset.view);
@@ -772,6 +808,7 @@
       "dashboard",
       "clientes",
       "cliente-detalle",
+      "cliente-nuevo",
       "reservas",
       "ordenes",
       "inventario",
@@ -793,6 +830,44 @@
         el.hidden = true;
       }
     });
+    guardarUltimaVista(name);
+  }
+
+  const VISTAS_RESTAURABLES = [
+    "dashboard",
+    "clientes",
+    "cliente-detalle",
+    "cliente-nuevo",
+    "reservas",
+    "ordenes",
+    "inventario",
+    "llamadas",
+    "facturas",
+    "invoices-due",
+    "invoices-paid",
+    "estimados",
+    "registro-diario",
+    "configuracion",
+  ];
+
+  function guardarUltimaVista(name) {
+    if (!VISTAS_RESTAURABLES.includes(name)) return;
+    try {
+      localStorage.setItem("ultimaVista", name);
+      if (name === "cliente-detalle" && state.clienteDetalleActualId) {
+        localStorage.setItem("ultimaVistaClienteId", state.clienteDetalleActualId);
+      }
+    } catch (e) {}
+  }
+
+  function leerUltimaVista() {
+    try {
+      const nombre = localStorage.getItem("ultimaVista");
+      if (!nombre || !VISTAS_RESTAURABLES.includes(nombre)) return null;
+      return { nombre, clienteId: localStorage.getItem("ultimaVistaClienteId") };
+    } catch (e) {
+      return null;
+    }
   }
 
   // ---------------- data layer ----------------
@@ -835,6 +910,16 @@
       [],
       t("error_cargar_piezas")
     );
+  }
+
+  async function fetchPiezaStockHistorial() {
+    const { data, error } = await sb.from("pieza_stock_historial").select("*").order("creado_en", { ascending: false });
+    if (error) return [];
+    return data;
+  }
+
+  async function refreshPiezaStockHistorial() {
+    state.piezaStockHistorial = await fetchPiezaStockHistorial();
   }
 
   async function fetchVehiculos() {
@@ -951,7 +1036,7 @@
     const video = document.getElementById("video-escaner-vin");
     zxingReaderInstancia = new ZXing.BrowserMultiFormatReader();
     try {
-      await zxingReaderInstancia.decodeFromConstraints({ video: { facingMode: "environment" } }, video, (result) => {
+      await zxingReaderInstancia.decodeFromConstraints({ video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } } }, video, (result) => {
         if (result) {
           const texto = result.getText().toUpperCase().replace(/[^A-Z0-9]/g, "");
           document.getElementById("vehiculo-vin").value = texto;
@@ -987,6 +1072,143 @@
     }
   }
 
+  function toTitleCaseSimple(texto) {
+    return (texto || "")
+      .toLowerCase()
+      .split(" ")
+      .filter(Boolean)
+      .map((p) => p[0].toUpperCase() + p.slice(1))
+      .join(" ");
+  }
+
+  function parseAAMVA(texto) {
+    const campos = {};
+    texto.split(/[\n\r]+/).forEach((linea) => {
+      const codigo = linea.slice(0, 3);
+      const valor = linea.slice(3).trim();
+      if (/^[A-Z]{3}$/.test(codigo) && valor) campos[codigo] = valor;
+    });
+    return {
+      nombre: campos.DAC || campos.DCT || "",
+      apellido: campos.DCS || "",
+      direccion: campos.DAG || "",
+      ciudad: campos.DAI || "",
+      estado: campos.DAJ || "",
+    };
+  }
+
+  function aplicarDatosLicenciaEscaneada(textoCrudo) {
+    const datos = parseAAMVA(textoCrudo);
+    if (!datos.nombre && !datos.apellido) return false;
+    if (datos.nombre) document.getElementById("cliente-nombre").value = toTitleCaseSimple(datos.nombre);
+    if (datos.apellido) document.getElementById("cliente-apellido").value = toTitleCaseSimple(datos.apellido);
+    if (datos.direccion) {
+      document.getElementById("cliente-direccion").value =
+        toTitleCaseSimple(datos.direccion) +
+        (datos.ciudad ? ", " + toTitleCaseSimple(datos.ciudad) : "") +
+        (datos.estado ? ", " + datos.estado : "");
+    }
+    actualizarPreviewCliente();
+    guardarBorradorCliente();
+    showToast(t("licencia_detectada_msg"));
+    return true;
+  }
+
+  function procesarEscaneoUsbLicencia() {
+    const input = document.getElementById("cliente-escaner-usb-input");
+    const texto = input.value;
+    input.value = "";
+    if (!texto.trim()) return;
+    if (!aplicarDatosLicenciaEscaneada(texto)) {
+      showToast(t("licencia_usb_sin_datos"), true);
+    }
+  }
+
+  async function abrirEscanerLicencia() {
+    const estado = document.getElementById("escaner-licencia-estado");
+    estado.textContent = t("iniciando_camara");
+    openModal("modal-escaner-licencia");
+
+    try {
+      await cargarZXing();
+    } catch (e) {
+      estado.textContent = t("error_cargar_escaner_conexion");
+      return;
+    }
+
+    const video = document.getElementById("video-escaner-licencia");
+    const hints = new Map();
+    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [ZXing.BarcodeFormat.PDF_417]);
+    zxingLicenciaInstancia = new ZXing.BrowserMultiFormatReader(hints);
+    try {
+      await zxingLicenciaInstancia.decodeFromConstraints({ video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } } }, video, (result) => {
+        if (!result) return;
+        if (!aplicarDatosLicenciaEscaneada(result.getText())) return;
+        closeModal("modal-escaner-licencia");
+      });
+      estado.textContent = t("buscando_licencia");
+    } catch (e) {
+      estado.textContent = t("error_acceso_camara");
+    }
+  }
+
+  function cargarTesseract() {
+    if (window.Tesseract) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error(t("error_cargar_escaner")));
+      document.head.appendChild(script);
+    });
+  }
+
+  async function abrirEscanerPlaca() {
+    const estado = document.getElementById("escaner-placa-estado");
+    estado.textContent = t("iniciando_camara");
+    openModal("modal-escaner-placa");
+
+    const video = document.getElementById("video-escaner-placa");
+    try {
+      placaStreamInstancia = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } } });
+      video.srcObject = placaStreamInstancia;
+      await video.play();
+      estado.textContent = "";
+    } catch (e) {
+      estado.textContent = t("error_acceso_camara");
+    }
+  }
+
+  async function capturarPlaca() {
+    const estado = document.getElementById("escaner-placa-estado");
+    const video = document.getElementById("video-escaner-placa");
+    const canvas = document.getElementById("canvas-escaner-placa");
+    if (!video.videoWidth) return;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    estado.textContent = t("leyendo_placa");
+    try {
+      await cargarTesseract();
+      const worker = await Tesseract.createWorker("eng");
+      const { data } = await worker.recognize(canvas);
+      await worker.terminate();
+      const texto = (data.text || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+      if (texto.length >= 4 && texto.length <= 8) {
+        document.getElementById("cliente-vehiculo-placa").value = texto;
+        guardarBorradorCliente();
+        closeModal("modal-escaner-placa");
+        showToast(t("placa_detectada_msg"));
+      } else {
+        estado.textContent = t("placa_no_detectada");
+      }
+    } catch (e) {
+      estado.textContent = t("placa_no_detectada");
+    }
+  }
+
   async function openVehiculoModal(vehiculo, clienteId) {
     document.getElementById("modal-vehiculo-title").textContent = vehiculo ? t("editar_vehiculo_titulo") : t("nuevo_vehiculo_titulo");
     document.getElementById("vehiculo-id").value = vehiculo ? vehiculo.id : "";
@@ -1003,6 +1225,8 @@
     document.getElementById("vehiculo-recordatorio-ultima").value = vehiculo && vehiculo.recordatorio_ultima_fecha ? vehiculo.recordatorio_ultima_fecha : "";
     document.getElementById("vehiculo-recordatorio-proxima").value = vehiculo && vehiculo.recordatorio_proxima_fecha ? vehiculo.recordatorio_proxima_fecha : "";
     document.getElementById("btn-eliminar-vehiculo").hidden = !vehiculo;
+    const clienteDelVehiculo = state.clientes.find((c) => c.id === (vehiculo ? vehiculo.cliente_id : clienteId));
+    document.getElementById("btn-guardar-y-agregar-otro-vehiculo").hidden = !(!vehiculo && esClienteDealer(clienteDelVehiculo));
 
     const historialWrap = document.getElementById("vehiculo-historial-wrap");
     const historialEl = document.getElementById("vehiculo-historial");
@@ -1059,8 +1283,7 @@
     await sb.from("kilometraje_historial").insert({ vehiculo_id: vehiculoId, kilometraje, fecha: todayISO() });
   }
 
-  async function saveVehiculo(e) {
-    e.preventDefault();
+  async function guardarVehiculoDesdeFormulario() {
     const id = document.getElementById("vehiculo-id").value;
     const vehiculoAnterior = id ? state.vehiculos.find((v) => v.id === id) : null;
     const payload = {
@@ -1090,18 +1313,35 @@
 
     if (error) {
       showToast(t("error_guardar_vehiculo", { error: error.message }), true);
-      return;
+      return null;
     }
 
     if (payload.kilometraje && (!vehiculoAnterior || vehiculoAnterior.kilometraje !== payload.kilometraje)) {
       await registrarKilometraje(vehiculoId, payload.kilometraje);
     }
 
+    return payload;
+  }
+
+  async function saveVehiculo(e) {
+    e.preventDefault();
+    const payload = await guardarVehiculoDesdeFormulario();
+    if (!payload) return;
+
     closeModal("modal-vehiculo");
     showToast(t("vehiculo_guardado"));
     await refreshVehiculos();
     const cliente = state.clientes.find((c) => c.id === payload.cliente_id);
     if (cliente) openClienteDetalle(cliente);
+  }
+
+  async function guardarYAgregarOtroVehiculo() {
+    const payload = await guardarVehiculoDesdeFormulario();
+    if (!payload) return;
+
+    showToast(t("vehiculo_guardado"));
+    await refreshVehiculos();
+    openVehiculoModal(null, payload.cliente_id);
   }
 
   async function deleteVehiculo() {
@@ -1299,13 +1539,30 @@
     openModal("modal-historial-precios");
   }
 
+  function calcularSugerenciaPedido(pieza) {
+    const limite = new Date();
+    limite.setDate(limite.getDate() - 90);
+    const limiteISO = limite.toISOString();
+    const consumoReciente = state.piezaStockHistorial
+      .filter((m) => m.pieza_id === pieza.id && Number(m.cambio) < 0 && m.creado_en >= limiteISO)
+      .reduce((sum, m) => sum + Math.abs(Number(m.cambio)), 0);
+
+    if (consumoReciente > 0) {
+      const consumoMensual = consumoReciente / 3;
+      const sugerido = Math.max(Math.ceil(consumoMensual * 2 - Number(pieza.stock)), Number(pieza.stock_minimo) || 1);
+      return { cantidad: sugerido, basadoEnUso: true };
+    }
+    const sugeridoSimple = Math.max(Number(pieza.stock_minimo) * 2 - Number(pieza.stock), Number(pieza.stock_minimo) || 1);
+    return { cantidad: Math.ceil(sugeridoSimple), basadoEnUso: false };
+  }
+
   function mostrarParaReordenar() {
     const bajas = state.piezas.filter((p) => Number(p.stock) <= Number(p.stock_minimo));
     const tbody = document.getElementById("reordenar-tbody");
     tbody.innerHTML = bajas.length
       ? bajas
           .map((p) => {
-            const sugerido = Math.max(Number(p.stock_minimo) * 2 - Number(p.stock), Number(p.stock_minimo) || 1);
+            const sugerencia = calcularSugerenciaPedido(p);
             return (
               "<tr><td>" +
               escapeHtml(p.nombre) +
@@ -1316,7 +1573,8 @@
               "</td><td>" +
               p.stock_minimo +
               "</td><td>" +
-              Math.ceil(sugerido) +
+              sugerencia.cantidad +
+              (sugerencia.basadoEnUso ? ' <span class="view-sub" style="margin:0;">(' + t("sugerencia_pedido_uso_real") + ")</span>" : "") +
               "</td></tr>"
             );
           })
@@ -1352,8 +1610,15 @@
 
   function etiquetasPillsHtml(etiquetas) {
     return etiquetasList(etiquetas)
-      .map((t) => '<span class="pill pill-etiqueta">' + escapeHtml(t) + "</span>")
+      .map((tag) => {
+        const dealer = tag.toLowerCase() === "dealer";
+        return '<span class="pill pill-etiqueta' + (dealer ? " pill-dealer" : "") + '">' + (dealer ? "🚗 " : "") + escapeHtml(tag) + "</span>";
+      })
       .join("");
+  }
+
+  function esClienteDealer(cliente) {
+    return !!cliente && etiquetasList(cliente.etiquetas).some((tag) => tag.toLowerCase() === "dealer");
   }
 
   function renderClientes(list) {
@@ -1363,7 +1628,7 @@
     empty.hidden = list.length !== 0;
     if (!list.length) {
       empty.innerHTML = emptyStateHtml("user", t("vacio_clientes"), "+ Agregar el primer cliente", "empty-cta-cliente");
-      document.getElementById("empty-cta-cliente").addEventListener("click", () => openClienteModal(null));
+      document.getElementById("empty-cta-cliente").addEventListener("click", () => abrirNuevoClienteView());
     }
 
     list.forEach((c) => {
@@ -1515,9 +1780,11 @@
 
   function openClienteDetalle(cliente) {
     if (!cliente) return;
+    state.clienteDetalleActualId = cliente.id;
     document.querySelectorAll(".nav-item").forEach((b) => b.classList.toggle("is-active", b.dataset.view === "clientes"));
     document.getElementById("modal-cliente-detalle-title").textContent = cliente.nombre;
     document.getElementById("btn-cliente-detalle-volver").onclick = () => goToView("clientes");
+    document.getElementById("btn-detalle-editar-cliente").onclick = () => openClienteModal(cliente);
 
     const desdeEl = document.getElementById("cliente-detalle-desde");
     desdeEl.textContent = cliente.created_at ? t("cliente_desde_label", { fecha: formatDate(cliente.created_at) }) : "";
@@ -1715,8 +1982,17 @@
     });
     cuentaLineas.sort((a, b) => (a.fecha < b.fecha ? 1 : a.fecha > b.fecha ? -1 : 0));
 
+    const totalFacturadoCuenta = totalGastado + saldoPendiente;
+    const pctPagadoCuenta = totalFacturadoCuenta > 0 ? Math.round((totalGastado / totalFacturadoCuenta) * 100) : 100;
     document.getElementById("cliente-detalle-cuenta-saldo").innerHTML =
-      "<div><span>" + t("saldo_cuenta_label") + "</span><strong class='" + (saldoPendiente > 0 ? "saldo-pendiente" : "") + "'>" + money(saldoPendiente) + "</strong></div>";
+      "<div><span>" + t("saldo_cuenta_label") + "</span><strong class='" + (saldoPendiente > 0 ? "saldo-pendiente" : "") + "'>" + money(saldoPendiente) + "</strong></div>" +
+      (totalFacturadoCuenta > 0
+        ? '<div class="ard-saldo-bar"><div class="ard-saldo-bar-pagado" style="width:' + pctPagadoCuenta + '%;"></div></div>' +
+          '<div class="ard-saldo-bar-label">' + (saldoPendiente > 0 ? t("saldo_bar_pendiente_label") : t("saldo_bar_al_dia_label")) + "</div>"
+        : "") +
+      (esClienteDealer(cliente)
+        ? '<div class="dealer-total-badge">' + t("dealer_total_facturado_label") + ": <strong>" + money(totalFacturadoCuenta) + "</strong></div>"
+        : "");
 
     const cuentaEl = document.getElementById("cliente-detalle-cuenta");
     cuentaEl.innerHTML = cuentaLineas.length
@@ -1934,6 +2210,7 @@
   function filterClientes() {
     const q = document.getElementById("clientes-search").value.trim().toLowerCase();
     const soloInactivos = document.getElementById("clientes-filter-inactivos").checked;
+    const soloDealers = document.getElementById("clientes-filter-dealers").checked;
     let list = !q
       ? state.clientes
       : state.clientes.filter((c) => {
@@ -1957,11 +2234,172 @@
         return !ultima || ultima < limiteISO;
       });
     }
+    if (soloDealers) list = list.filter((c) => esClienteDealer(c));
     return sortByField(list, clientesSortState, clienteSortValue);
   }
 
-  function openClienteModal(cliente) {
-    document.getElementById("modal-cliente-title").textContent = cliente ? "Editar cliente" : "Nuevo cliente";
+  const CLIENTE_BORRADOR_KEY = "clienteNuevoBorrador";
+  const CLIENTE_BORRADOR_CAMPOS = [
+    "cliente-nombre",
+    "cliente-apellido",
+    "cliente-telefono",
+    "cliente-email",
+    "cliente-direccion",
+    "cliente-etiquetas",
+    "cliente-notas",
+    "cliente-vehiculo-marca",
+    "cliente-vehiculo-modelo",
+    "cliente-vehiculo-anio",
+    "cliente-vehiculo-placa",
+    "cliente-vehiculo-kilometraje",
+  ];
+  let clienteBorradorTimer = null;
+
+  function guardarBorradorCliente() {
+    if (document.getElementById("cliente-id").value) return;
+    clearTimeout(clienteBorradorTimer);
+    clienteBorradorTimer = setTimeout(() => {
+      const datos = {};
+      CLIENTE_BORRADOR_CAMPOS.forEach((id) => {
+        datos[id] = document.getElementById(id).value;
+      });
+      const vacio = Object.values(datos).every((v) => !v);
+      try {
+        if (vacio) localStorage.removeItem(CLIENTE_BORRADOR_KEY);
+        else localStorage.setItem(CLIENTE_BORRADOR_KEY, JSON.stringify(datos));
+      } catch (e) {}
+    }, 500);
+  }
+
+  function limpiarBorradorCliente() {
+    try {
+      localStorage.removeItem(CLIENTE_BORRADOR_KEY);
+    } catch (e) {}
+    document.getElementById("cliente-borrador-aviso").hidden = true;
+  }
+
+  function cargarBorradorClienteSiExiste() {
+    let datos = null;
+    try {
+      datos = JSON.parse(localStorage.getItem(CLIENTE_BORRADOR_KEY) || "null");
+    } catch (e) {}
+    if (!datos) {
+      document.getElementById("cliente-borrador-aviso").hidden = true;
+      return;
+    }
+    CLIENTE_BORRADOR_CAMPOS.forEach((id) => {
+      if (datos[id]) document.getElementById(id).value = datos[id];
+    });
+    document.getElementById("cliente-borrador-aviso").hidden = false;
+  }
+
+  function actualizarPreviewCliente() {
+    const nombre = document.getElementById("cliente-nombre").value.trim();
+    const apellido = document.getElementById("cliente-apellido").value.trim();
+    const nombreCompleto = (nombre + " " + apellido).trim();
+    const auto = [
+      document.getElementById("cliente-vehiculo-marca").value.trim(),
+      document.getElementById("cliente-vehiculo-modelo").value.trim(),
+      document.getElementById("cliente-vehiculo-anio").value.trim(),
+    ]
+      .filter(Boolean)
+      .join(" ");
+    document.getElementById("cliente-nuevo-preview-nombre").textContent = nombreCompleto || t("nuevo_cliente_preview_default");
+    document.getElementById("cliente-nuevo-preview-auto").textContent = auto;
+    document.getElementById("cliente-nuevo-preview-avatar").innerHTML = avatarHtml(nombreCompleto, "avatar-lg");
+    actualizarCamposFaltantesCliente();
+  }
+
+  function actualizarCamposFaltantesCliente() {
+    const el = document.getElementById("cliente-campos-faltantes");
+    const campos = [
+      { id: "cliente-nombre", label: t("nombre_requerido_label").replace(" *", "") },
+      { id: "cliente-apellido", label: t("apellido_requerido_label").replace(" *", "") },
+      { id: "cliente-vehiculo-marca", label: t("marca_requerido_label").replace(" *", "") },
+      { id: "cliente-vehiculo-modelo", label: t("modelo_requerido_label").replace(" *", "") },
+      { id: "cliente-vehiculo-anio", label: t("anio_requerido_label").replace(" *", "") },
+    ];
+    const faltantes = campos.filter((c) => !document.getElementById(c.id).value.trim());
+    if (faltantes.length) {
+      el.textContent = t("campos_faltantes_aviso", { campos: faltantes.map((c) => c.label).join(", ") });
+      el.classList.remove("campo-aviso-ok");
+    } else {
+      el.textContent = t("campos_completos_msg");
+      el.classList.add("campo-aviso-ok");
+    }
+    el.hidden = false;
+  }
+
+  function verificarAnioVehiculo() {
+    const aviso = document.getElementById("cliente-vehiculo-anio-aviso");
+    const val = document.getElementById("cliente-vehiculo-anio").value.trim();
+    if (!val) {
+      aviso.hidden = true;
+      return;
+    }
+    const anio = parseInt(val, 10);
+    const anioActual = new Date().getFullYear();
+    if (!/^\d{4}$/.test(val) || anio < 1980 || anio > anioActual + 1) {
+      aviso.textContent = t("anio_vehiculo_raro_aviso");
+      aviso.hidden = false;
+    } else {
+      aviso.hidden = true;
+    }
+  }
+
+  function toggleEtiquetaRapida(etiqueta) {
+    const campo = document.getElementById("cliente-etiquetas");
+    const tags = campo.value.split(",").map((s) => s.trim()).filter(Boolean);
+    const idx = tags.findIndex((tg) => tg.toLowerCase() === etiqueta.toLowerCase());
+    if (idx >= 0) tags.splice(idx, 1);
+    else tags.push(etiqueta);
+    campo.value = tags.join(", ");
+    actualizarEtiquetasRapidasActivas();
+    guardarBorradorCliente();
+  }
+
+  function actualizarEtiquetasRapidasActivas() {
+    const tags = document
+      .getElementById("cliente-etiquetas")
+      .value.split(",")
+      .map((s) => s.trim().toLowerCase());
+    document.querySelectorAll(".etiqueta-rapida-btn").forEach((btn) => {
+      const activa = tags.includes(btn.dataset.etiqueta.toLowerCase());
+      btn.classList.toggle("is-active", activa);
+      btn.setAttribute("aria-pressed", String(activa));
+    });
+  }
+
+  function verificarTelefonoDuplicado() {
+    const aviso = document.getElementById("cliente-telefono-aviso");
+    const idActual = document.getElementById("cliente-id").value;
+    const digits = document.getElementById("cliente-telefono").value.replace(/\D/g, "");
+    if (digits.length < 7) {
+      aviso.hidden = true;
+      return;
+    }
+    const existente = state.clientes.find((c) => c.id !== idActual && (c.telefono || "").replace(/\D/g, "") === digits);
+    if (existente) {
+      const nombreCompleto = (existente.nombre || "") + " " + (existente.apellido || "");
+      aviso.innerHTML =
+        escapeHtml(t("telefono_duplicado_aviso", { nombre: nombreCompleto })) +
+        ' <button type="button" class="btn-ghost" id="btn-abrir-cliente-duplicado" data-cliente-id="' +
+        escapeHtml(existente.id) +
+        '">' +
+        escapeHtml(t("btn_abrir_cliente_duplicado")) +
+        "</button>";
+      aviso.hidden = false;
+    } else {
+      aviso.innerHTML = "";
+      aviso.hidden = true;
+    }
+  }
+
+  function rellenarFormularioCliente(cliente) {
+    document.getElementById("cliente-form-seccion-bar").textContent = cliente
+      ? t("editar_cliente_vehiculo_seccion_titulo")
+      : t("cliente_vehiculo_seccion_titulo");
+    document.getElementById("cliente-nuevo-preview-logo").src = (state.configNegocio && state.configNegocio.logo_url) || LOGO_DATA_URI;
     document.getElementById("cliente-id").value = cliente ? cliente.id : "";
     document.getElementById("cliente-nombre").value = cliente ? cliente.nombre || "" : "";
     document.getElementById("cliente-apellido").value = cliente ? cliente.apellido || "" : "";
@@ -1977,6 +2415,26 @@
     document.getElementById("cliente-vehiculo-placa").value = vehiculoPrincipal ? vehiculoPrincipal.placa || "" : "";
     document.getElementById("cliente-vehiculo-kilometraje").value = vehiculoPrincipal ? vehiculoPrincipal.kilometraje || "" : "";
     document.getElementById("btn-eliminar-cliente").hidden = !cliente;
+    document.getElementById("cliente-telefono-aviso").hidden = true;
+    document.getElementById("cliente-vehiculo-anio-aviso").hidden = true;
+    document.getElementById("cliente-escaner-usb-input").value = "";
+    document.querySelectorAll("#form-cliente .input-error").forEach((el) => el.classList.remove("input-error"));
+    if (!cliente) cargarBorradorClienteSiExiste();
+    else document.getElementById("cliente-borrador-aviso").hidden = true;
+    actualizarEtiquetasRapidasActivas();
+    actualizarPreviewCliente();
+  }
+
+  function abrirNuevoClienteView() {
+    document.getElementById("cliente-nuevo-vista-slot").appendChild(document.getElementById("cliente-form-bloque"));
+    rellenarFormularioCliente(null);
+    goToView("cliente-nuevo");
+    document.querySelectorAll(".nav-item").forEach((b) => b.classList.toggle("is-active", b.dataset.action === "nuevo-cliente"));
+  }
+
+  function openClienteModal(cliente) {
+    document.getElementById("cliente-modal-slot").appendChild(document.getElementById("cliente-form-bloque"));
+    rellenarFormularioCliente(cliente);
     openModal("modal-cliente");
   }
 
@@ -1990,8 +2448,18 @@
     const vehiculoModelo = document.getElementById("cliente-vehiculo-modelo").value.trim();
     const vehiculoAnio = document.getElementById("cliente-vehiculo-anio").value.trim();
 
-    if (!nombre || !apellido || !vehiculoMarca || !vehiculoModelo || !vehiculoAnio) {
+    const camposRequeridos = [
+      { id: "cliente-nombre", val: nombre },
+      { id: "cliente-apellido", val: apellido },
+      { id: "cliente-vehiculo-marca", val: vehiculoMarca },
+      { id: "cliente-vehiculo-modelo", val: vehiculoModelo },
+      { id: "cliente-vehiculo-anio", val: vehiculoAnio },
+    ];
+    camposRequeridos.forEach((c) => document.getElementById(c.id).classList.toggle("input-error", !c.val));
+    const primerInvalido = camposRequeridos.find((c) => !c.val);
+    if (primerInvalido) {
       showToast(t("cliente_campos_obligatorios"), true);
+      document.getElementById(primerInvalido.id).focus();
       return;
     }
 
@@ -2036,11 +2504,13 @@
     }
     await refreshVehiculos();
 
-    closeModal("modal-cliente");
+    if (esNuevo) limpiarBorradorCliente();
+    else closeModal("modal-cliente");
     showToast("Cliente guardado.");
+    mostrarConfirmacionGuardado();
     await refreshClientes();
 
-    if (esNuevo) {
+    if (esNuevo || state.clienteDetalleActualId === clienteId) {
       const cliente = state.clientes.find((c) => c.id === clienteId);
       if (cliente) openClienteDetalle(cliente);
     }
@@ -2657,7 +3127,14 @@
       "<!doctype html><html><head><meta charset='utf-8'><title>" + t("presupuesto_hash") +
       String(estimado.numero).padStart(4, "0") +
       "</title><style>" +
-      "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:2.5rem;max-width:40rem;margin:0 auto;}" +
+      "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:1.5rem;margin:0;background:#f2f3f5;}" +
+      ".marco{position:relative;max-width:40rem;margin:0 auto;background:#fff;border:2px solid " +
+      colorAcento +
+      ";border-radius:10px;padding:2rem 2.2rem;overflow:hidden;}" +
+      ".marca-agua{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-28deg);font-size:3.4rem;font-weight:800;color:" +
+      colorAcento +
+      ";opacity:.07;white-space:nowrap;z-index:0;pointer-events:none;text-transform:uppercase;letter-spacing:.05em;}" +
+      ".contenido{position:relative;z-index:1;}" +
       ".header{border-bottom:3px solid " +
       colorAcento +
       ";padding-bottom:1rem;margin-bottom:1.2rem;display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;}" +
@@ -2673,17 +3150,20 @@
       ".meta{display:flex;justify-content:space-between;gap:2rem;margin:1.3rem 0;padding-bottom:1rem;border-bottom:1px solid #e1e4e9;font-size:.85rem;}" +
       ".meta div{flex:1;line-height:1.7;}" +
       ".meta .label{color:#68707e;}" +
-      "table{width:100%;border-collapse:collapse;margin-top:.5rem;border:1px solid #ccc;}" +
+      "table{width:100%;border-collapse:collapse;margin-top:.5rem;border:1px solid #ccc;background:#fff;}" +
       "th,td{text-align:left;padding:.5rem .6rem;border:1px solid #ccc;font-size:.85rem;}" +
       "th{color:#1f2430;font-size:.75rem;text-transform:uppercase;letter-spacing:.03em;background:#eef0f1;}" +
       "td.num,th.num{text-align:right;}" +
-      ".totals{margin-top:1.1rem;margin-left:auto;width:14rem;border:1px solid #ccc;font-size:.9rem;}" +
+      ".totals{margin-top:1.1rem;margin-left:auto;width:14rem;border:1px solid #ccc;font-size:.9rem;background:#fff;}" +
       ".totals div{display:flex;justify-content:space-between;padding:.45rem .7rem;background:#eef0f1;border-bottom:1px solid #ccc;}" +
       ".totals div:last-child{border-bottom:none;font-weight:800;font-size:1.15rem;color:#fff;background:#0b0e14;padding-top:.6rem;padding-bottom:.6rem;}" +
       ".notas{margin-top:1.5rem;padding:.9rem 1rem;background:#fafbfc;border:1px solid #ccc;border-radius:6px;font-size:.85rem;}" +
       ".notas strong{display:block;margin-bottom:.3rem;color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}" +
-      "@media print{body{padding:0;}}" +
+      "@media print{body{padding:0;background:#fff;}.marco{border-width:1.5px;}}" +
       "</style></head><body>" +
+      "<div class='marco'>" +
+      "<div class='marca-agua'>" + escapeHtml(nombreNegocio) + "</div>" +
+      "<div class='contenido'>" +
       "<div class='header'><div class='header-brand'><img src='" +
       logoSrc +
       "' alt='' /><h1>" +
@@ -2712,6 +3192,7 @@
       money(estimado.total) +
       "</span></div></div>" +
       notasHtml +
+      "</div></div>" +
       "</body></html>";
 
     if (preview) { previewInNewTab(html); } else { openPrintWindow(html); }
@@ -3519,6 +4000,18 @@
     document.getElementById("estimado-subtotal").textContent = money(subtotal);
     document.getElementById("estimado-impuesto-monto").textContent = money(impuestoMonto);
     document.getElementById("estimado-total").textContent = money(total);
+    document.getElementById("estimado-total-arriba").textContent = money(total);
+  }
+
+  function estimadoEstadoIconoEmoji(estado) {
+    if (estado === "aprobado") return "✅";
+    if (estado === "rechazado") return "❌";
+    if (estado === "convertido") return "🧾";
+    return "⏳";
+  }
+
+  function actualizarEstimadoEstadoIcono() {
+    document.getElementById("estimado-estado-icono").textContent = estimadoEstadoIconoEmoji(document.getElementById("estimado-estado").value);
   }
 
   function collectEstimadoItems() {
@@ -3554,6 +4047,15 @@
     document.getElementById("estimado-fecha").value = estimado ? estimado.fecha : todayISO();
     document.getElementById("estimado-estado").value = estimado ? estimado.estado : "pendiente";
     document.getElementById("estimado-notas").value = estimado ? estimado.notas || "" : "";
+    actualizarEstimadoEstadoIcono();
+
+    const cfgEstimado = state.configNegocio || {};
+    document.getElementById("estimado-form-logo").src = cfgEstimado.logo_url || LOGO_DATA_URI;
+    document.getElementById("estimado-form-nombre-negocio").textContent = cfgEstimado.nombre_negocio || "Gil's Muffler Inc";
+    document.getElementById("estimado-form-datos-negocio").innerHTML = [cfgEstimado.direccion, cfgEstimado.telefono, cfgEstimado.email]
+      .filter(Boolean)
+      .map(escapeHtml)
+      .join("<br>");
 
     const subtotalNum = estimado ? Number(estimado.subtotal) : 0;
     const tasaDefault = state.configNegocio ? Number(state.configNegocio.tasa_impuesto_default) || 0 : 0;
@@ -3687,6 +4189,7 @@
 
     closeModal("modal-estimado");
     showToast("Presupuesto convertido en factura #" + String(factura.numero).padStart(4, "0") + ".");
+    mostrarConfirmacionGuardado();
     await refreshEstimados();
     await refreshFacturas();
   }
@@ -3868,6 +4371,65 @@
 
   // ---------------- render: inventario (piezas) ----------------
 
+  const PIEZA_CATEGORIAS = {
+    "Escape / Mofle": { icon: "icon-muffler", color: "var(--series-2)" },
+    Llantas: { icon: "icon-tire", color: "var(--series-7)" },
+    Tornillería: { icon: "icon-bolt", color: "var(--series-4)" },
+    Frenos: { icon: "icon-gauge", color: "var(--series-1)" },
+    "Aceite y Filtros": { icon: "icon-box", color: "var(--series-3)" },
+    Otros: { icon: "icon-wrench", color: "var(--series-8)" },
+  };
+
+  function piezaCategoriaBadgeHtml(categoria) {
+    const info = PIEZA_CATEGORIAS[categoria] || PIEZA_CATEGORIAS["Otros"];
+    const label = categoria || t("categoria_otros");
+    return (
+      '<span class="pieza-categoria-badge" style="--pieza-cat-color:' +
+      info.color +
+      ';"><svg class="icon" aria-hidden="true"><use href="#' +
+      info.icon +
+      '"></use></svg>' +
+      escapeHtml(label) +
+      "</span>"
+    );
+  }
+
+  function piezaSinMovimiento(piezaId) {
+    const movimientos = state.piezaStockHistorial.filter((m) => m.pieza_id === piezaId);
+    if (!movimientos.length) return false;
+    const limite = new Date();
+    limite.setDate(limite.getDate() - 180);
+    const limiteISO = limite.toISOString();
+    const salidas = movimientos.filter((m) => Number(m.cambio) < 0);
+    if (salidas.length) {
+      const masReciente = salidas.reduce((a, b) => (a.creado_en > b.creado_en ? a : b));
+      return masReciente.creado_en < limiteISO;
+    }
+    const masAntigua = movimientos.reduce((a, b) => (a.creado_en < b.creado_en ? a : b));
+    return masAntigua.creado_en < limiteISO;
+  }
+
+  function actualizarTotalInvertidoInventario() {
+    const total = state.piezas.reduce((sum, p) => sum + (Number(p.costo) || 0) * (Number(p.stock) || 0), 0);
+    const el = document.getElementById("inventario-total-invertido");
+    if (el) el.textContent = money(total);
+  }
+
+  async function ajustarStockPieza(piezaId, delta, motivo) {
+    const pieza = state.piezas.find((p) => p.id === piezaId);
+    if (!pieza) return false;
+    const nuevoStock = Math.max(0, (Number(pieza.stock) || 0) + delta);
+    const { error } = await sb.from("piezas").update({ stock: nuevoStock }).eq("id", piezaId);
+    if (error) {
+      showToast("No se pudo actualizar el stock.", true);
+      return false;
+    }
+    await sb.from("pieza_stock_historial").insert({ pieza_id: piezaId, cambio: delta, stock_resultante: nuevoStock, motivo });
+    await refreshPiezas();
+    await refreshPiezaStockHistorial();
+    return true;
+  }
+
   function renderPiezas(list) {
     const tbody = document.getElementById("piezas-tbody");
     const empty = document.getElementById("piezas-empty");
@@ -3882,9 +4444,17 @@
       const bajo = Number(p.stock) <= Number(p.stock_minimo);
       const tr = document.createElement("tr");
       tr.innerHTML =
-        "<td>" + escapeHtml(p.nombre) + "</td>" +
+        "<td>" +
+        escapeHtml(p.nombre) +
+        (piezaSinMovimiento(p.id) ? ' <span class="pieza-sin-movimiento-badge">' + t("pieza_sin_movimiento_badge") + "</span>" : "") +
+        "</td>" +
+        "<td>" + piezaCategoriaBadgeHtml(p.categoria) + "</td>" +
         "<td>" + escapeHtml(p.sku || "—") + "</td>" +
-        '<td><span class="pill ' + (bajo ? "pill-stock-bajo" : "pill-stock-ok") + '">' + p.stock + "</span></td>" +
+        '<td><div style="display:flex;align-items:center;gap:.4rem;">' +
+        '<button type="button" class="pieza-stock-fila-btn" data-stock-menos="' + p.id + '" aria-label="' + escapeHtml(t("pieza_restar_stock_label", { nombre: p.nombre })) + '">−</button>' +
+        '<span class="pill ' + (bajo ? "pill-stock-bajo" : "pill-stock-ok") + '">' + p.stock + "</span>" +
+        '<button type="button" class="pieza-stock-fila-btn" data-stock-mas="' + p.id + '" aria-label="' + escapeHtml(t("pieza_sumar_stock_label", { nombre: p.nombre })) + '">+</button>' +
+        "</div></td>" +
         "<td>" + money(p.costo) + "</td>" +
         "<td>" + money(p.precio_venta) + "</td>" +
         '<td><button class="row-link" type="button" data-edit-pieza="' + p.id + '">Editar</button></td>';
@@ -3897,6 +4467,14 @@
         openPiezaModal(pieza);
       });
     });
+    tbody.querySelectorAll("[data-stock-menos]").forEach((btn) => {
+      btn.addEventListener("click", () => ajustarStockPieza(btn.dataset.stockMenos, -1, "manual"));
+    });
+    tbody.querySelectorAll("[data-stock-mas]").forEach((btn) => {
+      btn.addEventListener("click", () => ajustarStockPieza(btn.dataset.stockMas, 1, "manual"));
+    });
+
+    actualizarTotalInvertidoInventario();
   }
 
   const piezasSortState = { field: null, dir: 1 };
@@ -3913,20 +4491,258 @@
     return sortByField(list, piezasSortState, piezaSortValue);
   }
 
+  async function procesarCodigoPieza(codigoCrudo) {
+    const codigo = (codigoCrudo || "").trim();
+    if (!codigo) return;
+    const pieza = state.piezas.find((p) => (p.sku || "").toLowerCase() === codigo.toLowerCase());
+    if (pieza) {
+      const nombrePieza = pieza.nombre;
+      const ok = await ajustarStockPieza(pieza.id, 1, "escaneo");
+      if (ok) {
+        const actualizada = state.piezas.find((p) => p.id === pieza.id);
+        showToast(t("pieza_encontrada_stock_msg", { nombre: nombrePieza, stock: actualizada ? actualizada.stock : "" }));
+      }
+    } else {
+      showToast(t("pieza_no_encontrada_msg"), true);
+      openPiezaModal(null);
+      document.getElementById("pieza-sku").value = codigo;
+      document.getElementById("pieza-nombre").focus();
+    }
+  }
+
+  async function abrirEscanerPieza() {
+    const estado = document.getElementById("escaner-pieza-estado");
+    estado.textContent = t("iniciando_camara");
+    openModal("modal-escaner-pieza");
+
+    try {
+      await cargarZXing();
+    } catch (e) {
+      estado.textContent = t("error_cargar_escaner_conexion");
+      return;
+    }
+
+    const video = document.getElementById("video-escaner-pieza");
+    zxingPiezaInstancia = new ZXing.BrowserMultiFormatReader();
+    try {
+      await zxingPiezaInstancia.decodeFromConstraints({ video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } } }, video, (result) => {
+        if (!result) return;
+        const codigo = result.getText().trim();
+        closeModal("modal-escaner-pieza");
+        procesarCodigoPieza(codigo);
+      });
+      estado.textContent = t("buscando_codigo_generico");
+    } catch (e) {
+      estado.textContent = t("error_acceso_camara");
+    }
+  }
+
+  function asegurarOpcionCategoria(valor) {
+    const select = document.getElementById("pieza-categoria");
+    if (!valor) return;
+    const existe = Array.from(select.options).some((o) => o.value === valor);
+    if (!existe) {
+      const opt = document.createElement("option");
+      opt.value = valor;
+      opt.textContent = valor;
+      select.appendChild(opt);
+    }
+  }
+
   function openPiezaModal(pieza) {
     document.getElementById("modal-pieza-title").textContent = pieza ? "Editar pieza" : "Nueva pieza";
     document.getElementById("pieza-id").value = pieza ? pieza.id : "";
     document.getElementById("pieza-nombre").value = pieza ? pieza.nombre || "" : "";
     document.getElementById("pieza-sku").value = pieza ? pieza.sku || "" : "";
-    document.getElementById("pieza-categoria").value = pieza ? pieza.categoria || "" : "";
+    asegurarOpcionCategoria(pieza ? pieza.categoria : "");
+    document.getElementById("pieza-categoria").value = pieza && pieza.categoria ? pieza.categoria : "Otros";
     document.getElementById("pieza-costo").value = pieza ? pieza.costo : 0;
     document.getElementById("pieza-precio").value = pieza ? pieza.precio_venta : 0;
     document.getElementById("pieza-stock").value = pieza ? pieza.stock : 0;
     document.getElementById("pieza-stock-minimo").value = pieza ? pieza.stock_minimo : 0;
     document.getElementById("pieza-proveedor").value = pieza ? pieza.proveedor || "" : "";
+    document.getElementById("pieza-ubicacion").value = pieza ? pieza.ubicacion || "" : "";
     document.getElementById("pieza-notas").value = pieza ? pieza.notas || "" : "";
     document.getElementById("btn-eliminar-pieza").hidden = !pieza;
+    document.getElementById("btn-imprimir-etiqueta-pieza").hidden = !pieza;
+
+    const historialWrap = document.getElementById("pieza-historial-wrap");
+    if (pieza) {
+      historialWrap.hidden = false;
+      renderHistorialPieza(pieza.id);
+    } else {
+      historialWrap.hidden = true;
+      document.getElementById("pieza-historial").innerHTML = "";
+    }
     openModal("modal-pieza");
+  }
+
+  function renderHistorialPieza(piezaId) {
+    const el = document.getElementById("pieza-historial");
+    const movimientos = state.piezaStockHistorial
+      .filter((m) => m.pieza_id === piezaId)
+      .sort((a, b) => (a.creado_en < b.creado_en ? 1 : -1));
+    el.innerHTML = movimientos.length
+      ? movimientos
+          .map((m) => {
+            const esEntrada = Number(m.cambio) >= 0;
+            return (
+              '<div class="detalle-list-item ' +
+              (esEntrada ? "is-pagada" : "is-pendiente") +
+              '"><span class="historial-fecha">' +
+              escapeHtml(formatDate(m.creado_en.slice(0, 10))) +
+              "</span><span style=\"flex:1;\">" +
+              escapeHtml(motivoPiezaLabel(m.motivo)) +
+              "</span><span>" +
+              (esEntrada ? "+" : "") +
+              m.cambio +
+              " (" + t("col_stock") + ": " + m.stock_resultante + ")</span></div>"
+            );
+          })
+          .join("")
+      : '<p class="detalle-empty">' + t("pieza_historial_vacio") + "</p>";
+  }
+
+  function motivoPiezaLabel(motivo) {
+    if (motivo === "escaneo") return t("motivo_escaneo");
+    if (motivo === "recepcion_pedido") return t("motivo_recepcion_pedido");
+    return t("motivo_ajuste_manual");
+  }
+
+  let recibirPedidoLista = [];
+
+  function agregarARecibirPedido(codigo) {
+    const sku = (codigo || "").trim();
+    if (!sku) return;
+    const pieza = state.piezas.find((p) => (p.sku || "").toLowerCase() === sku.toLowerCase());
+    if (!pieza) {
+      showToast(t("recibir_pedido_pieza_no_encontrada", { sku }), true);
+      return;
+    }
+    const existente = recibirPedidoLista.find((it) => it.pieza.id === pieza.id);
+    if (existente) existente.cantidad += 1;
+    else recibirPedidoLista.push({ pieza, cantidad: 1 });
+    renderRecibirPedidoLista();
+  }
+
+  function renderRecibirPedidoLista() {
+    const el = document.getElementById("recibir-pedido-lista");
+    const vacio = document.getElementById("recibir-pedido-vacio");
+    vacio.hidden = recibirPedidoLista.length !== 0;
+    el.innerHTML = recibirPedidoLista
+      .map(
+        (it, idx) =>
+          '<div class="detalle-list-item"><span style="flex:1;">' +
+          escapeHtml(it.pieza.nombre) +
+          " (" +
+          escapeHtml(it.pieza.sku || "—") +
+          ')</span><button type="button" class="recibir-pedido-cantidad-btn" data-recibir-menos="' +
+          idx +
+          '" aria-label="' + escapeHtml(t("pieza_restar_stock_label", { nombre: it.pieza.nombre })) + '">−</button><span class="recibir-pedido-cantidad">' +
+          it.cantidad +
+          '</span><button type="button" class="recibir-pedido-cantidad-btn" data-recibir-mas="' +
+          idx +
+          '" aria-label="' + escapeHtml(t("pieza_sumar_stock_label", { nombre: it.pieza.nombre })) + '">+</button><button type="button" class="icon-btn" data-recibir-quitar="' +
+          idx +
+          '" aria-label="' + t("quitar_fila_title") + '">&times;</button></div>'
+      )
+      .join("");
+
+    el.querySelectorAll("[data-recibir-menos]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const idx = Number(btn.dataset.recibirMenos);
+        recibirPedidoLista[idx].cantidad = Math.max(1, recibirPedidoLista[idx].cantidad - 1);
+        renderRecibirPedidoLista();
+      });
+    });
+    el.querySelectorAll("[data-recibir-mas]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const idx = Number(btn.dataset.recibirMas);
+        recibirPedidoLista[idx].cantidad += 1;
+        renderRecibirPedidoLista();
+      });
+    });
+    el.querySelectorAll("[data-recibir-quitar]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const idx = Number(btn.dataset.recibirQuitar);
+        recibirPedidoLista.splice(idx, 1);
+        renderRecibirPedidoLista();
+      });
+    });
+  }
+
+  function abrirRecibirPedido() {
+    recibirPedidoLista = [];
+    renderRecibirPedidoLista();
+    document.getElementById("recibir-pedido-input").value = "";
+    openModal("modal-recibir-pedido");
+  }
+
+  async function confirmarRecibirPedido() {
+    if (!recibirPedidoLista.length) return;
+    for (const it of recibirPedidoLista) {
+      const pieza = state.piezas.find((p) => p.id === it.pieza.id);
+      if (!pieza) continue;
+      const nuevoStock = (Number(pieza.stock) || 0) + it.cantidad;
+      await sb.from("piezas").update({ stock: nuevoStock }).eq("id", pieza.id);
+      await sb.from("pieza_stock_historial").insert({ pieza_id: pieza.id, cambio: it.cantidad, stock_resultante: nuevoStock, motivo: "recepcion_pedido" });
+    }
+    const cantidadTotal = recibirPedidoLista.length;
+    closeModal("modal-recibir-pedido");
+    showToast(t("recibir_pedido_confirmado_msg", { cantidad: cantidadTotal }));
+    recibirPedidoLista = [];
+    await refreshPiezas();
+    await refreshPiezaStockHistorial();
+  }
+
+  function cargarJsBarcode() {
+    if (window.JsBarcode) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js";
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error(t("error_cargar_escaner")));
+      document.head.appendChild(script);
+    });
+  }
+
+  async function imprimirEtiquetaPieza() {
+    const id = document.getElementById("pieza-id").value;
+    const pieza = state.piezas.find((p) => p.id === id);
+    if (!pieza) return;
+    if (!pieza.sku) {
+      showToast(t("etiqueta_sin_sku_msg"), true);
+      return;
+    }
+    try {
+      await cargarJsBarcode();
+    } catch (e) {
+      showToast(t("error_cargar_escaner_conexion"), true);
+      return;
+    }
+    const svgTemp = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    JsBarcode(svgTemp, pieza.sku, { format: "CODE128", displayValue: true, height: 60, width: 2 });
+    const barcodeSvg = svgTemp.outerHTML;
+
+    const ventana = window.open("", "_blank", "width=420,height=320");
+    if (!ventana) {
+      showToast(t("error_ventana_bloqueada"), true);
+      return;
+    }
+    ventana.document.write(
+      "<html><head><title>" +
+        escapeHtml(pieza.nombre) +
+        "</title></head><body style='font-family:Arial,sans-serif;text-align:center;padding:1.2rem;'>" +
+        "<div style='font-weight:700;font-size:1.05rem;'>" +
+        escapeHtml(pieza.nombre) +
+        "</div><div style='font-size:.9rem;color:#555;margin:.2rem 0 .6rem;'>" +
+        escapeHtml(money(pieza.precio_venta)) +
+        "</div>" +
+        barcodeSvg +
+        "<script>window.onload=function(){window.print();}<" +
+        "/script></body></html>"
+    );
+    ventana.document.close();
   }
 
   async function savePieza(e) {
@@ -3941,11 +4757,13 @@
       stock: parseFloat(document.getElementById("pieza-stock").value) || 0,
       stock_minimo: parseFloat(document.getElementById("pieza-stock-minimo").value) || 0,
       proveedor: document.getElementById("pieza-proveedor").value.trim(),
+      ubicacion: document.getElementById("pieza-ubicacion").value.trim(),
       notas: document.getElementById("pieza-notas").value.trim(),
     };
 
     const anterior = id ? state.piezas.find((p) => p.id === id) : null;
     const precioCambio = !anterior || Number(anterior.costo) !== payload.costo || Number(anterior.precio_venta) !== payload.precio_venta;
+    const deltaStock = payload.stock - (anterior ? Number(anterior.stock) || 0 : 0);
 
     let error;
     let piezaId = id;
@@ -3971,9 +4789,19 @@
       });
     }
 
+    if (deltaStock !== 0 && piezaId) {
+      await sb.from("pieza_stock_historial").insert({
+        pieza_id: piezaId,
+        cambio: deltaStock,
+        stock_resultante: payload.stock,
+        motivo: "manual",
+      });
+    }
+
     closeModal("modal-pieza");
     showToast("Pieza guardada.");
     await refreshPiezas();
+    await refreshPiezaStockHistorial();
   }
 
   async function deletePieza() {
@@ -5036,6 +5864,7 @@
     state.registroDiarioId = registro ? registro.id : null;
     registroDiarioActual = registro;
     const items = registro ? await fetchRegistroDiarioItems(registro.id) : [];
+    await cargarReportesOcultosDelDia(fecha);
     renderRegistroDiario(registro, items);
     registroDiarioSucio = false;
   }
@@ -5090,13 +5919,26 @@
           formatDate(r.fecha) +
           " · <strong>" +
           money(total) +
-          "</strong></span>" +
+          "</strong></span><span style=\"display:flex;gap:.4rem;\">" +
           '<button type="button" class="btn-ghost btn-agregar-reporte-pendiente">' +
           t("btn_agregar_a_fila") +
-          "</button></div>"
+          "</button>" +
+          '<button type="button" class="btn-ghost btn-aceptar-reporte-oculto" title="' +
+          t("aceptar_sin_mostrar_title") +
+          '">' +
+          t("btn_aceptar_sin_mostrar") +
+          "</button></span></div>"
         );
       })
       .join("");
+
+    lista.querySelectorAll(".btn-aceptar-reporte-oculto").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const fila = btn.closest(".reporte-pendiente-fila");
+        const reporte = data.find((r) => r.id === fila.dataset.reporteId);
+        if (reporte) aceptarReporteOculto(reporte);
+      });
+    });
 
     lista.querySelectorAll(".btn-agregar-reporte-pendiente").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -5128,12 +5970,62 @@
     });
     registroDiarioSucio = true;
     recalcularRegistroDiario();
+    programarAutoguardadoRegistro();
 
     const { error } = await sb.from("reportes_trabajo").update({ revisado: true }).eq("id", reporte.id);
     if (error) showToast(t("error_marcar_reporte"), true);
 
     showToast(t("reporte_agregado_msg"));
     await cargarReportesTrabajoPendientes();
+  }
+
+  let reportesOcultosDelDia = [];
+
+  async function cargarReportesOcultosDelDia(fecha) {
+    const { data, error } = await sb.from("reportes_trabajo").select("*").eq("fecha", fecha).eq("oculto", true);
+    reportesOcultosDelDia = error || !data ? [] : data;
+  }
+
+  async function aceptarReporteOculto(reporte) {
+    const { error } = await sb.from("reportes_trabajo").update({ revisado: true, oculto: true }).eq("id", reporte.id);
+    if (error) {
+      showToast(t("error_marcar_reporte"), true);
+      return;
+    }
+    showToast(t("reporte_aceptado_oculto_msg"));
+    await cargarReportesTrabajoPendientes();
+    if (document.getElementById("registro-fecha").value === reporte.fecha) {
+      await cargarReportesOcultosDelDia(reporte.fecha);
+      recalcularRegistroDiario();
+    }
+  }
+
+  async function abrirReportesOcultos() {
+    const { data, error } = await sb.from("reportes_trabajo").select("*").eq("oculto", true).order("fecha", { ascending: false });
+    const lista = document.getElementById("reportes-ocultos-lista");
+    if (error || !data || !data.length) {
+      lista.innerHTML = '<p class="detalle-empty">' + t("sin_reportes_ocultos") + "</p>";
+    } else {
+      lista.innerHTML = data
+        .map((r) => {
+          const mecanico = state.mecanicos.find((m) => m.id === r.mecanico_id);
+          const total = (parseFloat(r.labor) || 0) + (parseFloat(r.piezas) || 0) + (parseFloat(r.otro) || 0);
+          return (
+            '<div class="detalle-list-item"><span class="historial-fecha">' +
+            escapeHtml(formatDate(r.fecha)) +
+            "</span><span style=\"flex:1;\"><strong>" +
+            escapeHtml(mecanico ? mecanico.nombre : "?") +
+            "</strong> — " +
+            escapeHtml(r.carro || "—") +
+            (r.descripcion ? " · " + escapeHtml(r.descripcion) : "") +
+            "</span><span>" +
+            money(total) +
+            "</span></div>"
+          );
+        })
+        .join("");
+    }
+    openModal("modal-reportes-ocultos");
   }
 
   const REGISTRO_COLUMNAS_DEF = {
@@ -5296,6 +6188,7 @@
         const tr = addRegistroItemRow(card.querySelector(".registro-items-tbody"), null);
         registroDiarioSucio = true;
         recalcularRegistroDiario();
+        programarAutoguardadoRegistro();
         const primerInput = tr.querySelector(".reg-carro");
         if (primerInput) primerInput.focus();
       });
@@ -5349,12 +6242,14 @@
       input.addEventListener("input", () => {
         registroDiarioSucio = true;
         recalcularRegistroDiario();
+        programarAutoguardadoRegistro();
       });
     });
     tr.querySelector(".item-remove").addEventListener("click", () => {
       tr.remove();
       registroDiarioSucio = true;
       recalcularRegistroDiario();
+      programarAutoguardadoRegistro();
     });
     tr.querySelector(".item-ticket").addEventListener("click", () => imprimirTicketTrabajo(tr));
     tr.querySelector(".reg-factura-btn").addEventListener("click", () => abrirVincularFactura(tr));
@@ -5377,6 +6272,13 @@
         otroDia += parseFloat(tr.querySelector(".reg-otro").value) || 0;
         dineroSalidaDia += parseFloat(tr.querySelector(".reg-dinero-salida").value) || 0;
       });
+      reportesOcultosDelDia
+        .filter((r) => r.mecanico_id === card.dataset.mecanicoId)
+        .forEach((r) => {
+          laborM += parseFloat(r.labor) || 0;
+          piezasM += parseFloat(r.piezas) || 0;
+          otroDia += parseFloat(r.otro) || 0;
+        });
       card.querySelector(".reg-sub-labor").textContent = money(laborM);
       card.querySelector(".reg-sub-piezas").textContent = money(piezasM);
       laborDia += laborM;
@@ -5417,15 +6319,37 @@
     }
   }
 
-  async function guardarRegistroDiario() {
+  let registroAutosaveTimer = null;
+
+  function setEstadoAutoguardadoRegistro(texto) {
+    const el = document.getElementById("registro-autosave-estado");
+    if (el) el.textContent = texto;
+  }
+
+  function programarAutoguardadoRegistro() {
+    if (registroDiarioCerrado) return;
+    setEstadoAutoguardadoRegistro(t("registro_guardando_auto"));
+    if (registroAutosaveTimer) clearTimeout(registroAutosaveTimer);
+    registroAutosaveTimer = setTimeout(() => {
+      guardarRegistroDiario({ silencioso: true });
+    }, 900);
+  }
+
+  async function guardarRegistroDiario(opts) {
+    const silencioso = !!(opts && opts.silencioso);
     if (registroDiarioCerrado) {
-      showToast(t("error_dia_cerrado_editar"), true);
+      if (!silencioso) showToast(t("error_dia_cerrado_editar"), true);
       return;
     }
     const fecha = document.getElementById("registro-fecha").value;
     if (!fecha) {
-      showToast("Elige una fecha.", true);
+      if (!silencioso) showToast("Elige una fecha.", true);
       return;
+    }
+
+    if (registroAutosaveTimer) {
+      clearTimeout(registroAutosaveTimer);
+      registroAutosaveTimer = null;
     }
 
     const payload = {
@@ -5447,6 +6371,7 @@
 
     if (error) {
       showToast(t("error_guardar_registro"), true);
+      setEstadoAutoguardadoRegistro("");
       return;
     }
 
@@ -5481,17 +6406,27 @@
     const { error: delError } = await sb.from("registro_diario_items").delete().eq("registro_id", registroId);
     if (delError) {
       showToast(t("error_guardar_registro"), true);
+      setEstadoAutoguardadoRegistro("");
       return;
     }
     if (filas.length) {
       const { error: insItemsError } = await sb.from("registro_diario_items").insert(filas);
       if (insItemsError) {
         showToast(t("error_guardar_registro"), true);
+        setEstadoAutoguardadoRegistro("");
         return;
       }
     }
 
     state.registroDiarioId = registroId;
+    registroDiarioSucio = false;
+
+    if (silencioso) {
+      setEstadoAutoguardadoRegistro(t("registro_guardado_auto"));
+      setTimeout(() => setEstadoAutoguardadoRegistro(""), 1500);
+      return;
+    }
+
     showToast(t("registro_guardado"));
     await cargarRegistroDiario(fecha);
   }
@@ -5537,6 +6472,7 @@
 
     registroDiarioSucio = true;
     recalcularRegistroDiario();
+    programarAutoguardadoRegistro();
     showToast(t("filas_duplicadas_msg"));
   }
 
@@ -5573,6 +6509,7 @@
     btn.textContent = facturaBadgeLabel(facturaId);
     btn.classList.add("is-vinculada");
     registroDiarioSucio = true;
+    programarAutoguardadoRegistro();
     closeModal("modal-vincular-factura");
     showToast("Fila vinculada a la factura.");
   }
@@ -5585,6 +6522,7 @@
     btn.textContent = "+ Vincular";
     btn.classList.remove("is-vinculada");
     registroDiarioSucio = true;
+    programarAutoguardadoRegistro();
     closeModal("modal-vincular-factura");
   }
 
@@ -6068,6 +7006,81 @@
     });
   }
 
+  let dashboardCalendarioMesActual = null;
+
+  function renderDashboardMiniCalendario(mesActual) {
+    dashboardCalendarioMesActual = mesActual;
+    const [anio, mes] = mesActual.split("-").map(Number);
+    document.getElementById("dashboard-calendario-mes-label").textContent = MESES[mes - 1] + " " + anio;
+
+    const citasPorFecha = {};
+    state.citas.forEach((c) => {
+      if ((c.fecha || "").slice(0, 7) === mesActual) {
+        citasPorFecha[c.fecha] = (citasPorFecha[c.fecha] || 0) + 1;
+      }
+    });
+
+    const ultimoDiaNum = new Date(anio, mes, 0).getDate();
+    const primerDiaSemana = new Date(anio, mes - 1, 1).getDay();
+    const hoy = todayISO();
+
+    let celdas = "";
+    for (let i = 0; i < primerDiaSemana; i++) celdas += '<div class="mini-cal-dia mini-cal-dia-vacio"></div>';
+    for (let dia = 1; dia <= ultimoDiaNum; dia++) {
+      const fecha = mesActual + "-" + String(dia).padStart(2, "0");
+      const cantidad = citasPorFecha[fecha] || 0;
+      const etiquetaDia = cantidad ? t("mini_cal_dia_con_citas", { dia, cantidad }) : t("mini_cal_dia_sin_citas", { dia });
+      celdas +=
+        '<button type="button" class="mini-cal-dia' +
+        (fecha === hoy ? " es-hoy" : "") +
+        '" data-fecha="' +
+        fecha +
+        '" aria-label="' +
+        escapeHtml(etiquetaDia) +
+        '">' +
+        dia +
+        (cantidad ? '<span class="mini-cal-dot"></span>' : "") +
+        "</button>";
+    }
+
+    const grid = document.getElementById("dashboard-mini-calendario-grid");
+    grid.innerHTML = celdas;
+    grid.querySelectorAll(".mini-cal-dia[data-fecha]").forEach((btn) => {
+      btn.addEventListener("click", () => goToView("reservas"));
+    });
+  }
+
+  async function renderMecanicoDelMes() {
+    const hoyDate = new Date(todayISO() + "T00:00:00");
+    const desde = hoyDate.getFullYear() + "-" + String(hoyDate.getMonth() + 1).padStart(2, "0") + "-01";
+    const hasta = todayISO();
+    const items = await fetchRegistroDiarioRango(desde, hasta);
+    const el = document.getElementById("dashboard-mecanico-mes");
+    if (!el) return;
+
+    const totales = {};
+    items.forEach((it) => {
+      const total = (Number(it.labor) || 0) + (Number(it.piezas) || 0) + (Number(it.otro) || 0);
+      totales[it.mecanico_id] = (totales[it.mecanico_id] || 0) + total;
+    });
+    const entries = Object.entries(totales).sort((a, b) => b[1] - a[1]);
+    if (!entries.length) {
+      el.innerHTML = '<p class="detalle-empty">' + t("sin_datos_mecanico_mes") + "</p>";
+      return;
+    }
+    const [mecanicoId, total] = entries[0];
+    const mecanico = state.mecanicos.find((m) => m.id === mecanicoId);
+    el.innerHTML =
+      avatarHtml(mecanico ? mecanico.nombre : "?", "avatar-lg") +
+      '<div><strong style="font-size:1.05rem;">' +
+      escapeHtml(mecanico ? mecanico.nombre : "—") +
+      '</strong><div class="view-sub" style="margin:.15rem 0 0;">' +
+      money(total) +
+      " " +
+      t("mecanico_mes_generado_label") +
+      "</div></div>";
+  }
+
   function renderDashboard() {
     const hoy = todayISO();
     const mesActual = hoy.slice(0, 7);
@@ -6119,6 +7132,23 @@
     document.getElementById("hoy-citas").textContent = String(citasHoy.length);
     document.getElementById("hoy-ordenes-activas").textContent = String(ordenesActivas.length);
     document.getElementById("hoy-cobrado").textContent = money(cobradoHoy);
+
+    const mismoDiaSemanaPasada = sumarDias(hoy, -7);
+    const cobradoSemanaPasada = state.facturas
+      .filter((f) => f.estado === "pagada" && (f.fecha_pagada || f.fecha) === mismoDiaSemanaPasada)
+      .reduce((sum, f) => sum + Number(f.total), 0);
+    const comparacionSemanaEl = document.getElementById("hoy-cobrado-comparacion");
+    if (cobradoSemanaPasada > 0) {
+      const cambioSemana = ((cobradoHoy - cobradoSemanaPasada) / cobradoSemanaPasada) * 100;
+      comparacionSemanaEl.hidden = false;
+      comparacionSemanaEl.textContent = (cambioSemana >= 0 ? "▲ " : "▼ ") + Math.abs(cambioSemana).toFixed(0) + "% " + t("vs_mismo_dia_semana_pasada");
+      comparacionSemanaEl.style.color = cambioSemana >= 0 ? "var(--success)" : "var(--danger)";
+    } else {
+      comparacionSemanaEl.hidden = true;
+    }
+
+    renderDashboardMiniCalendario(dashboardCalendarioMesActual || hoy.slice(0, 7));
+    renderMecanicoDelMes();
 
     const counts = document.getElementById("dashboard-etapa-counts");
     counts.innerHTML = ETAPAS.map((etapa) => {
@@ -6343,11 +7373,65 @@
       });
     });
 
-    document.getElementById("btn-nuevo-cliente").addEventListener("click", () => openClienteModal(null));
+    document.getElementById("btn-dashboard-calendario-anterior").addEventListener("click", () => {
+      const [anio, mes] = dashboardCalendarioMesActual.split("-").map(Number);
+      const d = new Date(anio, mes - 2, 1);
+      renderDashboardMiniCalendario(d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"));
+    });
+    document.getElementById("btn-dashboard-calendario-siguiente").addEventListener("click", () => {
+      const [anio, mes] = dashboardCalendarioMesActual.split("-").map(Number);
+      const d = new Date(anio, mes, 1);
+      renderDashboardMiniCalendario(d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"));
+    });
+
+    document.getElementById("btn-nuevo-cliente").addEventListener("click", () => abrirNuevoClienteView());
     document.getElementById("form-cliente").addEventListener("submit", saveCliente);
     document.getElementById("btn-eliminar-cliente").addEventListener("click", deleteCliente);
+    document.getElementById("form-cliente").addEventListener("input", (e) => {
+      e.target.classList.remove("input-error");
+      actualizarPreviewCliente();
+      guardarBorradorCliente();
+      if (e.target.id === "cliente-telefono") verificarTelefonoDuplicado();
+      if (e.target.id === "cliente-etiquetas") actualizarEtiquetasRapidasActivas();
+      if (e.target.id === "cliente-vehiculo-anio") verificarAnioVehiculo();
+    });
+    document.getElementById("cliente-nombre").addEventListener("blur", (e) => {
+      e.target.value = toTitleCaseSimple(e.target.value.trim());
+      actualizarPreviewCliente();
+      guardarBorradorCliente();
+    });
+    document.getElementById("cliente-apellido").addEventListener("blur", (e) => {
+      e.target.value = toTitleCaseSimple(e.target.value.trim());
+      actualizarPreviewCliente();
+      guardarBorradorCliente();
+    });
+    document.getElementById("cliente-telefono-aviso").addEventListener("click", (e) => {
+      const btn = e.target.closest("#btn-abrir-cliente-duplicado");
+      if (!btn) return;
+      const cliente = state.clientes.find((c) => c.id === btn.dataset.clienteId);
+      if (cliente) {
+        closeModal("modal-cliente");
+        openClienteDetalle(cliente);
+      }
+    });
+    document.querySelectorAll(".etiqueta-rapida-btn").forEach((btn) => {
+      btn.addEventListener("click", () => toggleEtiquetaRapida(btn.dataset.etiqueta));
+    });
+    document.getElementById("btn-descartar-borrador-cliente").addEventListener("click", () => {
+      limpiarBorradorCliente();
+      abrirNuevoClienteView();
+    });
+    document.getElementById("btn-cliente-nuevo-volver").addEventListener("click", () => goToView("clientes"));
+    document.getElementById("btn-cliente-cancelar").addEventListener("click", () => {
+      if (!document.getElementById("view-cliente-nuevo").hidden) {
+        goToView("clientes");
+      } else {
+        closeModal("modal-cliente");
+      }
+    });
     document.getElementById("clientes-search").addEventListener("input", () => renderClientes(filterClientes()));
     document.getElementById("clientes-filter-inactivos").addEventListener("change", () => renderClientes(filterClientes()));
+    document.getElementById("clientes-filter-dealers").addEventListener("change", () => renderClientes(filterClientes()));
     wireSortHeaders(document.querySelector("#view-clientes thead tr"), clientesSortState, CLIENTES_SORT_LABELS, () => renderClientes(filterClientes()));
 
     document.getElementById("btn-nueva-factura").addEventListener("click", () => openFacturaModal(null));
@@ -6369,6 +7453,7 @@
     document.getElementById("btn-eliminar-estimado").addEventListener("click", deleteEstimado);
     document.getElementById("btn-add-estimado-item").addEventListener("click", () => addEstimadoItemRow(null));
     document.getElementById("estimado-impuesto-pct").addEventListener("input", recalcEstimadoTotals);
+    document.getElementById("estimado-estado").addEventListener("change", actualizarEstimadoEstadoIcono);
     document.getElementById("estimados-search").addEventListener("input", () => renderEstimados(filterEstimados()));
     document.getElementById("estimados-filter-estado").addEventListener("change", () => renderEstimados(filterEstimados()));
 
@@ -6417,10 +7502,53 @@
     document.getElementById("btn-ver-reordenar").addEventListener("click", mostrarParaReordenar);
     document.getElementById("form-pieza").addEventListener("submit", savePieza);
     document.getElementById("btn-eliminar-pieza").addEventListener("click", deletePieza);
+    document.getElementById("btn-escanear-pieza").addEventListener("click", abrirEscanerPieza);
+    document.getElementById("piezas-escaner-usb-input").addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === "Tab") {
+        e.preventDefault();
+        const input = e.target;
+        procesarCodigoPieza(input.value);
+        input.value = "";
+      }
+    });
+    document.getElementById("piezas-escaner-usb-input").addEventListener("blur", (e) => {
+      const valor = e.target.value;
+      e.target.value = "";
+      procesarCodigoPieza(valor);
+    });
+    document.getElementById("btn-pieza-stock-menos").addEventListener("click", () => {
+      const input = document.getElementById("pieza-stock");
+      input.value = Math.max(0, (parseFloat(input.value) || 0) - 1);
+    });
+    document.getElementById("btn-pieza-stock-mas").addEventListener("click", () => {
+      const input = document.getElementById("pieza-stock");
+      input.value = (parseFloat(input.value) || 0) + 1;
+    });
+    document.getElementById("btn-imprimir-etiqueta-pieza").addEventListener("click", imprimirEtiquetaPieza);
+    document.getElementById("btn-recibir-pedido").addEventListener("click", abrirRecibirPedido);
+    document.getElementById("recibir-pedido-input").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        agregarARecibirPedido(e.target.value);
+        e.target.value = "";
+      }
+    });
+    document.getElementById("btn-confirmar-recibir-pedido").addEventListener("click", confirmarRecibirPedido);
 
     document.getElementById("form-vehiculo").addEventListener("submit", saveVehiculo);
     document.getElementById("btn-eliminar-vehiculo").addEventListener("click", deleteVehiculo);
+    document.getElementById("btn-guardar-y-agregar-otro-vehiculo").addEventListener("click", guardarYAgregarOtroVehiculo);
     document.getElementById("btn-escanear-vin").addEventListener("click", abrirEscanerVin);
+    document.getElementById("btn-escanear-licencia").addEventListener("click", abrirEscanerLicencia);
+    document.getElementById("btn-escanear-placa").addEventListener("click", abrirEscanerPlaca);
+    document.getElementById("btn-capturar-placa").addEventListener("click", capturarPlaca);
+    document.getElementById("cliente-escaner-usb-input").addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === "Tab") {
+        e.preventDefault();
+        procesarEscaneoUsbLicencia();
+      }
+    });
+    document.getElementById("cliente-escaner-usb-input").addEventListener("blur", procesarEscaneoUsbLicencia);
     document.getElementById("piezas-search").addEventListener("input", () => renderPiezas(filterPiezas()));
     wireSortHeaders(document.querySelector("#view-inventario thead tr"), piezasSortState, PIEZAS_SORT_LABELS, () => renderPiezas(filterPiezas()));
 
@@ -6460,10 +7588,16 @@
     document.getElementById("form-nuevo-mecanico").addEventListener("submit", agregarMecanico);
 
     document.getElementById("btn-guardar-registro-diario").addEventListener("click", guardarRegistroDiario);
+    window.addEventListener("beforeunload", (e) => {
+      if (!registroDiarioSucio) return;
+      e.preventDefault();
+      e.returnValue = "";
+    });
     ["registro-credit-card", "registro-cash", "registro-check"].forEach((id) => {
       document.getElementById(id).addEventListener("input", () => {
         registroDiarioSucio = true;
         recalcularRegistroDiario();
+        programarAutoguardadoRegistro();
       });
     });
     document.getElementById("registro-fecha").addEventListener("change", (e) => {
@@ -6484,6 +7618,7 @@
     document.getElementById("btn-reabrir-registro-diario").addEventListener("click", reabrirRegistroDiario);
     document.getElementById("btn-exportar-registro-diario").addEventListener("click", exportarRegistroDiario);
     document.getElementById("btn-imprimir-registro-diario").addEventListener("click", imprimirRegistroDiario);
+    document.getElementById("btn-ver-reportes-ocultos").addEventListener("click", abrirReportesOcultos);
 
     document.getElementById("btn-confirmar-vinculo-factura").addEventListener("click", confirmarVinculoFactura);
     document.getElementById("btn-quitar-vinculo-factura").addEventListener("click", quitarVinculoFactura);
@@ -6672,6 +7807,7 @@
 
     await refreshClientes();
     await refreshPiezas();
+    await refreshPiezaStockHistorial();
     await refreshVehiculos();
     await refreshTelefonos();
     await refreshOrdenes();
@@ -6687,6 +7823,7 @@
     state.registroDiarioFechaActual = todayISO();
     await cargarRegistroDiario(todayISO());
     await cargarReportesTrabajoPendientes(true);
+    setInterval(() => cargarReportesTrabajoPendientes(true), 25000);
     await checkRegistroDiarioSinGuardar();
     await refreshLlamadas();
     renderDashboard();
@@ -6695,6 +7832,15 @@
     if (clienteParam) {
       const cliente = state.clientes.find((c) => c.id === clienteParam);
       if (cliente) openClienteDetalle(cliente);
+    } else if (vistaAlCargar) {
+      if (vistaAlCargar.nombre === "cliente-detalle") {
+        const cliente = vistaAlCargar.clienteId && state.clientes.find((c) => c.id === vistaAlCargar.clienteId);
+        if (cliente) openClienteDetalle(cliente);
+      } else if (vistaAlCargar.nombre === "cliente-nuevo") {
+        abrirNuevoClienteView();
+      } else {
+        goToView(vistaAlCargar.nombre);
+      }
     }
   }
 
