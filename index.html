@@ -8,6 +8,9 @@
 <link rel="manifest" href="manifest.json" />
 <link rel="apple-touch-icon" href="logo-muffler.png" />
 <meta name="theme-color" content="#d5601a" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -155,6 +158,10 @@
       </div>
       <span class="brand-sub" data-i18n="panel_interno_label">Panel interno</span>
     </div>
+    <button id="btn-toggle-sidebar" class="btn-toggle-sidebar" type="button">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      <span data-i18n="btn_colapsar_menu">Colapsar menú</span>
+    </button>
     <nav class="nav">
       <div class="nav-group">
         <button class="nav-item is-active" data-view="dashboard"><svg class="icon" aria-hidden="true"><use href="#icon-home"></use></svg><span id="nav-dashboard-label">Gil's Muffler Inc</span></button>
@@ -590,7 +597,10 @@
           <h1 data-i18n="nav_reservas">Reservas</h1>
           <p class="view-sub" data-i18n="reservas_subtitulo">Agenda de citas próximas</p>
         </div>
-        <button class="btn-primary" id="btn-nueva-reserva" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-calendar"></use></svg><span data-i18n="btn_nueva_reserva">+ Nueva reserva</span></button>
+        <div style="display:flex;gap:.6rem;">
+          <button class="btn-ghost" id="btn-ver-no-shows" type="button" data-i18n="btn_ver_no_shows">Ver citas perdidas</button>
+          <button class="btn-primary" id="btn-nueva-reserva" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-calendar"></use></svg><span data-i18n="btn_nueva_reserva">+ Nueva reserva</span></button>
+        </div>
       </header>
       <div id="reservas-groups"></div>
     </section>
@@ -636,6 +646,7 @@
         <button type="button" class="config-tab" data-config-tab="finanzas" data-i18n="tab_finanzas">Finanzas</button>
         <button type="button" class="config-tab" data-config-tab="export" data-i18n="tab_export">Export</button>
         <button type="button" class="config-tab" data-config-tab="cuenta" data-i18n="tab_cuenta">My Account</button>
+        <button type="button" class="config-tab" data-config-tab="pagina-web" data-i18n="tab_pagina_web">Página web</button>
       </div>
 
       <div id="config-tab-finanzas" class="config-tab-panel" hidden>
@@ -645,6 +656,7 @@
             <p class="view-sub" data-i18n="finanzas_subtitulo">Ingresos, gastos y ganancias por mes</p>
           </div>
           <div class="toolbar" style="margin:0;">
+            <button class="btn-ghost" id="btn-ver-ganancias-servicio" type="button" data-i18n="btn_ver_ganancias_servicio">Ver ganancias por servicio/pieza</button>
             <select id="finanzas-anio"></select>
           </div>
         </header>
@@ -819,6 +831,44 @@
             <tbody id="empleados-tbody"></tbody>
           </table>
         </div>
+      </div>
+
+      <div id="config-tab-pagina-web" class="config-tab-panel" hidden>
+        <header class="view-header" style="margin-bottom:1.25rem;">
+          <div>
+            <h2 style="font-size:1.1rem;margin:0;" data-i18n="tab_pagina_web">Página web</h2>
+            <p class="view-sub" data-i18n="pagina_web_subtitulo">Fotos y textos que se muestran en tu página pública</p>
+          </div>
+          <a href="bienvenida.html" target="_blank" rel="noopener" class="btn-ghost" data-i18n="config_ver_web_publica">Ver página web pública</a>
+        </header>
+
+        <h3 style="font-size:.95rem;margin:0 0 .25rem;" data-i18n="web_fotos_titulo">Fotos de la página</h3>
+        <p class="view-sub" style="margin:0 0 1rem;" data-i18n="web_fotos_subtitulo">Subí una foto para reemplazar cada espacio "pendiente" de la página</p>
+        <div id="config-web-fotos-grid" class="galeria-fotos-web"></div>
+
+        <h3 style="font-size:.95rem;margin:0 0 .75rem;" data-i18n="web_textos_titulo">Textos de la página</h3>
+        <form id="form-configuracion-web" class="modal-body" style="max-width:36rem;">
+          <div class="field">
+            <label for="config-web-sobre-nosotros" data-i18n="web_sobre_nosotros_label">Sobre nosotros (reemplaza el texto de ejemplo)</label>
+            <textarea id="config-web-sobre-nosotros" rows="3"></textarea>
+          </div>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;margin-top:1rem;">
+            <input type="checkbox" id="config-web-promo-activo" />
+            <span data-i18n="web_promo_activa_label">Mostrar franja de promoción arriba de la página</span>
+          </label>
+          <div class="field">
+            <label for="config-web-promo-texto" data-i18n="web_promo_texto_label">Texto de la promoción</label>
+            <input type="text" id="config-web-promo-texto" />
+          </div>
+          <div class="field">
+            <label for="config-web-google-reviews" data-i18n="web_google_reviews_label">Link de tu perfil de Google Business (para el botón de reseñas)</label>
+            <input type="url" id="config-web-google-reviews" placeholder="https://g.page/..." />
+          </div>
+          <footer class="modal-footer" style="padding-top:.5rem;">
+            <span class="spacer"></span>
+            <button type="submit" class="btn-primary" data-i18n="btn_guardar">Guardar</button>
+          </footer>
+        </form>
       </div>
     </section>
 
@@ -1155,6 +1205,7 @@
       </div>
     </section>
 
+    <footer class="app-footer" id="app-footer"></footer>
   </main>
 </div>
 
@@ -1288,6 +1339,7 @@
           <option value="confirmada" data-i18n="reserva_confirmada">Confirmada</option>
           <option value="completada" data-i18n="reserva_completada">Completada</option>
           <option value="cancelada" data-i18n="estado_cancelada">Cancelada</option>
+          <option value="no_show" data-i18n="reserva_no_show">No llegó</option>
         </select>
       </div>
       <div class="field"><label for="reserva-notas" data-i18n="notas_label">Notas</label><textarea id="reserva-notas" rows="2"></textarea></div>
@@ -1527,6 +1579,46 @@
           <tbody id="historial-precios-tbody"></tbody>
         </table>
       </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-ganancias-servicio" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2 data-i18n="btn_ver_ganancias_servicio">Ganancias por servicio/pieza</h2>
+      <button class="icon-btn" data-close-modal="modal-ganancias-servicio" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
+    </header>
+    <div class="modal-body">
+      <p class="view-sub" style="margin-top:0;" data-i18n="ganancias_servicio_desc">Ingresos, costo y margen de cada servicio o pieza facturada este año, de mayor a menor margen.</p>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th data-i18n="col_servicio_pieza">Servicio / pieza</th><th data-i18n="col_tipo">Tipo</th><th data-i18n="col_lineas">Líneas</th><th data-i18n="col_ingresos">Ingresos</th><th data-i18n="col_costo">Costo</th><th data-i18n="col_margen">Margen</th></tr></thead>
+          <tbody id="ganancias-servicio-tbody"></tbody>
+        </table>
+        <p id="ganancias-servicio-empty" class="empty-state" hidden data-i18n="ganancias_servicio_vacio">No hay facturas pagadas con líneas este año.</p>
+      </div>
+      <p class="view-sub" data-i18n="ganancias_servicio_costo_nota">El costo de la mano de obra no se calcula aquí (no se registra costo por línea de labor); piezas antiguas sin costo guardado aparecen con costo $0.</p>
+    </div>
+  </div>
+</div>
+
+<div id="modal-no-shows" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2 data-i18n="btn_ver_no_shows">Citas perdidas</h2>
+      <button class="icon-btn" data-close-modal="modal-no-shows" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
+    </header>
+    <div class="modal-body">
+      <p class="view-sub" style="margin-top:0;" data-i18n="no_shows_desc">De las citas que ya pasaron, cuántas se completaron, cuántas se cancelaron con tiempo, y cuántas el cliente nunca marcó qué pasó (probable no-show sin registrar).</p>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th data-i18n="col_categoria">Categoría</th><th data-i18n="col_cantidad">Cantidad</th><th data-i18n="col_porcentaje">% del total</th></tr></thead>
+          <tbody id="no-shows-tbody"></tbody>
+        </table>
+        <p id="no-shows-empty" class="empty-state" hidden data-i18n="no_shows_vacio">Todavía no hay citas con fecha pasada para medir.</p>
+      </div>
+      <p class="view-sub" data-i18n="no_shows_sin_marcar_nota">"Sin marcar" son citas de fechas pasadas que se quedaron en Agendada/Confirmada — nadie actualizó qué pasó. Antes de este cambio no había forma de marcar "No llegó", así que estas son tu mejor pista de cuántos no-shows hubo hasta ahora.</p>
     </div>
   </div>
 </div>

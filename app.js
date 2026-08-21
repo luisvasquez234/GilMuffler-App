@@ -69,6 +69,21 @@
     return fmt.format(Number(n) || 0);
   }
 
+  function formatearTelefono(valor) {
+    const digitos = String(valor || "").replace(/\D/g, "").slice(0, 10);
+    if (digitos.length <= 3) return digitos;
+    if (digitos.length <= 6) return "(" + digitos.slice(0, 3) + ") " + digitos.slice(3);
+    return "(" + digitos.slice(0, 3) + ") " + digitos.slice(3, 6) + "-" + digitos.slice(6);
+  }
+
+  function wireFormatoTelefono(inputId) {
+    const el = document.getElementById(inputId);
+    if (!el) return;
+    el.addEventListener("input", () => {
+      el.value = formatearTelefono(el.value);
+    });
+  }
+
   function todayISO() {
     const d = new Date();
     const tz = d.getTimezoneOffset();
@@ -198,6 +213,18 @@
 
   function showToast(message, isError) {
     addToast(message, isError ? "error" : "success");
+  }
+
+  function conSpinnerAlGuardar(handler) {
+    return async function (e) {
+      const btn = e.target.querySelector('button[type="submit"]');
+      if (btn) btn.classList.add("is-loading");
+      try {
+        await handler(e);
+      } finally {
+        if (btn) btn.classList.remove("is-loading");
+      }
+    };
   }
 
   function mostrarConfirmacionGuardado() {
@@ -478,6 +505,30 @@
     document.documentElement.setAttribute("data-theme", theme);
     document.getElementById("theme-toggle-icon").setAttribute("href", theme === "dark" ? "#icon-sun" : "#icon-moon");
     document.getElementById("theme-toggle-label").textContent = theme === "dark" ? t("modo_claro") : t("modo_oscuro");
+  }
+
+  // ---------------- sidebar colapsable ----------------
+
+  const SIDEBAR_COLAPSADO_KEY = "gm_sidebar_colapsado";
+
+  function aplicarSidebarColapsado(colapsado) {
+    document.getElementById("app").classList.toggle("sidebar-collapsed", colapsado);
+    document.querySelectorAll(".nav-item").forEach((btn) => {
+      btn.title = colapsado ? btn.textContent.trim() : "";
+    });
+    const toggleBtn = document.getElementById("btn-toggle-sidebar");
+    if (toggleBtn) toggleBtn.title = colapsado ? t("btn_expandir_menu") : t("btn_colapsar_menu");
+  }
+
+  function initSidebarColapsable() {
+    aplicarSidebarColapsado(localStorage.getItem(SIDEBAR_COLAPSADO_KEY) === "1");
+    document.getElementById("btn-toggle-sidebar").addEventListener("click", () => {
+      const colapsado = !document.getElementById("app").classList.contains("sidebar-collapsed");
+      aplicarSidebarColapsado(colapsado);
+      try {
+        localStorage.setItem(SIDEBAR_COLAPSADO_KEY, colapsado ? "1" : "0");
+      } catch (e) {}
+    });
   }
 
   function initIdioma() {
@@ -1328,7 +1379,8 @@
     }
 
     if (error) {
-      showToast(t("error_guardar_vehiculo", { error: error.message }), true);
+      console.error(error);
+      showToast(t("error_guardar_vehiculo"), true);
       return null;
     }
 
@@ -1764,7 +1816,7 @@
       "th,td{text-align:left;padding:.4rem .5rem;border:1px solid #ccc;}" +
       "th{background:#eef0f1;text-transform:uppercase;font-size:.72rem;}" +
       ".saldo{font-size:1.1rem;font-weight:800;margin-top:1rem;}" +
-      "@media print{body{padding:0;}}" +
+      "@media print{body{padding:0;}@page{margin:.5in;}tr{page-break-inside:avoid;}}" +
       "</style></head><body>" +
       "<h1>" + escapeHtml(nombreNegocio) + "</h1>" +
       "<p class='sub'>" + t("historial_impreso_el") + escapeHtml(formatDate(todayISO())) + "</p>" +
@@ -2095,7 +2147,7 @@
       "th,td{text-align:left;padding:.4rem .5rem;border:1px solid #ccc;}" +
       "th{background:#eef0f1;text-transform:uppercase;font-size:.72rem;}" +
       "ul{margin:0;padding-left:1.2rem;font-size:.85rem;}" +
-      "@media print{body{padding:0;}}" +
+      "@media print{body{padding:0;}@page{margin:.5in;}tr{page-break-inside:avoid;}}" +
       "</style></head><body>" +
       "<h1>" +
       escapeHtml(nombreNegocio) +
@@ -2500,7 +2552,8 @@
     }
 
     if (error) {
-      showToast("No se pudo guardar el cliente: " + error.message, true);
+      console.error(error);
+      showToast(t("error_guardar_cliente"), true);
       return;
     }
 
@@ -2676,18 +2729,23 @@
     window.open(link, "_blank");
   }
 
-  function enviarFacturaEmail(id) {
-    fetch(CONFIG.SUPABASE_URL + "/functions/v1/enviar-factura-email", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: CONFIG.SUPABASE_ANON_KEY,
-        Authorization: "Bearer " + CONFIG.SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({ factura_id: id }),
-    }).catch(() => {
+  async function enviarFacturaEmail(id) {
+    try {
+      const { data: sessionData } = await sb.auth.getSession();
+      const origenFactura = typeof LAN_ORIGIN !== "undefined" && LAN_ORIGIN ? LAN_ORIGIN : location.origin;
+      const facturaUrl = origenFactura + location.pathname.replace(/index\.html$/, "") + "ver-factura.html?id=" + id;
+      await fetch(CONFIG.SUPABASE_URL + "/functions/v1/enviar-factura-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: CONFIG.SUPABASE_ANON_KEY,
+          Authorization: "Bearer " + sessionData.session.access_token,
+        },
+        body: JSON.stringify({ factura_id: id, factura_url: facturaUrl }),
+      });
+    } catch (e) {
       // el email es un extra silencioso; si falla no debe bloquear el flujo de cobro
-    });
+    }
   }
 
   async function bulkMarcarPagadas() {
@@ -2971,7 +3029,7 @@
       ".qr{position:fixed;bottom:1.2rem;right:1.2rem;text-align:center;margin:0;}" +
       ".qr img{width:90px;height:90px;}" +
       ".qr p{margin:.25rem 0 0;font-size:.62rem;color:#68707e;}" +
-      "@media print{body{padding:0;}}" +
+      "@media print{body{padding:0;}@page{margin:.5in;}tr{page-break-inside:avoid;}}" +
       "</style></head><body>" +
       "<div class='watermark'>" +
       escapeHtml(nombreNegocio) +
@@ -3082,7 +3140,7 @@
       "th{color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}" +
       ".bloque{margin-top:1.25rem;font-size:.9rem;}" +
       ".bloque strong{display:block;margin-bottom:.3rem;color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}" +
-      "@media print{body{padding:0;}}" +
+      "@media print{body{padding:0;}@page{margin:.5in;}tr{page-break-inside:avoid;}}" +
       "</style></head><body>" +
       "<div class='header'><div class='header-brand'><img src='" +
       logoSrc +
@@ -3175,7 +3233,7 @@
       ".totals div:last-child{border-bottom:none;font-weight:800;font-size:1.15rem;color:#fff;background:#0b0e14;padding-top:.6rem;padding-bottom:.6rem;}" +
       ".notas{margin-top:1.5rem;padding:.9rem 1rem;background:#fafbfc;border:1px solid #ccc;border-radius:6px;font-size:.85rem;}" +
       ".notas strong{display:block;margin-bottom:.3rem;color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}" +
-      "@media print{body{padding:0;background:#fff;}.marco{border-width:1.5px;}}" +
+      "@media print{body{padding:0;background:#fff;}@page{margin:.5in;}.marco{border-width:1.5px;}tr{page-break-inside:avoid;}}" +
       "</style></head><body>" +
       "<div class='marco'>" +
       "<div class='marca-agua'>" + escapeHtml(nombreNegocio) + "</div>" +
@@ -3232,7 +3290,7 @@
       ".header h1{font-size:1.3rem;margin:0;color:#d5601a;}" +
       ".bloque{margin-top:1rem;font-size:.95rem;line-height:1.7;}" +
       ".bloque .label{color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;display:block;}" +
-      "@media print{body{padding:0;}}" +
+      "@media print{body{padding:0;}@page{margin:.5in;}tr{page-break-inside:avoid;}}" +
       "</style></head><body>" +
       "<div class='header'><img src='" +
       logoSrc +
@@ -3274,7 +3332,7 @@
       "h1{font-size:1.3rem;margin-bottom:.5rem;}" +
       "p{color:#68707e;margin-top:0;}" +
       "img{margin-top:1.5rem;}" +
-      "@media print{body{padding:0;}}" +
+      "@media print{body{padding:0;}@page{margin:.5in;}tr{page-break-inside:avoid;}}" +
       "</style></head><body>" +
       "<h1>" +
       escapeHtml(nombreNegocio) +
@@ -3324,7 +3382,7 @@
       "p{color:#68707e;margin:.2rem 0;}" +
       ".total{font-size:1.4rem;font-weight:800;color:#1f2430;margin-top:.8rem;}" +
       "img{margin-top:1rem;}" +
-      "@media print{body{padding:0;}}" +
+      "@media print{body{padding:0;}@page{margin:.5in;}tr{page-break-inside:avoid;}}" +
       "</style></head><body>" +
       "<h1>" + escapeHtml(nombreNegocio) + "</h1>" +
       "<h2>" + escapeHtml(carro || "—") + "</h2>" +
@@ -3357,7 +3415,7 @@
       "h1{font-size:1.3rem;margin-bottom:.5rem;}" +
       "p{color:#68707e;margin-top:0;}" +
       "img{margin-top:1.5rem;}" +
-      "@media print{body{padding:0;}}" +
+      "@media print{body{padding:0;}@page{margin:.5in;}tr{page-break-inside:avoid;}}" +
       "</style></head><body>" +
       "<h1>" + escapeHtml(mecanicoNombre) + "</h1>" +
       "<p>" + t("escanea_qr_reporte_trabajo") + "</p>" +
@@ -4212,7 +4270,13 @@
 
   // ---------------- reservas (bookings) ----------------
 
-  const ESTADO_RESERVA_LABELS = { agendada: t("reserva_agendada"), confirmada: t("reserva_confirmada"), completada: t("reserva_completada"), cancelada: t("estado_cancelada") };
+  const ESTADO_RESERVA_LABELS = {
+    agendada: t("reserva_agendada"),
+    confirmada: t("reserva_confirmada"),
+    completada: t("reserva_completada"),
+    cancelada: t("estado_cancelada"),
+    no_show: t("reserva_no_show"),
+  };
 
   async function fetchCitas() {
     return fetchConCache(
@@ -4236,13 +4300,14 @@
     enUnaSemana.setDate(enUnaSemana.getDate() + 7);
     const limiteSemana = enUnaSemana.toISOString().slice(0, 10);
 
-    const activas = state.citas.filter((c) => c.estado !== "cancelada" && c.estado !== "completada");
+    const ESTADOS_HISTORIAL = ["cancelada", "completada", "no_show"];
+    const activas = state.citas.filter((c) => !ESTADOS_HISTORIAL.includes(c.estado));
     const grupos = [
       { title: t("titulo_hoy"), items: activas.filter((c) => c.fecha === hoy) },
       { title: t("titulo_esta_semana"), items: activas.filter((c) => c.fecha > hoy && c.fecha <= limiteSemana) },
       { title: t("mas_adelante"), items: activas.filter((c) => c.fecha > limiteSemana) },
       { title: t("titulo_atrasadas"), items: activas.filter((c) => c.fecha < hoy) },
-      { title: t("titulo_completadas_canceladas"), items: state.citas.filter((c) => c.estado === "cancelada" || c.estado === "completada") },
+      { title: t("titulo_completadas_canceladas"), items: state.citas.filter((c) => ESTADOS_HISTORIAL.includes(c.estado)) },
     ];
 
     grupos.forEach((grupo) => {
@@ -4294,6 +4359,43 @@
         openReservaModal(cita);
       });
     });
+  }
+
+  function mostrarNoShows() {
+    const hoy = todayISO();
+    const pasadas = state.citas.filter((c) => c.fecha < hoy);
+    const tbody = document.getElementById("no-shows-tbody");
+    const empty = document.getElementById("no-shows-empty");
+
+    if (!pasadas.length) {
+      tbody.innerHTML = "";
+      empty.hidden = false;
+      openModal("modal-no-shows");
+      return;
+    }
+
+    const conteo = { completada: 0, cancelada: 0, no_show: 0, sin_marcar: 0 };
+    pasadas.forEach((c) => {
+      if (c.estado === "completada") conteo.completada++;
+      else if (c.estado === "cancelada") conteo.cancelada++;
+      else if (c.estado === "no_show") conteo.no_show++;
+      else conteo.sin_marcar++; // agendada/confirmada cuya fecha ya pasó — nadie la actualizó
+    });
+
+    const total = pasadas.length;
+    const filas = [
+      { label: t("reserva_completada"), n: conteo.completada },
+      { label: t("estado_cancelada"), n: conteo.cancelada },
+      { label: t("reserva_no_show"), n: conteo.no_show },
+      { label: t("no_shows_sin_marcar"), n: conteo.sin_marcar },
+    ];
+
+    tbody.innerHTML = filas
+      .map((f) => "<tr><td>" + escapeHtml(f.label) + "</td><td>" + f.n + "</td><td>" + Math.round((f.n / total) * 100) + "%</td></tr>")
+      .join("");
+
+    empty.hidden = true;
+    openModal("modal-no-shows");
   }
 
   function populateReservaVehiculoSelect(clienteId, selectedVehiculoId) {
@@ -5305,7 +5407,8 @@
       };
       const { data, error } = await sb.from("vehiculos").insert(nuevoVehiculo).select().single();
       if (error) {
-        showToast(t("error_guardar_vehiculo", { error: error.message }), true);
+        console.error(error);
+      showToast(t("error_guardar_vehiculo"), true);
         return;
       }
       vehiculo = data;
@@ -5504,6 +5607,7 @@
   }
 
   async function refreshLlamadas() {
+    renderSkeletonRows("llamadas-tbody", 5, 3);
     state.llamadas = await fetchLlamadasPendientes();
     renderLlamadas();
     renderDashboard();
@@ -5614,6 +5718,7 @@
   }
 
   async function refreshGastos() {
+    renderSkeletonRows("gastos-tbody", 5, 3);
     state.gastos = await fetchGastos();
     renderFinanzas();
   }
@@ -5716,6 +5821,73 @@
       editar: (id) => openGastoModal(state.gastos.find((g) => g.id === id)),
       eliminar: (id) => deleteGastoRow(id),
     });
+  }
+
+  async function mostrarGananciasPorServicio() {
+    const anio = finanzasAnio || new Date(todayISO()).getFullYear();
+    const idsFacturas = state.facturas
+      .filter((f) => f.estado === "pagada" && f.fecha && Number(f.fecha.slice(0, 4)) === anio)
+      .map((f) => f.id);
+
+    const tbody = document.getElementById("ganancias-servicio-tbody");
+    const empty = document.getElementById("ganancias-servicio-empty");
+
+    if (!idsFacturas.length) {
+      tbody.innerHTML = "";
+      empty.hidden = false;
+      openModal("modal-ganancias-servicio");
+      return;
+    }
+
+    const { data, error } = await sb.from("factura_items").select("*").in("factura_id", idsFacturas);
+    if (error) {
+      showToast(t("error_cargar_lineas_factura"), true);
+      return;
+    }
+
+    const porItem = new Map();
+    (data || []).forEach((it) => {
+      const tipo = it.tipo || "parte";
+      const clave = tipo + "||" + (it.descripcion || "").trim().toLowerCase();
+      if (!porItem.has(clave)) {
+        porItem.set(clave, { descripcion: it.descripcion || "—", tipo, lineas: 0, ingreso: 0, costo: 0 });
+      }
+      const fila = porItem.get(clave);
+      fila.lineas += 1;
+      fila.ingreso += Number(it.subtotal) || 0;
+      // el costo de mano de obra no se registra por línea, solo el de piezas
+      if (tipo !== "labor" && it.costo_unitario != null) {
+        fila.costo += (Number(it.costo_unitario) || 0) * (Number(it.cantidad) || 0);
+      }
+    });
+
+    const filas = Array.from(porItem.values())
+      .map((f) => ({ ...f, margen: f.ingreso - f.costo }))
+      .sort((a, b) => b.margen - a.margen);
+
+    tbody.innerHTML = filas
+      .map(
+        (f) =>
+          "<tr><td>" +
+          escapeHtml(f.descripcion) +
+          "</td><td>" +
+          (f.tipo === "labor" ? t("tipo_labor") : t("tipo_parte")) +
+          "</td><td>" +
+          f.lineas +
+          "</td><td>" +
+          money(f.ingreso) +
+          "</td><td>" +
+          money(f.costo) +
+          '</td><td style="color:' +
+          (f.margen >= 0 ? "var(--success)" : "var(--danger)") +
+          ';font-weight:600;">' +
+          money(f.margen) +
+          "</td></tr>"
+      )
+      .join("");
+
+    empty.hidden = filas.length !== 0;
+    openModal("modal-ganancias-servicio");
   }
 
   function openGastoModal(gasto) {
@@ -6608,7 +6780,7 @@
       "th,td{border:1px solid #ccc;padding:.4rem .5rem;font-size:.8rem;text-align:left;}" +
       "td.num,th.num{text-align:right;}" +
       ".totales{margin-top:1.5rem;font-size:.9rem;}" +
-      "@media print{body{padding:0;}}" +
+      "@media print{body{padding:0;}@page{margin:.5in;}tr{page-break-inside:avoid;}}" +
       "</style></head><body>" +
       "<h1>" + t("nav_registro_diario") + " — " +
       escapeHtml(formatDate(fecha)) +
@@ -6881,6 +7053,8 @@
     if (loginBrand) loginBrand.textContent = nombreNegocio;
     const sidebarBrand = document.getElementById("sidebar-brand-nombre");
     if (sidebarBrand) sidebarBrand.textContent = nombreNegocio;
+    const footerEl = document.getElementById("app-footer");
+    if (footerEl) footerEl.textContent = nombreNegocio + " © " + new Date().getFullYear();
   }
 
   async function refreshConfigNegocio() {
@@ -6903,6 +7077,118 @@
     document.getElementById("config-mostrar-qr").checked = c.mostrar_qr !== false;
     aplicarNombreNegocioGlobal(c.nombre_negocio || "Gil's Muffler Inc");
     updateConfigPreview();
+
+    document.getElementById("config-web-sobre-nosotros").value = c.web_sobre_nosotros_texto || "";
+    document.getElementById("config-web-promo-activo").checked = !!c.web_promo_banner_activo;
+    document.getElementById("config-web-promo-texto").value = c.web_promo_banner_texto || "";
+    document.getElementById("config-web-google-reviews").value = c.web_google_reviews_url || "";
+    renderConfigWebFotos();
+  }
+
+  const CAMPOS_FOTOS_WEB = [
+    { campo: "web_foto_hero_url", label: t("web_foto_hero_label") },
+    { campo: "web_foto_equipo_url", label: t("web_foto_equipo_label") },
+    { campo: "web_foto_chasis_url", label: t("web_foto_chasis_label") },
+    { campo: "web_foto_frenos_url", label: t("web_foto_frenos_label") },
+    { campo: "web_foto_pintura_url", label: t("web_foto_pintura_label") },
+    { campo: "web_foto_antes_despues_url", label: t("web_foto_antes_despues_label") },
+    { campo: "web_foto_trabajo_1_url", label: t("web_foto_trabajo_1_label") },
+    { campo: "web_foto_trabajo_2_url", label: t("web_foto_trabajo_2_label") },
+    { campo: "web_foto_trabajo_3_url", label: t("web_foto_trabajo_3_label") },
+    { campo: "web_foto_trabajo_4_url", label: t("web_foto_trabajo_4_label") },
+  ];
+
+  function renderConfigWebFotos() {
+    const c = state.configNegocio || {};
+    const grid = document.getElementById("config-web-fotos-grid");
+    grid.innerHTML = CAMPOS_FOTOS_WEB.map((item) => {
+      const url = c[item.campo] || "";
+      return (
+        '<div class="foto-web-card">' +
+        '<span class="foto-web-label">' + escapeHtml(item.label) + "</span>" +
+        (url
+          ? '<img src="' + escapeHtml(url) + '" class="foto-web-preview" alt="" />'
+          : '<div class="foto-web-vacia">' + t("web_foto_sin_subir") + "</div>") +
+        '<div class="foto-web-acciones">' +
+        '<label class="btn-ghost">' +
+        t("web_foto_subir_btn") +
+        '<input type="file" accept="image/*" data-foto-web-campo="' + item.campo + '" hidden /></label>' +
+        (url
+          ? '<button type="button" class="btn-ghost" data-foto-web-quitar="' + item.campo + '">' + t("web_foto_quitar_btn") + "</button>"
+          : "") +
+        "</div></div>"
+      );
+    }).join("");
+
+    grid.querySelectorAll("[data-foto-web-campo]").forEach((input) => {
+      input.addEventListener("change", (e) => subirFotoWeb(input.dataset.fotoWebCampo, e.target.files[0]));
+    });
+    grid.querySelectorAll("[data-foto-web-quitar]").forEach((btn) => {
+      btn.addEventListener("click", () => quitarFotoWeb(btn.dataset.fotoWebQuitar));
+    });
+  }
+
+  async function subirFotoWeb(campo, file) {
+    if (!file) return;
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const storagePath = campo + "/" + crypto.randomUUID() + "." + ext;
+
+    showToast(t("web_foto_subiendo"));
+    const { error: uploadError } = await sb.storage.from("fotos-web-publica").upload(storagePath, file);
+    if (uploadError) {
+      console.error(uploadError);
+      showToast(t("web_foto_error_subir"), true);
+      return;
+    }
+
+    const { data: urlData } = sb.storage.from("fotos-web-publica").getPublicUrl(storagePath);
+    const payload = { id: 1, updated_at: new Date().toISOString() };
+    payload[campo] = urlData.publicUrl;
+    const { error } = await sb.from("configuracion_negocio").upsert(payload, { onConflict: "id" });
+    if (error) {
+      console.error(error);
+      showToast(t("web_foto_error_guardar"), true);
+      return;
+    }
+
+    showToast(t("web_foto_subida"));
+    await refreshConfigNegocio();
+  }
+
+  async function quitarFotoWeb(campo) {
+    if (!(await confirmDialog(t("web_confirm_quitar_foto"), { title: t("confirm_eliminar_foto_titulo") }))) return;
+    const payload = { id: 1, updated_at: new Date().toISOString() };
+    payload[campo] = null;
+    const { error } = await sb.from("configuracion_negocio").upsert(payload, { onConflict: "id" });
+    if (error) {
+      console.error(error);
+      showToast(t("web_foto_error_guardar"), true);
+      return;
+    }
+    showToast(t("web_foto_quitada"));
+    await refreshConfigNegocio();
+  }
+
+  async function saveConfiguracionWeb(e) {
+    e.preventDefault();
+    const payload = {
+      id: 1,
+      web_sobre_nosotros_texto: document.getElementById("config-web-sobre-nosotros").value.trim(),
+      web_promo_banner_activo: document.getElementById("config-web-promo-activo").checked,
+      web_promo_banner_texto: document.getElementById("config-web-promo-texto").value.trim(),
+      web_google_reviews_url: document.getElementById("config-web-google-reviews").value.trim(),
+      updated_at: new Date().toISOString(),
+    };
+
+    const { error } = await sb.from("configuracion_negocio").upsert(payload, { onConflict: "id" });
+    if (error) {
+      console.error(error);
+      showToast(t("error_guardar_configuracion"), true);
+      return;
+    }
+
+    showToast(t("configuracion_guardada"));
+    await refreshConfigNegocio();
   }
 
   function updateConfigPreview() {
@@ -6961,7 +7247,8 @@
 
     const { error } = await sb.from("configuracion_negocio").upsert(payload, { onConflict: "id" });
     if (error) {
-      showToast(t("error_guardar_configuracion", { error: error.message }), true);
+      console.error(error);
+      showToast(t("error_guardar_configuracion"), true);
       return;
     }
 
@@ -7401,7 +7688,7 @@
     });
 
     document.getElementById("btn-nuevo-cliente").addEventListener("click", () => abrirNuevoClienteView());
-    document.getElementById("form-cliente").addEventListener("submit", saveCliente);
+    document.getElementById("form-cliente").addEventListener("submit", conSpinnerAlGuardar(saveCliente));
     document.getElementById("btn-eliminar-cliente").addEventListener("click", deleteCliente);
     document.getElementById("form-cliente").addEventListener("input", (e) => {
       e.target.classList.remove("input-error");
@@ -7451,7 +7738,7 @@
     wireSortHeaders(document.querySelector("#view-clientes thead tr"), clientesSortState, CLIENTES_SORT_LABELS, () => renderClientes(filterClientes()));
 
     document.getElementById("btn-nueva-factura").addEventListener("click", () => openFacturaModal(null));
-    document.getElementById("form-factura").addEventListener("submit", saveFactura);
+    document.getElementById("form-factura").addEventListener("submit", conSpinnerAlGuardar(saveFactura));
     document.getElementById("btn-eliminar-factura").addEventListener("click", deleteFactura);
     document.getElementById("btn-add-item").addEventListener("click", () => addItemRow(null));
     document.getElementById("btn-add-labor").addEventListener("click", () => addLaborRow(null));
@@ -7465,7 +7752,7 @@
     wireSortHeaders(document.querySelector("#view-facturas thead tr"), facturasSortState, FACTURAS_SORT_LABELS, () => renderFacturas(filterFacturas()));
 
     document.getElementById("btn-nuevo-estimado").addEventListener("click", () => openEstimadoModal(null));
-    document.getElementById("form-estimado").addEventListener("submit", saveEstimado);
+    document.getElementById("form-estimado").addEventListener("submit", conSpinnerAlGuardar(saveEstimado));
     document.getElementById("btn-eliminar-estimado").addEventListener("click", deleteEstimado);
     document.getElementById("btn-add-estimado-item").addEventListener("click", () => addEstimadoItemRow(null));
     document.getElementById("estimado-impuesto-pct").addEventListener("input", recalcEstimadoTotals);
@@ -7474,7 +7761,7 @@
     document.getElementById("estimados-filter-estado").addEventListener("change", () => renderEstimados(filterEstimados()));
 
     document.getElementById("btn-nueva-reserva").addEventListener("click", () => openReservaModal(null));
-    document.getElementById("form-reserva").addEventListener("submit", saveReserva);
+    document.getElementById("form-reserva").addEventListener("submit", conSpinnerAlGuardar(saveReserva));
     document.getElementById("btn-eliminar-reserva").addEventListener("click", deleteReserva);
     document.getElementById("reserva-cliente").addEventListener("change", (e) => {
       const cliente = findClienteByName(e.target.value);
@@ -7482,7 +7769,7 @@
     });
 
     document.getElementById("btn-nuevo-empleado").addEventListener("click", () => openModal("modal-empleado"));
-    document.getElementById("form-empleado").addEventListener("submit", saveEmpleado);
+    document.getElementById("form-empleado").addEventListener("submit", conSpinnerAlGuardar(saveEmpleado));
 
     document.querySelectorAll("[data-export]").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -7515,8 +7802,10 @@
     document.getElementById("btn-nueva-pieza").addEventListener("click", () => openPiezaModal(null));
     document.getElementById("btn-ver-rotacion").addEventListener("click", mostrarRotacionInventario);
     document.getElementById("btn-ver-historial-precios").addEventListener("click", mostrarHistorialPrecios);
+    document.getElementById("btn-ver-ganancias-servicio").addEventListener("click", mostrarGananciasPorServicio);
+    document.getElementById("btn-ver-no-shows").addEventListener("click", mostrarNoShows);
     document.getElementById("btn-ver-reordenar").addEventListener("click", mostrarParaReordenar);
-    document.getElementById("form-pieza").addEventListener("submit", savePieza);
+    document.getElementById("form-pieza").addEventListener("submit", conSpinnerAlGuardar(savePieza));
     document.getElementById("btn-eliminar-pieza").addEventListener("click", deletePieza);
     document.getElementById("btn-escanear-pieza").addEventListener("click", abrirEscanerPieza);
     document.getElementById("piezas-escaner-usb-input").addEventListener("keydown", (e) => {
@@ -7551,7 +7840,7 @@
     });
     document.getElementById("btn-confirmar-recibir-pedido").addEventListener("click", confirmarRecibirPedido);
 
-    document.getElementById("form-vehiculo").addEventListener("submit", saveVehiculo);
+    document.getElementById("form-vehiculo").addEventListener("submit", conSpinnerAlGuardar(saveVehiculo));
     document.getElementById("btn-eliminar-vehiculo").addEventListener("click", deleteVehiculo);
     document.getElementById("btn-guardar-y-agregar-otro-vehiculo").addEventListener("click", guardarYAgregarOtroVehiculo);
     document.getElementById("btn-escanear-vin").addEventListener("click", abrirEscanerVin);
@@ -7570,7 +7859,7 @@
 
     document.getElementById("btn-nueva-orden").addEventListener("click", () => openOrdenModal(null));
     document.getElementById("ordenes-search").addEventListener("input", renderOrdenesKanban);
-    document.getElementById("form-orden").addEventListener("submit", saveOrden);
+    document.getElementById("form-orden").addEventListener("submit", conSpinnerAlGuardar(saveOrden));
     document.getElementById("btn-eliminar-orden").addEventListener("click", deleteOrden);
     document.getElementById("btn-imprimir-orden").addEventListener("click", () => printOrden(document.getElementById("btn-imprimir-orden").dataset.ordenId));
     document.getElementById("btn-add-orden-pieza").addEventListener("click", () => addOrdenPiezaRow(null));
@@ -7594,7 +7883,7 @@
     document.getElementById("form-llamada-manual").addEventListener("submit", guardarLlamadaManual);
 
     document.getElementById("btn-nuevo-gasto").addEventListener("click", () => openGastoModal(null));
-    document.getElementById("form-gasto").addEventListener("submit", saveGasto);
+    document.getElementById("form-gasto").addEventListener("submit", conSpinnerAlGuardar(saveGasto));
     document.getElementById("btn-eliminar-gasto").addEventListener("click", () => deleteGastoRow(document.getElementById("gasto-id").value));
     document.getElementById("finanzas-anio").addEventListener("change", (e) => {
       finanzasAnio = Number(e.target.value);
@@ -7681,7 +7970,8 @@
       e.target.value = "";
     });
 
-    document.getElementById("form-configuracion").addEventListener("submit", saveConfiguracion);
+    document.getElementById("form-configuracion").addEventListener("submit", conSpinnerAlGuardar(saveConfiguracion));
+    document.getElementById("form-configuracion-web").addEventListener("submit", conSpinnerAlGuardar(saveConfiguracionWeb));
     ["config-nombre", "config-direccion", "config-telefono", "config-email", "config-mensaje-pie", "config-logo-url", "config-texto-adicional", "config-color-acento"].forEach((id) => {
       document.getElementById(id).addEventListener("input", updateConfigPreview);
     });
@@ -7870,6 +8160,8 @@
 
   initIdioma();
   initTheme();
+  initSidebarColapsable();
+  ["cliente-telefono", "config-telefono", "cliente-detalle-telefono-nuevo", "llamada-manual-telefono"].forEach(wireFormatoTelefono);
   initAuth();
   initNav();
 })();

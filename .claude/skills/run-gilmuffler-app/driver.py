@@ -50,11 +50,18 @@ def main():
             line = line.strip()
             if not line or line.startswith("#"):
                 continue
-            try:
-                parts = shlex.split(line)
-            except ValueError:
-                parts = line.split()
-            cmd, args = parts[0], parts[1:]
+            # eval takes a raw JS expression — shlex.split() strips quote
+            # characters anywhere in the line (not just at token boundaries),
+            # which silently corrupts string literals like getElementById('x').
+            # Skip shlex for this one command and pass the expression verbatim.
+            if line == "eval" or line.startswith("eval "):
+                cmd, args = "eval", [line[5:].strip()]
+            else:
+                try:
+                    parts = shlex.split(line)
+                except ValueError:
+                    parts = line.split()
+                cmd, args = parts[0], parts[1:]
 
             try:
                 if cmd == "nav":

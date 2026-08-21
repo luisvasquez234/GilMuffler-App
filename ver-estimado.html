@@ -1,12 +1,13 @@
 <!doctype html>
 <html lang="es">
 <head>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <meta charset="utf-8" />
 <link rel="icon" type="image/png" href="logo-muffler.png" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title data-i18n="ver_estimado_titulo">Presupuesto</title>
 <style>
-  body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:1.5rem;max-width:40rem;margin:0 auto;background:#f6f7f9;}
+  body{font-family:"Inter",Arial,Helvetica,sans-serif;color:#1f2430;padding:1.5rem;max-width:40rem;margin:0 auto;background:#f6f7f9;}
   .card{background:#fff;border-radius:12px;padding:1.75rem;box-shadow:0 1px 4px rgba(0,0,0,.08);}
   .header{border-bottom:3px solid #d5601a;padding-bottom:1rem;margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;flex-wrap:wrap;}
   .header-brand{display:flex;align-items:center;gap:.8rem;}
@@ -30,6 +31,7 @@
   .respuesta-msg.aprobado{background:#e6f4ee;color:#1a7f5a;}
   .respuesta-msg.rechazado{background:#fbe7e9;color:#d6293b;}
   .estado-msg{text-align:center;color:#68707e;padding:3rem 1rem;}
+  .estado-msg-icon{width:2.25rem;height:2.25rem;color:#d5601a;display:block;margin:0 auto .6rem;}
   .idioma-toggle{position:absolute;top:.9rem;right:.9rem;width:auto;margin:0;padding:.3rem .7rem;font-size:.75rem;font-weight:600;border-radius:999px;background:#f0f1f3;color:#68707e;border:1px solid #d7dade;cursor:pointer;}
 </style>
 </head>
@@ -62,7 +64,7 @@
       const contenido = document.getElementById("contenido");
       estimadoId = new URLSearchParams(location.search).get("id");
       if (!estimadoId) {
-        contenido.innerHTML = '<p class="estado-msg">' + t("falta_numero_presupuesto") + "</p>";
+        contenido.innerHTML = '<div class="estado-msg"><svg class="estado-msg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><p>' + t("falta_numero_presupuesto") + "</p></div>";
         return;
       }
 
@@ -74,7 +76,7 @@
       ]);
 
       if (errE || !estimado) {
-        contenido.innerHTML = '<p class="estado-msg">' + t("presupuesto_no_encontrado") + "</p>";
+        contenido.innerHTML = '<div class="estado-msg"><svg class="estado-msg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><p>' + t("presupuesto_no_encontrado") + "</p></div>";
         return;
       }
 
