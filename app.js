@@ -1081,12 +1081,28 @@
       .join(" ");
   }
 
+  // Lista oficial de códigos de campo AAMVA (licencias de EE.UU.). Algunos
+  // escáneres/licencias no separan los campos con salto de línea — vienen
+  // todos pegados en una sola cadena (ej. "...DCSVASQUEZDACLUIS...") — así
+  // que hay que buscar dónde empieza cada código conocido en vez de partir
+  // por línea.
+  const AAMVA_CODIGOS = [
+    "DCA", "DCB", "DCD", "DBA", "DCS", "DAC", "DAD", "DBD", "DBB", "DBC",
+    "DAY", "DAU", "DAG", "DAH", "DAI", "DAJ", "DAK", "DAQ", "DCF", "DCG",
+    "DAA", "DAB", "DAE", "DAF", "DAH", "DAI", "DAW", "DAZ", "DCE", "DCH",
+    "DCI", "DCJ", "DCK", "DCL", "DCM", "DCN", "DCO", "DCP", "DCQ", "DCR",
+    "DCT", "DCU", "DDA", "DDB", "DDC", "DDD", "DDE", "DDF", "DDG", "DDH",
+    "DDI", "DDJ", "DDK", "DDL",
+  ];
+
   function parseAAMVA(texto) {
     const campos = {};
-    texto.split(/[\n\r]+/).forEach((linea) => {
-      const codigo = linea.slice(0, 3);
-      const valor = linea.slice(3).trim();
-      if (/^[A-Z]{3}$/.test(codigo) && valor) campos[codigo] = valor;
+    const limpio = texto.replace(/[\n\r\x1e\x1f]+/g, "");
+    const patron = new RegExp("(?=" + AAMVA_CODIGOS.join("|") + ")", "g");
+    limpio.split(patron).forEach((trozo) => {
+      const codigo = trozo.slice(0, 3);
+      const valor = trozo.slice(3).trim();
+      if (AAMVA_CODIGOS.includes(codigo) && valor) campos[codigo] = valor;
     });
     return {
       nombre: campos.DAC || campos.DCT || "",
