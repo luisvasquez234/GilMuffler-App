@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /bienvenida.html
+Disallow: /index.html
+Disallow: /ver-factura.html
+Disallow: /ver-orden.html
+Disallow: /ver-estimado.html
+Disallow: /reportar-trabajo.html
+Disallow: /llamame.html
+
+Sitemap: https://gilmuffler.work/sitemap.xml

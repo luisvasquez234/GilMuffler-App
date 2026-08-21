@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gil's Muffler Inc — Reparación de mofles y escapes en Lawrence, MA</title>
+<meta name="description" content="Taller de mofles, escapes y reparación general en Lawrence, MA. Presupuesto claro, garantía en el trabajo, atención rápida." />
+<link rel="canonical" href="https://gilmuffler.work/" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://gilmuffler.work/" />
+<meta property="og:title" content="Gil's Muffler Inc — Reparación de mofles y escapes en Lawrence, MA" />
+<meta property="og:description" content="Taller de mofles, escapes y reparación general en Lawrence, MA. Presupuesto claro, garantía en el trabajo, atención rápida." />
+<meta property="og:image" content="https://gilmuffler.work/logo-muffler.png" />
+<link rel="icon" type="image/png" href="logo-muffler.png" />
+<script type="application/ld+json" id="ld-json"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --accent:#d5601a;
+    --accent-dark:#a84a14;
+    --text:#1f2430;
+    --text-dim:#68707e;
+    --bg:#f6f7f9;
+    --surface:#ffffff;
+    --border:#e1e4e9;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;font-family:"Inter",Arial,Helvetica,sans-serif;color:var(--text);line-height:1.5;
+    background:var(--bg) radial-gradient(circle at 1px 1px, rgba(31,36,48,.05) 1px, transparent 0) 0 0/18px 18px;
+  }
+  img{max-width:100%;display:block;}
+  a{color:var(--accent);}
+  .wrap{max-width:64rem;margin:0 auto;padding:0 1.5rem;}
+
+  /* header */
+  header.site-header{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--border);}
+  .site-header .wrap{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.5rem;gap:1rem;}
+  .brand{display:flex;align-items:center;gap:.7rem;font-weight:800;font-size:1.1rem;}
+  .brand img{width:2.4rem;height:2.4rem;border-radius:8px;object-fit:cover;object-position:68% 55%;flex:none;}
+  .header-cta{display:flex;align-items:center;gap:.6rem;}
+  .idioma-toggle{
+    background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text);
+    font-weight:700;font-size:.8rem;padding:.5rem .65rem;cursor:pointer;
+  }
+  .btn{
+    display:inline-flex;align-items:center;gap:.5rem;
+    padding:.65rem 1.15rem;border-radius:8px;font-weight:600;font-size:.92rem;
+    text-decoration:none;border:1px solid transparent;cursor:pointer;white-space:nowrap;
+  }
+  .btn-primary{background:var(--accent);color:#fff;}
+  .btn-primary:hover{background:var(--accent-dark);}
+  .btn-outline{background:transparent;color:var(--accent);border-color:var(--accent);}
+  .btn-outline:hover{background:#fdefe3;}
+  @media (max-width:40rem){ .header-cta .btn span.solo-desktop{display:none;} }
+  .btn svg{width:1.1em;height:1.1em;display:block;flex:none;}
+
+  /* hero */
+  .hero{
+    position:relative;overflow:hidden;
+    background:linear-gradient(165deg,#1c2431 0%,#211d1f 55%,#2b1a12 100%);color:#fff;padding:4rem 0 5rem;
+  }
+  .hero::before{
+    content:"";position:absolute;top:-12%;right:-8%;width:28rem;height:28rem;border-radius:50%;
+    background:radial-gradient(circle,rgba(213,96,26,.4),transparent 70%);filter:blur(10px);pointer-events:none;
+  }
+  .hero::after{
+    content:"";position:absolute;bottom:-20%;left:-10%;width:24rem;height:24rem;border-radius:50%;
+    background:radial-gradient(circle,rgba(11,59,130,.35),transparent 70%);filter:blur(10px);pointer-events:none;
+  }
+  .hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:1.1fr .9fr;gap:2.5rem;align-items:center;}
+  .hero-wave{position:absolute;left:0;bottom:-1px;width:100%;line-height:0;z-index:1;}
+  .hero-wave svg{width:100%;height:3.2rem;display:block;}
+  @media (max-width:48rem){ .hero .wrap{grid-template-columns:1fr;} }
+  .hero h1{font-size:2.3rem;line-height:1.15;margin:0 0 1rem;font-weight:800;letter-spacing:-.01em;}
+  .hero h1 span{color:#ff9a52;}
+  .hero p.lead{color:#cbd2de;font-size:1.05rem;margin:0 0 1.75rem;max-width:32rem;}
+  .hero .cta-row{display:flex;gap:.8rem;flex-wrap:wrap;}
+  .hero .cta-row .btn{padding:.8rem 1.4rem;font-size:1rem;}
+  .hero-photo{
+    aspect-ratio:4/3;border-radius:14px;border:2px dashed rgba(255,255,255,.3);
+    background:rgba(255,255,255,.05);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4rem;
+    color:rgba(255,255,255,.55);font-size:.85rem;text-align:center;padding:1rem;
+  }
+  .hero-photo .emoji{font-size:2.4rem;}
+  .hero-photo .emoji svg{width:1em;height:1em;display:block;}
+
+  /* secciones genéricas */
+  section{padding:3.5rem 0;}
+  section h2{font-size:1.6rem;margin:0 0 .5rem;text-align:center;}
+  section p.section-sub{color:var(--text-dim);text-align:center;max-width:34rem;margin:0 auto 2.25rem;}
+
+  /* sobre nosotros */
+  .sobre-nosotros-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;align-items:center;}
+  @media (max-width:48rem){ .sobre-nosotros-grid{grid-template-columns:1fr;} }
+
+  /* servicios */
+  .servicios-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:1.25rem;}
+  .servicio-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:1.5rem 1.25rem;text-align:center;box-shadow:0 1px 3px rgba(20,24,32,.05);
+  }
+  .servicio-card{transition:transform .18s ease,box-shadow .18s ease;}
+  .servicio-card:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(20,24,32,.1);}
+  .servicio-card .icon-badge{
+    width:3rem;height:3rem;margin:0 auto .6rem;border-radius:50%;
+    background:linear-gradient(135deg,#fdefe3,#ffd9b8);color:var(--accent-dark);
+    display:flex;align-items:center;justify-content:center;font-size:1.5rem;
+  }
+  .icon-badge svg{width:1.5rem;height:1.5rem;display:block;}
+  .servicio-card h3{font-size:1rem;margin:.2rem 0 .35rem;}
+  .servicio-card p{font-size:.85rem;color:var(--text-dim);margin:0;}
+
+  /* cómo funciona */
+  .pasos-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:1.5rem;position:relative;}
+  .paso{text-align:center;position:relative;}
+  .paso .paso-num{
+    width:2.6rem;height:2.6rem;margin:0 auto .8rem;border-radius:50%;
+    background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;
+    box-shadow:0 4px 12px rgba(213,96,26,.35);
+  }
+  .paso h3{margin:0 0 .3rem;font-size:1rem;}
+  .paso p{margin:0;color:var(--text-dim);font-size:.88rem;}
+
+  /* zona de servicio */
+  .zona-chips{display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center;}
+  .zona-chip{
+    background:var(--surface);border:1px solid var(--border);border-radius:999px;
+    padding:.5rem 1.1rem;font-size:.88rem;font-weight:600;color:var(--text);
+  }
+
+  /* preguntas frecuentes */
+  .faq-list{max-width:42rem;margin:0 auto;display:flex;flex-direction:column;gap:.7rem;}
+  .faq-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.2rem 1.1rem;}
+  .faq-item summary{
+    cursor:pointer;padding:.9rem 0;font-weight:600;font-size:.95rem;list-style:none;
+    display:flex;justify-content:space-between;align-items:center;gap:1rem;
+  }
+  .faq-item summary::-webkit-details-marker{display:none;}
+  .faq-item summary::after{content:"+";font-size:1.3rem;color:var(--accent);flex:none;}
+  .faq-item[open] summary::after{content:"−";}
+  .faq-item p{margin:0 0 1rem;color:var(--text-dim);font-size:.9rem;}
+
+  /* franja decorativa entre secciones claras */
+  .franja-color{
+    position:relative;overflow:hidden;
+    background:linear-gradient(120deg,#fdefe3 0%,#f6f7f9 55%,#eaf0fb 100%);
+  }
+  .franja-color::before{
+    content:"";position:absolute;top:-30%;right:10%;width:20rem;height:20rem;border-radius:50%;
+    background:radial-gradient(circle,rgba(213,96,26,.16),transparent 70%);pointer-events:none;
+  }
+  .franja-color .wrap{position:relative;z-index:1;}
+
+  /* por qué elegirnos */
+  .porque-bg{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+  .porque-item .icon-badge{
+    width:2.6rem;height:2.6rem;flex:none;border-radius:10px;
+    background:linear-gradient(135deg,#fdefe3,#ffd9b8);color:var(--accent-dark);
+    display:flex;align-items:center;justify-content:center;font-size:1.25rem;
+  }
+  .porque-item .icon-badge svg{width:1.25rem;height:1.25rem;display:block;}
+
+  /* botón flotante de whatsapp */
+  .wa-flotante{
+    position:fixed;right:1.2rem;bottom:1.2rem;z-index:50;
+    width:3.4rem;height:3.4rem;border-radius:50%;background:#25d366;color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:1.6rem;
+    box-shadow:0 6px 18px rgba(0,0,0,.25);text-decoration:none;
+  }
+  @media (max-width:26rem){ .wa-flotante{width:3rem;height:3rem;font-size:1.4rem;} }
+  .wa-flotante svg{width:1.6rem;height:1.6rem;display:block;}
+
+  /* botón de volver arriba */
+  .subir-arriba{
+    position:fixed;right:1.2rem;bottom:5.2rem;z-index:50;
+    width:2.6rem;height:2.6rem;border-radius:50%;background:var(--surface);color:var(--text);
+    border:1px solid var(--border);display:none;align-items:center;justify-content:center;
+    box-shadow:0 4px 12px rgba(0,0,0,.15);cursor:pointer;
+  }
+  .subir-arriba.visible{display:flex;}
+  .subir-arriba svg{width:1.2rem;height:1.2rem;display:block;}
+  @media (max-width:26rem){ .subir-arriba{bottom:4.7rem;width:2.3rem;height:2.3rem;} }
+
+  /* gráfica de beneficios de arreglar el muffler */
+  .muffler-benefits-chart{
+    max-width:950px;margin:3.5rem auto;padding:40px;
+    background:var(--surface);border:1px solid var(--border);border-radius:24px;
+    box-shadow:0 15px 45px rgba(0,0,0,.08);
+  }
+  .chart-header{text-align:center;margin-bottom:40px;}
+  .chart-badge{
+    display:inline-block;padding:7px 14px;margin-bottom:12px;
+    background:#111827;color:#fff;border-radius:100px;font-size:12px;font-weight:700;letter-spacing:1.5px;
+  }
+  .chart-header h2{margin:0 0 10px;font-size:clamp(28px,4vw,42px);color:var(--text);}
+  .chart-header p{max-width:650px;margin:auto;color:var(--text-dim);line-height:1.6;}
+  .benefits-bars{display:flex;flex-direction:column;gap:22px;}
+  .benefit-info{display:flex;justify-content:space-between;gap:15px;margin-bottom:8px;color:var(--text);font-size:15px;font-weight:600;}
+  .benefit-info strong{color:var(--accent-dark);}
+  .bar{width:100%;height:14px;background:#e5e7eb;border-radius:999px;overflow:hidden;}
+  .bar span{
+    display:block;height:100%;background:linear-gradient(90deg,#0b3b82,var(--accent));border-radius:inherit;
+    transform-origin:left;animation:growBar 1.2s ease-out;
+  }
+  @keyframes growBar{from{transform:scaleX(0);}to{transform:scaleX(1);}}
+  .chart-note{margin-top:30px;text-align:center;font-size:12px;color:#9ca3af;}
+  @media (max-width:600px){
+    .muffler-benefits-chart{margin:1.5rem;padding:25px 20px;border-radius:18px;}
+    .benefit-info{font-size:13px;}
+    .bar{height:11px;}
+  }
+
+  /* ilustración del sistema de escape (imagen generada) */
+  .escape-ilustracion{max-width:56rem;margin:0 auto;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.1);}
+  .escape-ilustracion img{width:100%;display:block;}
+  .porque-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:1.5rem;}
+  .porque-item{display:flex;gap:.8rem;align-items:flex-start;}
+  .porque-item h3{margin:0 0 .2rem;font-size:1rem;}
+  .porque-item p{margin:0;color:var(--text-dim);font-size:.88rem;}
+
+  /* galería */
+  .galeria-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:1rem;}
+  .foto-placeholder{
+    aspect-ratio:4/3;border-radius:10px;border:2px dashed #d7dade;background:#fbfbfc;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem;
+    color:var(--text-dim);font-size:.78rem;text-align:center;padding:.5rem;
+  }
+  .foto-placeholder .emoji{font-size:1.7rem;}
+  .foto-placeholder .emoji svg{width:1em;height:1em;display:block;}
+
+  /* reseñas */
+  .reseñas-nota{
+    max-width:34rem;margin:0 auto;text-align:center;background:#fdefe3;border:1px dashed var(--accent);
+    border-radius:12px;padding:1.5rem;color:var(--accent-dark);font-size:.9rem;
+  }
+
+  /* contacto */
+  .contacto-bg{background:linear-gradient(165deg,#1c2431 0%,#211d1f 55%,#2b1a12 100%);color:#fff;}
+  .contacto-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;align-items:start;}
+  @media (max-width:48rem){ .contacto-grid{grid-template-columns:1fr;} }
+  .info-lista{list-style:none;padding:0;margin:0 0 1.5rem;display:flex;flex-direction:column;gap:.9rem;}
+  .info-lista li{display:flex;gap:.7rem;align-items:flex-start;color:#cbd2de;font-size:.95rem;}
+  .info-lista .emoji{flex:none;color:var(--accent);margin-top:.15rem;}
+  .info-lista .emoji svg{width:1.15rem;height:1.15rem;display:block;}
+  .info-lista a{color:#fff;}
+  .form-card{background:var(--surface);color:var(--text);border-radius:14px;padding:1.75rem;}
+  .form-card h3{margin:0 0 .3rem;font-size:1.1rem;}
+  .form-card p.sub{color:var(--text-dim);font-size:.85rem;margin:0 0 1.25rem;}
+  label{display:block;font-size:.85rem;color:var(--text-dim);margin-bottom:.3rem;margin-top:1rem;}
+  label:first-of-type{margin-top:0;}
+  input{width:100%;padding:.7rem .8rem;border:1px solid #d7dade;border-radius:8px;font-size:1rem;font-family:inherit;}
+  .field-row{display:flex;gap:.6rem;}
+  .field-row > div{flex:1;}
+  .form-card button{width:100%;margin-top:1.5rem;}
+  .error-msg{color:#d6293b;font-size:.85rem;margin-top:.5rem;}
+  .respuesta-msg{text-align:center;padding:1.5rem;border-radius:10px;background:#e6f4ee;color:#1a7f5a;font-weight:600;}
+  .respuesta-msg p{font-weight:400;font-size:.85rem;margin:.5rem 0 0;}
+
+  footer.site-footer{background:#14171c;color:#8b93a3;padding:1.75rem 0;text-align:center;font-size:.82rem;}
+
+  /* franja de promoción */
+  .promo-banner{background:var(--accent-dark);color:#fff;text-align:center;font-size:.85rem;font-weight:600;padding:.55rem 1rem;}
+</style>
+</head>
+<body>
+
+  <div class="promo-banner" id="promo-banner" data-en="Space for this month's promotion — replace this text or remove this bar if you won't use it.">Espacio para tu promoción del mes — reemplazá este texto o borrá esta franja si no la vas a usar.</div>
+
+  <header class="site-header">
+    <div class="wrap">
+      <div class="brand"><img id="logo-img" src="logo-muffler.png" alt="" /><span id="nombre-negocio-header">Gil's Muffler Inc</span></div>
+      <div class="header-cta">
+        <button type="button" class="idioma-toggle" id="idioma-toggle">EN</button>
+        <a class="btn btn-outline" id="cta-whatsapp-header" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> <span class="solo-desktop">WhatsApp</span></a>
+        <a class="btn btn-primary" id="cta-llamar-header" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg> <span class="solo-desktop" data-en="Call">Llamar</span></a>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <h1 data-en="Muffler &amp; Exhaust <span>Repair</span> in Lawrence, MA">Reparación de <span>mofles y escapes</span> en Lawrence, MA</h1>
+        <p class="lead" data-en="Trusted mechanics, a clear estimate before we start, and a warranty on all our work. No surprises on the final bill.">Mecánicos de confianza, presupuesto claro antes de empezar, y garantía en todo nuestro trabajo. Sin sorpresas en la cuenta final.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" id="cta-llamar-hero" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg> <span data-en="Call now">Llamar ahora</span></a>
+          <a class="btn btn-outline" id="cta-whatsapp-hero" href="#" target="_blank" rel="noopener" style="border-color:#fff;color:#fff;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> <span data-en="Message us on WhatsApp">Escríbenos por WhatsApp</span></a>
+        </div>
+      </div>
+      <div class="hero-photo">
+        <span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
+        <span data-en="Shop photo pending<br>(upload a real photo here)">Foto del taller pendiente<br>(sube una foto real aquí)</span>
+      </div>
+    </div>
+    <div class="hero-wave">
+      <svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path d="M0,32 C360,80 1080,0 1440,48 L1440,80 L0,80 Z" fill="var(--bg)"/></svg>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2 data-en="How it works">Cómo funciona</h2>
+      <p class="section-sub" data-en="Three simple steps.">Tres pasos, sin complicaciones.</p>
+      <div class="pasos-grid">
+        <div class="paso"><div class="paso-num">1</div><h3 data-en="Call or message us">Llamas o escribes</h3><p data-en="Tell us what's going on with your car, by phone or WhatsApp.">Nos contás qué le pasa a tu carro, por teléfono o WhatsApp.</p></div>
+        <div class="paso"><div class="paso-num">2</div><h3 data-en="We inspect &amp; quote">Revisamos y presupuestamos</h3><p data-en="We tell you exactly what it needs and what it costs, before touching your car.">Te decimos exactamente qué necesita y cuánto cuesta, antes de tocar el carro.</p></div>
+        <div class="paso"><div class="paso-num">3</div><h3 data-en="We repair with warranty">Reparamos con garantía</h3><p data-en="We do the work and back it with our warranty.">Hacemos el trabajo y te lo entregamos respaldado por nuestra garantía.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap sobre-nosotros-grid">
+      <div class="foto-placeholder" style="aspect-ratio:1;">
+        <span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
+        <span data-en="Team photo pending<br>(upload a real photo here)">Foto del equipo pendiente<br>(sube una foto real aquí)</span>
+      </div>
+      <div>
+        <h2 style="text-align:left;" data-en="About us">Sobre nosotros</h2>
+        <p style="color:var(--text-dim);">Texto de ejemplo — reemplazá esto por tu propia historia: hace cuánto abrió el taller, quién lo atiende, y por qué la gente puede confiar en dejar su carro acá. Un par de líneas alcanza.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="franja-color">
+    <div class="wrap">
+      <h2 data-en="Our services">Nuestros servicios</h2>
+      <p class="section-sub" data-en="We work on mufflers and exhaust systems, but also general car maintenance.">Trabajamos en mofles y escapes, pero también en el mantenimiento general de tu carro.</p>
+      <div class="servicios-grid">
+        <div class="servicio-card"><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 1 1-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.2 2.2-2-2z"/></svg></div><h3 data-en="Mufflers &amp; Exhaust">Mofles y escapes</h3><p data-en="Repair and installation of complete exhaust systems.">Reparación e instalación de sistemas de escape completos.</p></div>
+        <div class="servicio-card"><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></div><h3 data-en="Brakes">Frenos</h3><p data-en="Pads, rotors, and full brake system inspection.">Pastillas, discos y revisión completa del sistema de frenado.</p></div>
+        <div class="servicio-card"><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s6 7.2 6 11.5a6 6 0 0 1-12 0C6 9.2 12 2 12 2z"/></svg></div><h3 data-en="Oil Change">Cambio de aceite</h3><p data-en="Preventive maintenance so your car lasts longer.">Mantenimiento preventivo para que tu carro dure más.</p></div>
+        <div class="servicio-card"><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg></div><h3 data-en="Diagnostics">Diagnóstico</h3><p data-en="We check the engine light and other warning lights.">Revisamos el check engine y otras luces de alerta.</p></div>
+        <div class="servicio-card"><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13l1.5-4.5A2 2 0 0 1 6.4 7h11.2a2 2 0 0 1 1.9 1.5L21 13"/><path d="M3 13h18v4a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H6v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/></svg></div><h3 data-en="Suspension">Suspensión</h3><p data-en="Shocks and suspension. If your car feels off while driving, bring it in for a check.">Amortiguadores y suspensión. Si notas que el carro maneja raro, lo más recomendable es traerlo para revisarlo.</p></div>
+        <div class="servicio-card"><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg></div><h3 data-en="State Inspection">Inspección estatal</h3><p data-en="We help your car pass Massachusetts state inspection.">Te ayudamos a que tu carro pase la inspección de Massachusetts.</p></div>
+        <div class="servicio-card"><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.6 3.2 4-1-1 4L21 11l-3.4 2.6 1 4-4-1L12 20l-2.6-3.4-4 1 1-4L3 11l3.4-2.8-1-4 4 1z"/><circle cx="12" cy="11" r="2.6"/></svg></div><h3 data-en="Chassis">Chasis</h3><p data-en="Repair of rusted or rotted chassis underneath the car.">Reparación de chasis oxidado o podrido por debajo del carro.</p></div>
+        <div class="servicio-card"><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h8"/><path d="M14 5h4a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-1v3a2 2 0 0 1-2 2h-1"/><path d="M11 13v6a2 2 0 0 1-4 0v-6"/></svg></div><h3 data-en="Rust-Proof Coating">Pintura anticorrosiva</h3><p data-en="We paint underneath your car to protect it from rust.">Pintamos por debajo del carro para protegerlo y que no se oxide.</p></div>
+        <div class="servicio-card"><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 5V4L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19.5 6a9 9 0 0 1 0 12"/></svg></div><h3 data-en="Sport Mufflers">Muffler deportivo</h3><p data-en="We install sport mufflers to give your car a stronger sound.">Instalamos mufflers deportivos para darle a tu carro un sonido más fuerte.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2 data-en="Chassis, brakes &amp; rust-proof coating">Chasis, frenos y pintura anticorrosiva</h2>
+      <p class="section-sub" data-en="We repair rusted or rotted chassis, the full brake system, and paint underneath your car to protect it from rust.">Reparamos el chasis cuando está oxidado o podrido por debajo, el sistema de frenos completo, y pintamos por debajo del carro para protegerlo del óxido.</p>
+      <div class="galeria-grid">
+        <div class="foto-placeholder"><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span data-en="Chassis photo">Foto de chasis</span></div>
+        <div class="foto-placeholder"><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span data-en="Brake photo">Foto de frenos</span></div>
+        <div class="foto-placeholder"><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span data-en="Paint photo">Foto de pintura</span></div>
+        <div class="foto-placeholder"><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span data-en="Before / after">Antes / después</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="escape-ilustracion">
+        <img src="fotos-bienvenida/escape-diagrama.jpg" alt="Diagrama del sistema de escape automotriz completo: múltiple de escape, flex pipa, catalizador, resonador, muffler y punta de escape" loading="lazy" />
+      </div>
+      <p class="section-sub" style="margin-top:1.25rem;" data-en="Any of these parts can be damaged by rust or impact — if you hear a strange noise under your car, it's time to bring it in.">Cualquiera de estas partes se puede dañar por óxido o golpes — si escuchas un ruido raro debajo del carro, es momento de traerlo a revisión.</p>
+    </div>
+  </section>
+
+  <section class="muffler-benefits-chart">
+    <div class="chart-header">
+      <span class="chart-badge">GIL MUFFLER</span>
+      <h2 data-en="Benefits of fixing your muffler">Beneficios de arreglar tu muffler</h2>
+      <p data-en="Main benefits of keeping your exhaust system in good condition.">Principales beneficios de mantener el sistema de escape en buenas condiciones.</p>
+    </div>
+
+    <div class="benefits-bars">
+      <div class="benefit">
+        <div class="benefit-info"><span data-en="Increased safety">Mayor seguridad</span><strong>10/10</strong></div>
+        <div class="bar"><span style="width:100%"></span></div>
+      </div>
+      <div class="benefit">
+        <div class="benefit-info"><span data-en="Less noise">Menos ruido</span><strong>9/10</strong></div>
+        <div class="bar"><span style="width:90%"></span></div>
+      </div>
+      <div class="benefit">
+        <div class="benefit-info"><span data-en="Prevents bigger damage">Previene daños mayores</span><strong>9/10</strong></div>
+        <div class="bar"><span style="width:90%"></span></div>
+      </div>
+      <div class="benefit">
+        <div class="benefit-info"><span data-en="Protects other parts">Protege otros componentes</span><strong>9/10</strong></div>
+        <div class="bar"><span style="width:90%"></span></div>
+      </div>
+      <div class="benefit">
+        <div class="benefit-info"><span data-en="Lower emissions">Menos emisiones contaminantes</span><strong>8/10</strong></div>
+        <div class="bar"><span style="width:80%"></span></div>
+      </div>
+      <div class="benefit">
+        <div class="benefit-info"><span data-en="Better engine performance">Mejor rendimiento del motor</span><strong>8/10</strong></div>
+        <div class="bar"><span style="width:80%"></span></div>
+      </div>
+      <div class="benefit">
+        <div class="benefit-info"><span data-en="Long-term savings">Ahorro a largo plazo</span><strong>8/10</strong></div>
+        <div class="bar"><span style="width:80%"></span></div>
+      </div>
+      <div class="benefit">
+        <div class="benefit-info"><span data-en="Better handling &amp; comfort">Mejor manejo y confort</span><strong>7/10</strong></div>
+        <div class="bar"><span style="width:70%"></span></div>
+      </div>
+      <div class="benefit">
+        <div class="benefit-info"><span data-en="Better fuel efficiency">Mayor eficiencia de combustible</span><strong>7/10</strong></div>
+        <div class="bar"><span style="width:70%"></span></div>
+      </div>
+      <div class="benefit">
+        <div class="benefit-info"><span data-en="Legal compliance &amp; inspection">Cumplimiento legal e inspección</span><strong>7/10</strong></div>
+        <div class="bar"><span style="width:70%"></span></div>
+      </div>
+      <div class="benefit">
+        <div class="benefit-info"><span data-en="Higher resale value">Mayor valor de reventa</span><strong>6/10</strong></div>
+        <div class="bar"><span style="width:60%"></span></div>
+      </div>
+    </div>
+
+    <p class="chart-note" data-en="* Scores are illustrative, meant to visually represent the benefits.">* Puntuaciones ilustrativas para representar visualmente los beneficios.</p>
+  </section>
+
+  <section class="porque-bg">
+    <div class="wrap">
+      <h2 data-en="Why choose us?">¿Por qué elegirnos?</h2>
+      <div class="porque-grid">
+        <div class="porque-item"><span class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5z"/><path d="M9 12l2 2 4-4"/></svg></span><div><h3 data-en="Work warranty">Garantía en el trabajo</h3><p data-en="Parts and labor backed by our guarantee.">Piezas y mano de obra respaldadas.</p></div></div>
+        <div class="porque-item"><span class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span><div><h3 data-en="Clear estimates">Presupuesto claro</h3><p data-en="You know the cost before we start.">Sabes el costo antes de que empecemos.</p></div></div>
+        <div class="porque-item"><span class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span><div><h3 data-en="Fast service">Atención rápida</h3><p data-en="We respect your time, no endless waiting.">Respetamos tu tiempo, sin esperas eternas.</p></div></div>
+        <div class="porque-item"><span class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><div><h3 data-en="Trustworthy service">Trato de confianza</h3><p data-en="We clearly explain what your car needs.">Te explicamos qué necesita tu carro, en español.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2 data-en="Brands &amp; certifications">Marcas y certificaciones</h2>
+      <p class="section-sub" data-en="Space for parts brand logos or certifications you have — send them to me and I'll add them here.">Espacio para logos de marcas de piezas o certificaciones que uses — mandámelas y las agrego acá.</p>
+      <div class="zona-chips">
+        <span class="zona-chip" data-en="Certification pending">Certificación pendiente</span>
+        <span class="zona-chip" data-en="Brand pending">Marca pendiente</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2 data-en="Our work">Nuestro trabajo</h2>
+      <p class="section-sub" data-en="Real photos of the shop and finished jobs (coming soon).">Fotos reales del taller y trabajos terminados (pendientes de subir).</p>
+      <div class="galeria-grid">
+        <div class="foto-placeholder"><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span data-en="Photo 1">Foto 1</span></div>
+        <div class="foto-placeholder"><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span data-en="Photo 2">Foto 2</span></div>
+        <div class="foto-placeholder"><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span data-en="Photo 3">Foto 3</span></div>
+        <div class="foto-placeholder"><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span data-en="Photo 4">Foto 4</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="porque-bg">
+    <div class="wrap">
+      <h2 data-en="What our customers say">Lo que dicen nuestros clientes</h2>
+      <div class="reseñas-nota" data-en="Your real customer reviews will go here once you have them — none have been made up yet. Once you have your Google Business profile link, we'll connect a &quot;Leave us a review&quot; button here.">
+        Aquí van las reseñas reales de tus clientes cuando las tengas — no se inventó ninguna todavía. Cuando tengas el link de tu perfil de Google Business, lo conectamos aquí con un botón de "Déjanos tu reseña".
+      </div>
+    </div>
+  </section>
+
+  <section class="franja-color">
+    <div class="wrap">
+      <h2 data-en="Service area">Zona que atendemos</h2>
+      <p class="section-sub" data-en="We're based in Lawrence, MA — and also welcome customers from these nearby towns.">Estamos en Lawrence, MA — y también recibimos clientes de estos pueblos cercanos.</p>
+      <div class="zona-chips">
+        <span class="zona-chip">Lawrence</span>
+        <span class="zona-chip">Andover</span>
+        <span class="zona-chip">North Andover</span>
+        <span class="zona-chip">Methuen</span>
+        <span class="zona-chip">Haverhill</span>
+        <span class="zona-chip">Lowell</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2 data-en="Frequently asked questions">Preguntas frecuentes</h2>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary data-en="Does the estimate cost anything?">¿El presupuesto tiene costo?</summary>
+          <p data-en="No, we always give you the estimate before starting any work, no obligation.">No, siempre te damos el presupuesto antes de empezar cualquier trabajo, sin compromiso.</p>
+        </details>
+        <details class="faq-item">
+          <summary data-en="What happens if something fails after the repair?">¿Qué pasa si algo falla después de la reparación?</summary>
+          <p data-en="We back the parts and labor of every job we do with our warranty.">Respaldamos las piezas y la mano de obra de cada trabajo que hacemos con nuestra garantía.</p>
+        </details>
+        <details class="faq-item">
+          <summary data-en="Do I need an appointment?">¿Necesito hacer cita?</summary>
+          <p data-en="No, we work on a first-come, first-served basis.">No, atendemos por orden de llegada — el primero en llegar es el primero que atendemos.</p>
+        </details>
+        <details class="faq-item">
+          <summary data-en="Do you only fix mufflers?">¿Solo reparan mofles?</summary>
+          <p data-en="No — besides mufflers and exhaust systems, we also do brakes, oil changes, diagnostics, suspension, chassis, rust-proof coating, and state inspection.">No — además de mofles y escapes, hacemos frenos, cambio de aceite, diagnóstico, suspensión, chasis, pintura anticorrosiva e inspección estatal.</p>
+        </details>
+        <details class="faq-item">
+          <summary data-en="Where are you located?">¿Dónde están ubicados?</summary>
+          <p data-en="At 5 Oxford St, Lawrence, MA.">En 5 Oxford St, Lawrence, MA.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="contacto-bg" id="contacto">
+    <div class="wrap">
+      <div class="contacto-grid">
+        <div>
+          <h2 style="text-align:left;" data-en="Visit or contact us">Visítanos o escríbenos</h2>
+          <ul class="info-lista">
+            <li><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span><span id="info-direccion">Lawrence, MA</span></li>
+            <li><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span><a id="info-telefono" href="#">—</a></li>
+            <li><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 6l10 7 10-7"/></svg></span><a id="info-email" href="#">—</a></li>
+            <li><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span><span><span data-en="Monday–Friday: 8am–6pm · Saturday: 8am–4pm · Sunday: closed">Lunes a viernes: 8am–6pm · Sábado: 8am–4pm · Domingo: cerrado</span> <strong id="estado-abierto"></strong></span></li>
+          </ul>
+          <a id="link-como-llegar" href="#" target="_blank" rel="noopener" class="btn btn-outline" style="border-color:#fff;color:#fff;margin-bottom:1.25rem;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span data-en="Get directions">Cómo llegar</span>
+          </a>
+          <iframe id="mapa-embed" title="Mapa de ubicación" width="100%" height="220" style="border:0;border-radius:12px;" loading="lazy"></iframe>
+        </div>
+        <div class="form-card" id="contenido-form">
+          <h3 data-en="Leave your info">Déjanos tus datos</h3>
+          <p class="sub" data-en="We'll call you back once we review your case.">Te llamamos en cuanto revisemos tu caso.</p>
+          <form id="form-contacto">
+            <input type="text" id="empresa-web" name="empresa-web" autocomplete="off" tabindex="-1" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" aria-hidden="true" />
+            <label for="nombre" data-en="Your name">Tu nombre</label>
+            <input type="text" id="nombre" required autocomplete="name" />
+            <label for="telefono" data-en="Your phone">Tu teléfono</label>
+            <input type="tel" id="telefono" required autocomplete="tel" />
+            <label data-en="Your car (optional)">Tu carro (opcional)</label>
+            <div class="field-row">
+              <div><input type="text" id="marca" placeholder="Marca" data-en-placeholder="Make" /></div>
+              <div><input type="text" id="modelo" placeholder="Modelo" data-en-placeholder="Model" /></div>
+              <div><input type="text" id="anio" placeholder="Año" data-en-placeholder="Year" /></div>
+            </div>
+            <p class="error-msg" id="error-msg" hidden></p>
+            <button type="submit" class="btn btn-primary" id="btn-enviar" data-en="Send">Enviar</button>
+            <p style="font-size:.75rem;color:var(--text-dim);text-align:center;margin:.75rem 0 0;" data-en="We only use your info to contact you about your vehicle. We never share it with anyone.">Tus datos se usan solo para contactarte sobre tu vehículo. No los compartimos con nadie.</p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div id="footer-texto">Gil's Muffler Inc</div>
+  </footer>
+
+  <a class="wa-flotante" id="cta-whatsapp-flotante" href="#" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></a>
+  <button type="button" class="subir-arriba" id="btn-subir-arriba" aria-label="Volver arriba"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+
+  <script src="config.local.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    let sb;
+    let idiomaActual = "es";
+    const formCargadoEn = Date.now();
+
+    function soloDigitos(v) { return (v || "").replace(/\D/g, ""); }
+
+    function linkWhatsapp(telefono, mensaje) {
+      const digits = soloDigitos(telefono);
+      if (!digits) return "#";
+      const conCodigo = digits.length === 10 ? "1" + digits : digits;
+      return "https://wa.me/" + conCodigo + "?text=" + encodeURIComponent(mensaje || "Hola, quisiera más información.");
+    }
+
+    document.getElementById("telefono").addEventListener("input", (e) => {
+      const digitos = soloDigitos(e.target.value).slice(0, 10);
+      e.target.value =
+        digitos.length <= 3 ? digitos : digitos.length <= 6 ? "(" + digitos.slice(0, 3) + ") " + digitos.slice(3) : "(" + digitos.slice(0, 3) + ") " + digitos.slice(3, 6) + "-" + digitos.slice(6);
+    });
+
+    function calcularAbierto() {
+      const ahora = new Date();
+      const dia = ahora.getDay();
+      const horas = ahora.getHours() + ahora.getMinutes() / 60;
+      let abierto = false;
+      if (dia >= 1 && dia <= 5) abierto = horas >= 8 && horas < 18;
+      else if (dia === 6) abierto = horas >= 8 && horas < 16;
+      const el = document.getElementById("estado-abierto");
+      if (!el) return;
+      el.textContent = abierto
+        ? idiomaActual === "en" ? "· Open now" : "· Abierto ahora"
+        : idiomaActual === "en" ? "· Closed now" : "· Cerrado ahora";
+      el.style.color = abierto ? "#7cfc9a" : "#ff9a52";
+    }
+
+    function aplicarIdioma() {
+      document.querySelectorAll("[data-en]").forEach((el) => {
+        if (el.dataset.esOriginal === undefined) el.dataset.esOriginal = el.innerHTML;
+        el.innerHTML = idiomaActual === "en" ? el.dataset.en : el.dataset.esOriginal;
+      });
+      document.querySelectorAll("[data-en-placeholder]").forEach((el) => {
+        if (el.dataset.esPlaceholder === undefined) el.dataset.esPlaceholder = el.placeholder;
+        el.placeholder = idiomaActual === "en" ? el.dataset.enPlaceholder : el.dataset.esPlaceholder;
+      });
+      document.documentElement.lang = idiomaActual;
+      document.getElementById("idioma-toggle").textContent = idiomaActual === "en" ? "ES" : "EN";
+      calcularAbierto();
+    }
+
+    document.getElementById("idioma-toggle").addEventListener("click", () => {
+      idiomaActual = idiomaActual === "en" ? "es" : "en";
+      try { localStorage.setItem("gm_bienvenida_idioma", idiomaActual); } catch (e) {}
+      aplicarIdioma();
+    });
+
+    try { idiomaActual = localStorage.getItem("gm_bienvenida_idioma") || "es"; } catch (e) {}
+    aplicarIdioma();
+
+    const btnSubirArriba = document.getElementById("btn-subir-arriba");
+    window.addEventListener("scroll", () => {
+      btnSubirArriba.classList.toggle("visible", window.scrollY > 500);
+    });
+    btnSubirArriba.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
+    async function cargarConfigNegocio() {
+      sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+      const { data: cfg } = await sb.from("configuracion_negocio").select("*").eq("id", 1).maybeSingle();
+      const nombreNegocio = (cfg && cfg.nombre_negocio) || "Gil's Muffler Inc";
+      const telefono = (cfg && cfg.telefono) || "";
+      const email = (cfg && cfg.email) || "";
+      const direccion = (cfg && cfg.direccion) || "Lawrence, MA";
+
+      document.getElementById("nombre-negocio-header").textContent = nombreNegocio;
+      document.getElementById("footer-texto").textContent = nombreNegocio + " · " + (telefono || "") + " · © " + new Date().getFullYear();
+      document.getElementById("info-direccion").textContent = direccion;
+      document.title = nombreNegocio + " — Reparación de mofles y escapes en Lawrence, MA";
+      if (cfg && cfg.logo_url) document.getElementById("logo-img").src = cfg.logo_url;
+
+      if (telefono) {
+        const telLink = "tel:+1" + soloDigitos(telefono);
+        ["cta-llamar-header", "cta-llamar-hero"].forEach((id) => (document.getElementById(id).href = telLink));
+        const infoTel = document.getElementById("info-telefono");
+        infoTel.href = telLink;
+        infoTel.textContent = telefono;
+      }
+      const waLink = linkWhatsapp(telefono, "Hola, vi su página web y quisiera más información.");
+      ["cta-whatsapp-header", "cta-whatsapp-hero", "cta-whatsapp-flotante"].forEach((id) => (document.getElementById(id).href = waLink));
+
+      if (email) {
+        const infoEmail = document.getElementById("info-email");
+        infoEmail.href = "mailto:" + email;
+        infoEmail.textContent = email;
+      }
+
+      const direccionCodificada = encodeURIComponent(direccion);
+      document.getElementById("mapa-embed").src = "https://www.google.com/maps?q=" + direccionCodificada + "&output=embed";
+      document.getElementById("link-como-llegar").href = "https://www.google.com/maps/dir/?api=1&destination=" + direccionCodificada;
+
+      document.getElementById("ld-json").textContent = JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "AutoRepair",
+        name: nombreNegocio,
+        image: (cfg && cfg.logo_url) || "https://gilmuffler.work/logo-muffler.png",
+        telephone: telefono || undefined,
+        email: email || undefined,
+        address: { "@type": "PostalAddress", streetAddress: direccion, addressLocality: "Lawrence", addressRegion: "MA", addressCountry: "US" },
+        url: "https://gilmuffler.work/",
+        openingHoursSpecification: [
+          { "@type": "OpeningHoursSpecification", dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], opens: "08:00", closes: "18:00" },
+          { "@type": "OpeningHoursSpecification", dayOfWeek: "Saturday", opens: "08:00", closes: "16:00" },
+        ],
+      });
+    }
+
+    document.getElementById("form-contacto").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (document.getElementById("empresa-web").value) return;
+      if (Date.now() - formCargadoEn < 2000) return;
+
+      const nombre = document.getElementById("nombre").value.trim();
+      const telefono = document.getElementById("telefono").value.trim();
+      const marca = document.getElementById("marca").value.trim();
+      const modelo = document.getElementById("modelo").value.trim();
+      const anio = document.getElementById("anio").value.trim();
+      const errorMsg = document.getElementById("error-msg");
+      errorMsg.hidden = true;
+      if (!nombre || !telefono) return;
+
+      if (soloDigitos(telefono).length !== 10) {
+        errorMsg.textContent = idiomaActual === "en" ? "Please enter a valid 10-digit phone number." : "Ingresá un teléfono válido de 10 dígitos.";
+        errorMsg.hidden = false;
+        return;
+      }
+
+      const btn = document.getElementById("btn-enviar");
+      btn.disabled = true;
+      btn.textContent = idiomaActual === "en" ? "Sending..." : "Enviando...";
+
+      const { error } = await sb.from("llamadas_ordenes").insert({
+        nombre_contacto: nombre,
+        telefono_contacto: telefono,
+        vehiculo_marca: marca || null,
+        vehiculo_modelo: modelo || null,
+        vehiculo_anio: anio || null,
+        motivo: "Cliente pidió que le llamemos (página web)",
+        hecha: false,
+      });
+
+      if (error) {
+        errorMsg.textContent = idiomaActual === "en" ? "Couldn't send it. Try again or call us directly." : "No se pudo enviar. Intenta de nuevo o llámanos directo.";
+        errorMsg.hidden = false;
+        btn.disabled = false;
+        btn.textContent = idiomaActual === "en" ? "Send" : "Enviar";
+        return;
+      }
+
+      document.getElementById("contenido-form").innerHTML =
+        idiomaActual === "en"
+          ? '<div class="respuesta-msg">All set! We got your info.<p>We\'ll call you back once we review your case.</p></div>'
+          : '<div class="respuesta-msg">¡Listo! Ya recibimos tus datos.<p>Te vamos a llamar en cuanto revisemos tu caso.</p></div>';
+    });
+
+    cargarConfigNegocio();
+  </script>
+</body>
+</html>
