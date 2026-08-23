@@ -21,6 +21,7 @@
     registroDiarioId: null,
     registroDiarioSinGuardarAyer: 0,
     llamadas: [],
+    turnos: [],
     telefonos: [],
     clienteDetalleActualId: null,
     piezaStockHistorial: [],
@@ -864,6 +865,7 @@
       "ordenes",
       "inventario",
       "llamadas",
+      "turnos",
       "facturas",
       "invoices-due",
       "invoices-paid",
@@ -893,6 +895,7 @@
     "ordenes",
     "inventario",
     "llamadas",
+    "turnos",
     "facturas",
     "invoices-due",
     "invoices-paid",
@@ -5704,6 +5707,98 @@
     await refreshLlamadas();
   }
 
+  // ---------------- fila de espera (turnos por orden de llegada) ----------------
+
+  async function fetchTurnos() {
+    const { data, error } = await sb.from("turnos").select("*").eq("estado", "esperando").order("numero", { ascending: true });
+    if (error) {
+      showToast("No se pudo cargar la fila de espera.", true);
+      return [];
+    }
+    return data;
+  }
+
+  async function refreshTurnos() {
+    state.turnos = await fetchTurnos();
+    renderTurnos();
+    renderDashboard();
+  }
+
+  function renderTurnos() {
+    const tbody = document.getElementById("turnos-tbody");
+    const empty = document.getElementById("turnos-empty");
+    empty.hidden = state.turnos.length !== 0;
+    tbody.innerHTML = state.turnos
+      .map((tu) => {
+        const hora = new Date(tu.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        return (
+          "<tr><td>" +
+          escapeHtml(String(tu.numero)) +
+          "</td><td>" +
+          escapeHtml(tu.nombre) +
+          "</td><td>" +
+          escapeHtml(hora) +
+          '</td><td><button type="button" class="btn-ghost" data-marcar-turno="' +
+          tu.id +
+          '" data-i18n="btn_turno_atendido">' +
+          t("btn_turno_atendido") +
+          "</button></td></tr>"
+        );
+      })
+      .join("");
+
+    tbody.querySelectorAll("[data-marcar-turno]").forEach((btn) => {
+      btn.addEventListener("click", () => marcarTurnoAtendido(btn.dataset.marcarTurno));
+    });
+  }
+
+  async function marcarTurnoAtendido(id) {
+    const { error } = await sb.from("turnos").update({ estado: "atendido" }).eq("id", id);
+    if (error) {
+      showToast("No se pudo actualizar el turno.", true);
+      return;
+    }
+    await refreshTurnos();
+  }
+
+  function imprimirQrTurno() {
+    const url = (typeof LAN_ORIGIN !== "undefined" && LAN_ORIGIN ? LAN_ORIGIN : location.origin) + location.pathname.replace(/index\.html$/, "") + "tomar-turno.html";
+    const qr = qrcode(0, "M");
+    qr.addData(url);
+    qr.make();
+    const qrDataUrl = qr.createDataURL(8, 8);
+    const cfg = state.configNegocio || {};
+    const nombreNegocio = cfg.nombre_negocio || "Gil Muffler";
+
+    const html =
+      "<!doctype html><html><head><meta charset='utf-8'><title>QR — " +
+      escapeHtml(t("nav_turnos")) +
+      "</title><style>" +
+      "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:3rem;text-align:center;}" +
+      "h1{font-size:1.3rem;margin-bottom:.5rem;}" +
+      "p{color:#68707e;margin-top:0;}" +
+      "img{margin-top:1.5rem;}" +
+      "@media print{body{padding:0;}@page{margin:.5in;}tr{page-break-inside:avoid;}}" +
+      "</style></head><body>" +
+      "<h1>" +
+      escapeHtml(nombreNegocio) +
+      "</h1>" +
+      "<p>" +
+      escapeHtml(t("escanea_qr_turno")) +
+      "</p>" +
+      "<img src='" +
+      qrDataUrl +
+      "' alt='QR' />" +
+      "</body></html>";
+
+    openPrintWindow(html);
+  }
+
+  function abrirPantallaTurnos() {
+    const url = location.pathname.replace(/index\.html$/, "") + "pantalla-turnos.html";
+    window.open(url, "_blank");
+  }
+
   // ---------------- finanzas (ingresos, gastos, ganancias) ----------------
 
   const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
@@ -7082,6 +7177,12 @@
     document.getElementById("config-web-promo-activo").checked = !!c.web_promo_banner_activo;
     document.getElementById("config-web-promo-texto").value = c.web_promo_banner_texto || "";
     document.getElementById("config-web-google-reviews").value = c.web_google_reviews_url || "";
+    document.getElementById("config-web-resena-1-texto").value = c.web_resena_1_texto || "";
+    document.getElementById("config-web-resena-1-autor").value = c.web_resena_1_autor || "";
+    document.getElementById("config-web-resena-2-texto").value = c.web_resena_2_texto || "";
+    document.getElementById("config-web-resena-2-autor").value = c.web_resena_2_autor || "";
+    document.getElementById("config-web-resena-3-texto").value = c.web_resena_3_texto || "";
+    document.getElementById("config-web-resena-3-autor").value = c.web_resena_3_autor || "";
     renderConfigWebFotos();
   }
 
@@ -7091,7 +7192,8 @@
     { campo: "web_foto_chasis_url", label: t("web_foto_chasis_label") },
     { campo: "web_foto_frenos_url", label: t("web_foto_frenos_label") },
     { campo: "web_foto_pintura_url", label: t("web_foto_pintura_label") },
-    { campo: "web_foto_antes_despues_url", label: t("web_foto_antes_despues_label") },
+    { campo: "web_foto_antes_url", label: t("web_foto_antes_label") },
+    { campo: "web_foto_despues_url", label: t("web_foto_despues_label") },
     { campo: "web_foto_trabajo_1_url", label: t("web_foto_trabajo_1_label") },
     { campo: "web_foto_trabajo_2_url", label: t("web_foto_trabajo_2_label") },
     { campo: "web_foto_trabajo_3_url", label: t("web_foto_trabajo_3_label") },
@@ -7177,6 +7279,12 @@
       web_promo_banner_activo: document.getElementById("config-web-promo-activo").checked,
       web_promo_banner_texto: document.getElementById("config-web-promo-texto").value.trim(),
       web_google_reviews_url: document.getElementById("config-web-google-reviews").value.trim(),
+      web_resena_1_texto: document.getElementById("config-web-resena-1-texto").value.trim(),
+      web_resena_1_autor: document.getElementById("config-web-resena-1-autor").value.trim(),
+      web_resena_2_texto: document.getElementById("config-web-resena-2-texto").value.trim(),
+      web_resena_2_autor: document.getElementById("config-web-resena-2-autor").value.trim(),
+      web_resena_3_texto: document.getElementById("config-web-resena-3-texto").value.trim(),
+      web_resena_3_autor: document.getElementById("config-web-resena-3-autor").value.trim(),
       updated_at: new Date().toISOString(),
     };
 
@@ -7264,6 +7372,7 @@
     { view: "ordenes", icon: "wrench", label: t("nav_ordenes"), badge: "neutral" },
     { view: "inventario", icon: "box", label: t("nav_inventario"), badge: "danger" },
     { view: "llamadas", icon: "phone", label: t("nav_llamadas"), badge: "warning" },
+    { view: "turnos", icon: "hash", label: t("nav_turnos"), badge: "neutral" },
     { view: "facturas", icon: "file-text", label: t("nav_facturas"), badge: "warning" },
     { view: "estimados", icon: "clipboard", label: t("nav_estimados"), badge: "neutral" },
     { view: "registro-diario", icon: "hash", label: t("nav_registro_diario"), badge: "warning" },
@@ -7296,6 +7405,7 @@
       facturas: state.facturas.filter((f) => f.estado === "pendiente").length,
       estimados: state.estimados.filter((e) => e.estado === "pendiente").length,
       llamadas: (state.llamadas || []).length,
+      turnos: (state.turnos || []).filter((tu) => tu.estado === "esperando").length,
       "registro-diario": state.registroDiarioSinGuardarAyer || 0,
     };
     QUICK_ACCESS.forEach((q) => {
@@ -7882,6 +7992,9 @@
     });
     document.getElementById("form-llamada-manual").addEventListener("submit", guardarLlamadaManual);
 
+    document.getElementById("btn-imprimir-qr-turno").addEventListener("click", imprimirQrTurno);
+    document.getElementById("btn-abrir-pantalla-turnos").addEventListener("click", abrirPantallaTurnos);
+
     document.getElementById("btn-nuevo-gasto").addEventListener("click", () => openGastoModal(null));
     document.getElementById("form-gasto").addEventListener("submit", conSpinnerAlGuardar(saveGasto));
     document.getElementById("btn-eliminar-gasto").addEventListener("click", () => deleteGastoRow(document.getElementById("gasto-id").value));
@@ -8132,6 +8245,8 @@
     setInterval(() => cargarReportesTrabajoPendientes(true), 25000);
     await checkRegistroDiarioSinGuardar();
     await refreshLlamadas();
+    await refreshTurnos();
+    setInterval(refreshTurnos, 15000);
     renderDashboard();
     verificarConexionReal();
 

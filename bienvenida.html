@@ -263,11 +263,110 @@
 
   /* franja de promoción */
   .promo-banner{background:var(--accent-dark);color:#fff;text-align:center;font-size:.85rem;font-weight:600;padding:.55rem 1rem;}
+
+  /* aparecer al hacer scroll */
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease;}
+  .reveal.visible{opacity:1;transform:none;}
+  @media (prefers-reduced-motion:reduce){ .reveal{opacity:1;transform:none;transition:none;} }
+
+  /* parallax de las manchas del encabezado */
+  .hero::before{transform:translate(calc(var(--px,0) * 1px),calc(var(--py,0) * 1px));}
+  .hero::after{transform:translate(calc(var(--px,0) * -1px),calc(var(--py,0) * -1px));}
+
+  /* ícono con más vida al pasar el mouse */
+  .icon-badge{transition:transform .25s ease,box-shadow .25s ease;}
+  .servicio-card:hover .icon-badge{transform:scale(1.12) rotate(-4deg);box-shadow:0 0 0 6px rgba(213,96,26,.15);}
+  .porque-item:hover .icon-badge{transform:scale(1.1);box-shadow:0 0 0 5px rgba(213,96,26,.15);}
+
+  /* efecto de onda al hacer clic en un botón */
+  .btn{position:relative;overflow:hidden;}
+  .btn .ripple{position:absolute;border-radius:50%;background:currentColor;opacity:.25;transform:scale(0);animation:ripple .6s ease-out;pointer-events:none;}
+  @keyframes ripple{to{transform:scale(4);opacity:0;}}
+
+  /* tarjetas de servicio: más profundidad */
+  .servicio-card{box-shadow:0 4px 14px rgba(20,24,32,.08);}
+  .servicio-card:hover{box-shadow:0 18px 34px rgba(20,24,32,.16);transform:translateY(-6px);}
+
+  /* insignia "más pedido" */
+  .servicio-card{position:relative;}
+  .badge-popular{
+    position:absolute;top:-.6rem;right:.9rem;background:var(--accent);color:#fff;
+    font-size:.65rem;font-weight:700;padding:.25rem .6rem;border-radius:999px;
+    box-shadow:0 3px 8px rgba(213,96,26,.4);letter-spacing:.02em;
+  }
+
+  /* links con subrayado animado */
+  .info-lista a{position:relative;text-decoration:none;}
+  .info-lista a::after{content:"";position:absolute;left:0;bottom:-2px;width:0;height:1px;background:currentColor;transition:width .25s ease;}
+  .info-lista a:hover::after{width:100%;}
+
+  /* barra flotante de llamada al hacer scroll */
+  .barra-cta-flotante{
+    position:fixed;top:0;left:0;right:0;z-index:55;
+    background:#14171c;color:#fff;padding:.6rem 1.5rem;
+    display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap;
+    transform:translateY(-100%);transition:transform .3s ease;box-shadow:0 4px 14px rgba(0,0,0,.2);
+  }
+  .barra-cta-flotante.visible{transform:translateY(0);}
+  .barra-cta-flotante span{font-size:.85rem;color:#cbd2de;}
+  .barra-cta-flotante .btn{padding:.5rem 1rem;font-size:.85rem;}
+  @media (max-width:36rem){ .barra-cta-flotante span{display:none;} }
+
+  /* casillero de fotos: zoom suave + abrir en grande */
+  .foto-placeholder img,.hero-photo img{transition:transform .3s ease;cursor:zoom-in;}
+  .foto-placeholder:has(img):hover img,.hero-photo:has(img):hover img{transform:scale(1.06);}
+  .lightbox{
+    position:fixed;inset:0;background:rgba(10,12,16,.92);z-index:200;
+    display:flex;align-items:center;justify-content:center;padding:2.5rem;
+  }
+  .lightbox[hidden]{display:none;}
+  .lightbox img{max-width:100%;max-height:100%;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.5);}
+  .lightbox-cerrar{
+    position:absolute;top:1rem;right:1.25rem;background:none;border:none;color:#fff;
+    font-size:2.2rem;line-height:1;cursor:pointer;
+  }
+
+  /* comparador antes/después */
+  .comparador{
+    position:relative;aspect-ratio:4/3;border-radius:10px;overflow:hidden;
+    user-select:none;touch-action:none;box-shadow:0 1px 4px rgba(0,0,0,.1);
+  }
+  .comparador img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+  .comparador-antes{clip-path:inset(0 50% 0 0);}
+  .comparador-handle{
+    position:absolute;top:0;bottom:0;left:50%;width:3px;background:#fff;
+    cursor:ew-resize;transform:translateX(-50%);box-shadow:0 0 6px rgba(0,0,0,.4);
+  }
+  .comparador-handle span{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:2.2rem;height:2.2rem;background:#fff;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--text);
+    box-shadow:0 2px 8px rgba(0,0,0,.3);
+  }
+  .comparador-etiqueta{
+    position:absolute;top:.6rem;background:rgba(0,0,0,.55);color:#fff;font-size:.68rem;font-weight:700;
+    padding:.25rem .6rem;border-radius:999px;letter-spacing:.03em;text-transform:uppercase;
+  }
+  .comparador-etiqueta-antes{left:.6rem;}
+  .comparador-etiqueta-despues{right:.6rem;}
+
+  /* carrusel de reseñas reales */
+  .resenas-carrusel{max-width:34rem;margin:0 auto;text-align:center;}
+  .resena-texto{font-size:1.05rem;color:var(--text);font-style:italic;margin:0 0 .6rem;min-height:3.6rem;}
+  .resena-autor{font-size:.85rem;color:var(--text-dim);font-weight:600;margin:0 0 1rem;}
+  .resenas-puntos{display:flex;gap:.4rem;justify-content:center;}
+  .resena-punto{width:.5rem;height:.5rem;border-radius:50%;border:none;background:var(--border);cursor:pointer;padding:0;}
+  .resena-punto.is-active{background:var(--accent);}
 </style>
 </head>
 <body>
 
   <div class="promo-banner" id="promo-banner" data-en="Space for this month's promotion — replace this text or remove this bar if you won't use it.">Espacio para tu promoción del mes — reemplazá este texto o borrá esta franja si no la vas a usar.</div>
+
+  <div class="barra-cta-flotante" id="barra-cta-flotante">
+    <span data-en="Need your car checked? We can help today.">¿Tu carro necesita revisión? Te atendemos hoy mismo.</span>
+    <a class="btn btn-primary" id="cta-llamar-flotante" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg> <span data-en="Call now">Llamar ahora</span></a>
+  </div>
 
   <header class="site-header">
     <div class="wrap">
@@ -301,7 +400,7 @@
   </section>
 
   <section>
-    <div class="wrap">
+    <div class="wrap reveal">
       <h2 data-en="How it works">Cómo funciona</h2>
       <p class="section-sub" data-en="Three simple steps.">Tres pasos, sin complicaciones.</p>
       <div class="pasos-grid">
@@ -313,7 +412,7 @@
   </section>
 
   <section>
-    <div class="wrap sobre-nosotros-grid">
+    <div class="wrap sobre-nosotros-grid reveal">
       <div class="foto-placeholder" id="foto-equipo-contenedor" style="aspect-ratio:1;">
         <span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
         <span data-en="Team photo pending<br>(upload a real photo here)">Foto del equipo pendiente<br>(sube una foto real aquí)</span>
@@ -326,13 +425,13 @@
   </section>
 
   <section class="franja-color">
-    <div class="wrap">
+    <div class="wrap reveal">
       <h2 data-en="Our services">Nuestros servicios</h2>
       <p class="section-sub" data-en="We work on mufflers and exhaust systems, but also general car maintenance.">Trabajamos en mofles y escapes, pero también en el mantenimiento general de tu carro.</p>
       <div class="servicios-grid">
-        <div class="servicio-card"><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 1 1-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.2 2.2-2-2z"/></svg></div><h3 data-en="Mufflers &amp; Exhaust">Mofles y escapes</h3><p data-en="Repair and installation of complete exhaust systems.">Reparación e instalación de sistemas de escape completos.</p></div>
+        <div class="servicio-card"><span class="badge-popular" data-en="Most requested">Más pedido</span><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 1 1-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.2 2.2-2-2z"/></svg></div><h3 data-en="Mufflers &amp; Exhaust">Mofles y escapes</h3><p data-en="Repair and installation of complete exhaust systems.">Reparación e instalación de sistemas de escape completos.</p></div>
         <div class="servicio-card"><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></div><h3 data-en="Brakes">Frenos</h3><p data-en="Pads, rotors, and full brake system inspection.">Pastillas, discos y revisión completa del sistema de frenado.</p></div>
-        <div class="servicio-card"><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s6 7.2 6 11.5a6 6 0 0 1-12 0C6 9.2 12 2 12 2z"/></svg></div><h3 data-en="Oil Change">Cambio de aceite</h3><p data-en="Preventive maintenance so your car lasts longer.">Mantenimiento preventivo para que tu carro dure más.</p></div>
+        <div class="servicio-card"><span class="badge-popular" data-en="Popular">Popular</span><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s6 7.2 6 11.5a6 6 0 0 1-12 0C6 9.2 12 2 12 2z"/></svg></div><h3 data-en="Oil Change">Cambio de aceite</h3><p data-en="Preventive maintenance so your car lasts longer.">Mantenimiento preventivo para que tu carro dure más.</p></div>
         <div class="servicio-card"><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg></div><h3 data-en="Diagnostics">Diagnóstico</h3><p data-en="We check the engine light and other warning lights.">Revisamos el check engine y otras luces de alerta.</p></div>
         <div class="servicio-card"><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13l1.5-4.5A2 2 0 0 1 6.4 7h11.2a2 2 0 0 1 1.9 1.5L21 13"/><path d="M3 13h18v4a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H6v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/></svg></div><h3 data-en="Suspension">Suspensión</h3><p data-en="Shocks and suspension. If your car feels off while driving, bring it in for a check.">Amortiguadores y suspensión. Si notas que el carro maneja raro, lo más recomendable es traerlo para revisarlo.</p></div>
         <div class="servicio-card"><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg></div><h3 data-en="State Inspection">Inspección estatal</h3><p data-en="We help your car pass Massachusetts state inspection.">Te ayudamos a que tu carro pase la inspección de Massachusetts.</p></div>
@@ -344,14 +443,23 @@
   </section>
 
   <section>
-    <div class="wrap">
+    <div class="wrap reveal">
       <h2 data-en="Chassis, brakes &amp; rust-proof coating">Chasis, frenos y pintura anticorrosiva</h2>
       <p class="section-sub" data-en="We repair rusted or rotted chassis, the full brake system, and paint underneath your car to protect it from rust.">Reparamos el chasis cuando está oxidado o podrido por debajo, el sistema de frenos completo, y pintamos por debajo del carro para protegerlo del óxido.</p>
       <div class="galeria-grid">
         <div class="foto-placeholder" id="foto-chasis-contenedor"><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span data-en="Chassis photo">Foto de chasis</span></div>
         <div class="foto-placeholder" id="foto-frenos-contenedor"><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span data-en="Brake photo">Foto de frenos</span></div>
         <div class="foto-placeholder" id="foto-pintura-contenedor"><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span data-en="Paint photo">Foto de pintura</span></div>
-        <div class="foto-placeholder" id="foto-antes-despues-contenedor"><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span data-en="Before / after">Antes / después</span></div>
+        <div>
+          <div class="foto-placeholder" id="foto-antes-despues-contenedor"><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span data-en="Before / after">Antes / después</span></div>
+          <div class="comparador" id="comparador-antes-despues" hidden>
+            <img class="comparador-despues" id="foto-despues-img" alt="Después" />
+            <img class="comparador-antes" id="foto-antes-img" alt="Antes" />
+            <span class="comparador-etiqueta comparador-etiqueta-antes" data-en="Before">Antes</span>
+            <span class="comparador-etiqueta comparador-etiqueta-despues" data-en="After">Después</span>
+            <div class="comparador-handle" id="comparador-handle"><span>⇔</span></div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -361,11 +469,14 @@
       <div class="escape-ilustracion">
         <img src="fotos-bienvenida/escape-diagrama.jpg" alt="Diagrama del sistema de escape automotriz completo: múltiple de escape, flex pipa, catalizador, resonador, muffler y punta de escape" loading="lazy" />
       </div>
+      <div class="escape-ilustracion" style="margin-top:1.5rem;">
+        <img src="fotos-bienvenida/escape-doble-diagrama.jpg" alt="Diagrama de un sistema de escape doble: múltiples de escape, catalizadores, tubos delanteros, x-pipe, resonadores, mufflers y puntas de escape" loading="lazy" />
+      </div>
       <p class="section-sub" style="margin-top:1.25rem;" data-en="Any of these parts can be damaged by rust or impact — if you hear a strange noise under your car, it's time to bring it in.">Cualquiera de estas partes se puede dañar por óxido o golpes — si escuchas un ruido raro debajo del carro, es momento de traerlo a revisión.</p>
     </div>
   </section>
 
-  <section class="muffler-benefits-chart">
+  <section class="muffler-benefits-chart reveal">
     <div class="chart-header">
       <span class="chart-badge">GIL MUFFLER</span>
       <h2 data-en="Benefits of fixing your muffler">Beneficios de arreglar tu muffler</h2>
@@ -423,7 +534,7 @@
   </section>
 
   <section class="porque-bg">
-    <div class="wrap">
+    <div class="wrap reveal">
       <h2 data-en="Why choose us?">¿Por qué elegirnos?</h2>
       <div class="porque-grid">
         <div class="porque-item"><span class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5z"/><path d="M9 12l2 2 4-4"/></svg></span><div><h3 data-en="Work warranty">Garantía en el trabajo</h3><p data-en="Parts and labor backed by our guarantee.">Piezas y mano de obra respaldadas.</p></div></div>
@@ -435,7 +546,7 @@
   </section>
 
   <section>
-    <div class="wrap">
+    <div class="wrap reveal">
       <h2 data-en="Brands &amp; certifications">Marcas y certificaciones</h2>
       <p class="section-sub" data-en="Space for parts brand logos or certifications you have — send them to me and I'll add them here.">Espacio para logos de marcas de piezas o certificaciones que uses — mandámelas y las agrego acá.</p>
       <div class="zona-chips">
@@ -446,7 +557,7 @@
   </section>
 
   <section>
-    <div class="wrap">
+    <div class="wrap reveal">
       <h2 data-en="Our work">Nuestro trabajo</h2>
       <p class="section-sub" data-en="Real photos of the shop and finished jobs (coming soon).">Fotos reales del taller y trabajos terminados (pendientes de subir).</p>
       <div class="galeria-grid">
@@ -459,9 +570,19 @@
   </section>
 
   <section class="porque-bg">
-    <div class="wrap">
+    <div class="wrap reveal">
       <h2 data-en="What our customers say">Lo que dicen nuestros clientes</h2>
-      <div class="reseñas-nota" id="reseñas-nota" data-en="Your real customer reviews will go here once you have them — none have been made up yet. Once you have your Google Business profile link, we'll connect a &quot;Leave us a review&quot; button here.">
+      <!-- Reseñas reales de Google, en vivo, vía Trustindex (widget gratis conectado a la cuenta de Google Business de Gil's Muffler). Se actualizan solas cuando entra una reseña nueva. -->
+      <div class="trustindex-resenas-widget">
+        <script defer async src='https://cdn.trustindex.io/loader.js?3bc348079e2481592316af43a5f'></script>
+      </div>
+      <!-- Sistema manual anterior: queda en el código apagado (hidden) como respaldo por si Trustindex deja de estar disponible. No borrar. -->
+      <div class="resenas-carrusel" id="resenas-carrusel" hidden>
+        <p class="resena-texto" id="resena-texto"></p>
+        <p class="resena-autor" id="resena-autor"></p>
+        <div class="resenas-puntos" id="resenas-puntos"></div>
+      </div>
+      <div class="reseñas-nota" id="reseñas-nota" hidden data-en="Your real customer reviews will go here once you have them — none have been made up yet. Once you have your Google Business profile link, we'll connect a &quot;Leave us a review&quot; button here.">
         Aquí van las reseñas reales de tus clientes cuando las tengas — no se inventó ninguna todavía. Cuando tengas el link de tu perfil de Google Business, lo conectamos aquí con un botón de "Déjanos tu reseña".
       </div>
       <a href="#" id="link-dejar-resena" class="btn btn-primary" target="_blank" rel="noopener" hidden style="margin:1.25rem auto 0;width:max-content;">
@@ -471,7 +592,7 @@
   </section>
 
   <section class="franja-color">
-    <div class="wrap">
+    <div class="wrap reveal">
       <h2 data-en="Service area">Zona que atendemos</h2>
       <p class="section-sub" data-en="We're based in Lawrence, MA — and also welcome customers from these nearby towns.">Estamos en Lawrence, MA — y también recibimos clientes de estos pueblos cercanos.</p>
       <div class="zona-chips">
@@ -486,7 +607,7 @@
   </section>
 
   <section>
-    <div class="wrap">
+    <div class="wrap reveal">
       <h2 data-en="Frequently asked questions">Preguntas frecuentes</h2>
       <div class="faq-list">
         <details class="faq-item">
@@ -561,6 +682,11 @@
   <a class="wa-flotante" id="cta-whatsapp-flotante" href="#" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></a>
   <button type="button" class="subir-arriba" id="btn-subir-arriba" aria-label="Volver arriba"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 
+  <div class="lightbox" id="lightbox" hidden>
+    <button type="button" class="lightbox-cerrar" id="lightbox-cerrar" aria-label="Cerrar">&times;</button>
+    <img id="lightbox-img" src="" alt="" />
+  </div>
+
   <script src="config.local.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script>
@@ -581,12 +707,158 @@
       const img = document.createElement("img");
       img.src = url;
       img.loading = "lazy";
+      img.className = "foto-lightbox-trigger";
       img.style.width = "100%";
       img.style.height = "100%";
       img.style.objectFit = "cover";
       img.style.borderRadius = "inherit";
       contenedor.appendChild(img);
     }
+
+    function initReveal() {
+      const elementos = document.querySelectorAll(".reveal");
+      if (!("IntersectionObserver" in window)) {
+        elementos.forEach((el) => el.classList.add("visible"));
+        return;
+      }
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("visible");
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.15 }
+      );
+      elementos.forEach((el) => observer.observe(el));
+    }
+
+    function initParallaxHero() {
+      const hero = document.querySelector(".hero");
+      if (!hero || window.matchMedia("(pointer: coarse)").matches) return;
+      hero.addEventListener("mousemove", (e) => {
+        const rect = hero.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width - 0.5;
+        const y = (e.clientY - rect.top) / rect.height - 0.5;
+        hero.style.setProperty("--px", (x * 20).toFixed(1));
+        hero.style.setProperty("--py", (y * 20).toFixed(1));
+      });
+    }
+
+    function initRipple() {
+      document.querySelectorAll(".btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          const rect = btn.getBoundingClientRect();
+          const size = Math.max(rect.width, rect.height);
+          const ripple = document.createElement("span");
+          ripple.className = "ripple";
+          ripple.style.width = ripple.style.height = size + "px";
+          ripple.style.left = e.clientX - rect.left - size / 2 + "px";
+          ripple.style.top = e.clientY - rect.top - size / 2 + "px";
+          btn.appendChild(ripple);
+          ripple.addEventListener("animationend", () => ripple.remove());
+        });
+      });
+    }
+
+    function initLightbox() {
+      const lightbox = document.getElementById("lightbox");
+      const lightboxImg = document.getElementById("lightbox-img");
+      document.addEventListener("click", (e) => {
+        if (!e.target.classList.contains("foto-lightbox-trigger")) return;
+        lightboxImg.src = e.target.src;
+        lightbox.hidden = false;
+      });
+      document.getElementById("lightbox-cerrar").addEventListener("click", () => (lightbox.hidden = true));
+      lightbox.addEventListener("click", (e) => {
+        if (e.target === lightbox) lightbox.hidden = true;
+      });
+    }
+
+    function initBarraCtaFlotante() {
+      const barra = document.getElementById("barra-cta-flotante");
+      const hero = document.querySelector(".hero");
+      if (!barra || !hero) return;
+      window.addEventListener("scroll", () => {
+        barra.classList.toggle("visible", window.scrollY > hero.offsetHeight);
+      });
+    }
+
+    function initComparador() {
+      const comparador = document.getElementById("comparador-antes-despues");
+      const handle = document.getElementById("comparador-handle");
+      const antesImg = document.getElementById("foto-antes-img");
+      if (!comparador || !handle || !antesImg) return;
+      let arrastrando = false;
+
+      function mover(clientX) {
+        const rect = comparador.getBoundingClientRect();
+        let pct = ((clientX - rect.left) / rect.width) * 100;
+        pct = Math.max(0, Math.min(100, pct));
+        antesImg.style.clipPath = "inset(0 " + (100 - pct) + "% 0 0)";
+        handle.style.left = pct + "%";
+      }
+
+      handle.addEventListener("pointerdown", (e) => {
+        arrastrando = true;
+        e.preventDefault();
+      });
+      window.addEventListener("pointerup", () => (arrastrando = false));
+      window.addEventListener("pointermove", (e) => {
+        if (arrastrando) mover(e.clientX);
+      });
+      comparador.addEventListener("click", (e) => mover(e.clientX));
+    }
+
+    function mostrarComparadorAntesDespues(cfg) {
+      const antesUrl = cfg && cfg.web_foto_antes_url;
+      const despuesUrl = cfg && cfg.web_foto_despues_url;
+      if (!antesUrl || !despuesUrl) return;
+      document.getElementById("foto-antes-despues-contenedor").hidden = true;
+      document.getElementById("foto-antes-img").src = antesUrl;
+      document.getElementById("foto-despues-img").src = despuesUrl;
+      document.getElementById("comparador-antes-despues").hidden = false;
+    }
+
+    function mostrarResenasCarrusel(cfg) {
+      const c = cfg || {};
+      const resenas = [
+        { texto: c.web_resena_1_texto, autor: c.web_resena_1_autor },
+        { texto: c.web_resena_2_texto, autor: c.web_resena_2_autor },
+        { texto: c.web_resena_3_texto, autor: c.web_resena_3_autor },
+      ].filter((r) => r.texto && r.texto.trim());
+      if (!resenas.length) return;
+
+      document.getElementById("reseñas-nota").hidden = true;
+      const carrusel = document.getElementById("resenas-carrusel");
+      carrusel.hidden = false;
+      const puntos = document.getElementById("resenas-puntos");
+      puntos.innerHTML = resenas
+        .map((_, i) => '<button type="button" class="resena-punto' + (i === 0 ? " is-active" : "") + '" data-i="' + i + '" aria-label="Reseña ' + (i + 1) + '"></button>')
+        .join("");
+
+      let actual = 0;
+      function mostrar(i) {
+        actual = i;
+        document.getElementById("resena-texto").textContent = "“" + resenas[i].texto.trim() + "”";
+        document.getElementById("resena-autor").textContent = "— " + (resenas[i].autor && resenas[i].autor.trim() ? resenas[i].autor.trim() : "Cliente");
+        puntos.querySelectorAll(".resena-punto").forEach((p, pi) => p.classList.toggle("is-active", pi === i));
+      }
+      mostrar(0);
+      puntos.querySelectorAll(".resena-punto").forEach((p) => p.addEventListener("click", () => mostrar(Number(p.dataset.i))));
+      if (resenas.length > 1) {
+        setInterval(() => mostrar((actual + 1) % resenas.length), 6000);
+      }
+    }
+
+    initReveal();
+    initParallaxHero();
+    initRipple();
+    initLightbox();
+    initBarraCtaFlotante();
+    initComparador();
 
     function linkWhatsapp(telefono, mensaje) {
       const digits = soloDigitos(telefono);
@@ -661,7 +933,7 @@
 
       if (telefono) {
         const telLink = "tel:+1" + soloDigitos(telefono);
-        ["cta-llamar-header", "cta-llamar-hero"].forEach((id) => (document.getElementById(id).href = telLink));
+        ["cta-llamar-header", "cta-llamar-hero", "cta-llamar-flotante"].forEach((id) => (document.getElementById(id).href = telLink));
         const infoTel = document.getElementById("info-telefono");
         infoTel.href = telLink;
         infoTel.textContent = telefono;
@@ -684,11 +956,12 @@
       mostrarFotoWeb("foto-chasis-contenedor", cfg && cfg.web_foto_chasis_url);
       mostrarFotoWeb("foto-frenos-contenedor", cfg && cfg.web_foto_frenos_url);
       mostrarFotoWeb("foto-pintura-contenedor", cfg && cfg.web_foto_pintura_url);
-      mostrarFotoWeb("foto-antes-despues-contenedor", cfg && cfg.web_foto_antes_despues_url);
       mostrarFotoWeb("foto-trabajo-1-contenedor", cfg && cfg.web_foto_trabajo_1_url);
       mostrarFotoWeb("foto-trabajo-2-contenedor", cfg && cfg.web_foto_trabajo_2_url);
       mostrarFotoWeb("foto-trabajo-3-contenedor", cfg && cfg.web_foto_trabajo_3_url);
       mostrarFotoWeb("foto-trabajo-4-contenedor", cfg && cfg.web_foto_trabajo_4_url);
+      mostrarComparadorAntesDespues(cfg);
+      mostrarResenasCarrusel(cfg);
 
       if (cfg && cfg.web_sobre_nosotros_texto) {
         document.getElementById("sobre-nosotros-texto").textContent = cfg.web_sobre_nosotros_texto;

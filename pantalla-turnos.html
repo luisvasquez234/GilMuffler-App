@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<meta charset="utf-8" />
+<link rel="icon" type="image/png" href="logo-muffler.png" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title data-i18n="pantalla_turnos_titulo">Turnos</title>
+<style>
+  html,body{height:100%;margin:0;}
+  body{font-family:"Inter",Arial,Helvetica,sans-serif;background:#1f2430;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;box-sizing:border-box;}
+  .header{display:flex;align-items:center;gap:.9rem;margin-bottom:2.5rem;}
+  .header img{height:3.5rem;width:3.5rem;object-fit:cover;object-position:68% 55%;border-radius:10px;}
+  .header h1{font-size:1.6rem;margin:0;color:#f3a05a;}
+  .atendiendo-label{font-size:1.4rem;color:#9aa2b2;text-transform:uppercase;letter-spacing:.08em;margin:0;}
+  .atendiendo-numero{font-size:14rem;font-weight:800;line-height:1;margin:.5rem 0;color:#d5601a;}
+  .atendiendo-nombre{font-size:2.4rem;font-weight:600;margin:0 0 3rem;}
+  .proximos-titulo{font-size:1.1rem;color:#9aa2b2;text-transform:uppercase;letter-spacing:.08em;margin:0 0 1rem;}
+  .proximos-lista{display:flex;gap:1.5rem;flex-wrap:wrap;justify-content:center;max-width:60rem;}
+  .proximo-item{background:#2a3040;border-radius:12px;padding:1rem 1.6rem;font-size:1.6rem;font-weight:700;}
+  .proximo-item span{display:block;font-size:.95rem;font-weight:400;color:#9aa2b2;margin-top:.2rem;}
+  .vacio{font-size:2rem;color:#9aa2b2;margin-top:1rem;}
+</style>
+</head>
+<body>
+  <div class="header">
+    <img id="logo-img" src="logo-muffler.png" alt="" />
+    <h1 id="nombre-negocio">Gil Muffler</h1>
+  </div>
+
+  <div id="contenido-turnos">
+    <p class="atendiendo-label" data-i18n="pantalla_turnos_atendiendo">Atendiendo ahora</p>
+    <p class="atendiendo-numero" id="atendiendo-numero">—</p>
+    <p class="atendiendo-nombre" id="atendiendo-nombre"></p>
+
+    <div id="proximos-bloque">
+      <p class="proximos-titulo" data-i18n="pantalla_turnos_proximos">Próximos</p>
+      <div class="proximos-lista" id="proximos-lista"></div>
+    </div>
+
+    <p class="vacio" id="vacio-msg" data-i18n="pantalla_turnos_nadie" hidden>No hay nadie esperando</p>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="config.local.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    function escapeHtml(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    const sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+
+    async function cargarConfigNegocio() {
+      const { data: cfg } = await sb.from("configuracion_negocio").select("*").eq("id", 1).maybeSingle();
+      const nombreNegocio = (cfg && cfg.nombre_negocio) || "Gil Muffler";
+      document.getElementById("nombre-negocio").textContent = nombreNegocio;
+      if (cfg && cfg.logo_url) document.getElementById("logo-img").src = cfg.logo_url;
+    }
+
+    async function actualizarTurnos() {
+      const { data, error } = await sb.from("turnos").select("*").eq("estado", "esperando").order("numero", { ascending: true });
+      if (error || !data || !data.length) {
+        document.getElementById("atendiendo-numero").textContent = "—";
+        document.getElementById("atendiendo-nombre").textContent = "";
+        document.getElementById("proximos-bloque").hidden = true;
+        document.getElementById("vacio-msg").hidden = !!error;
+        return;
+      }
+
+      document.getElementById("vacio-msg").hidden = true;
+      const [primero, ...resto] = data;
+      document.getElementById("atendiendo-numero").textContent = primero.numero;
+      document.getElementById("atendiendo-nombre").textContent = primero.nombre;
+
+      const bloqueProximos = document.getElementById("proximos-bloque");
+      bloqueProximos.hidden = resto.length === 0;
+      document.getElementById("proximos-lista").innerHTML = resto
+        .map((tu) => "<div class='proximo-item'>" + escapeHtml(String(tu.numero)) + "<span>" + escapeHtml(tu.nombre) + "</span></div>")
+        .join("");
+    }
+
+    aplicarIdioma();
+    cargarConfigNegocio();
+    actualizarTurnos();
+    setInterval(actualizarTurnos, 5000);
+  </script>
+</body>
+</html>

@@ -179,6 +179,7 @@
         <button class="nav-item" data-view="facturas"><svg class="icon" aria-hidden="true"><use href="#icon-file-text"></use></svg><span data-i18n="nav_facturas">Facturas</span></button>
         <button class="nav-item" data-view="estimados"><svg class="icon" aria-hidden="true"><use href="#icon-clipboard"></use></svg><span data-i18n="nav_estimados">Presupuestos</span></button>
         <button class="nav-item" data-view="llamadas"><svg class="icon" aria-hidden="true"><use href="#icon-phone"></use></svg><span data-i18n="nav_llamadas">Por llamar</span></button>
+        <button class="nav-item" data-view="turnos"><svg class="icon" aria-hidden="true"><use href="#icon-hash"></use></svg><span data-i18n="nav_turnos">Fila de espera</span></button>
         <button class="nav-item" data-view="inventario"><svg class="icon" aria-hidden="true"><use href="#icon-box"></use></svg><span data-i18n="nav_inventario">Inventario</span></button>
       </div>
       <div class="nav-group">
@@ -864,6 +865,32 @@
             <label for="config-web-google-reviews" data-i18n="web_google_reviews_label">Link de tu perfil de Google Business (para el botón de reseñas)</label>
             <input type="url" id="config-web-google-reviews" placeholder="https://g.page/..." />
           </div>
+          <label class="field-label-standalone" data-i18n="web_resenas_titulo">Reseñas destacadas (opcional)</label>
+          <p class="view-sub" style="margin:0 0 .75rem;" data-i18n="web_resenas_subtitulo">Copiá y pegá 1 a 3 reseñas reales de tus clientes (de Google, Facebook, etc.) para mostrarlas en un carrusel</p>
+          <div class="field">
+            <label for="config-web-resena-1-texto" data-i18n="web_resena_texto_label">Reseña</label>
+            <textarea id="config-web-resena-1-texto" rows="2"></textarea>
+          </div>
+          <div class="field" style="max-width:16rem;">
+            <label for="config-web-resena-1-autor" data-i18n="web_resena_autor_label">Nombre del cliente</label>
+            <input type="text" id="config-web-resena-1-autor" />
+          </div>
+          <div class="field">
+            <label for="config-web-resena-2-texto" data-i18n="web_resena_texto_label">Reseña</label>
+            <textarea id="config-web-resena-2-texto" rows="2"></textarea>
+          </div>
+          <div class="field" style="max-width:16rem;">
+            <label for="config-web-resena-2-autor" data-i18n="web_resena_autor_label">Nombre del cliente</label>
+            <input type="text" id="config-web-resena-2-autor" />
+          </div>
+          <div class="field">
+            <label for="config-web-resena-3-texto" data-i18n="web_resena_texto_label">Reseña</label>
+            <textarea id="config-web-resena-3-texto" rows="2"></textarea>
+          </div>
+          <div class="field" style="max-width:16rem;">
+            <label for="config-web-resena-3-autor" data-i18n="web_resena_autor_label">Nombre del cliente</label>
+            <input type="text" id="config-web-resena-3-autor" />
+          </div>
           <footer class="modal-footer" style="padding-top:.5rem;">
             <span class="spacer"></span>
             <button type="submit" class="btn-primary" data-i18n="btn_guardar">Guardar</button>
@@ -945,6 +972,26 @@
           <tbody id="llamadas-tbody"></tbody>
         </table>
         <p id="llamadas-empty" class="empty-state" hidden data-i18n="llamadas_vacio">No hay llamadas pendientes ahora mismo.</p>
+      </div>
+    </section>
+
+    <section id="view-turnos" class="view" hidden>
+      <header class="view-header">
+        <div>
+          <h1 data-i18n="nav_turnos">Fila de espera</h1>
+          <p class="view-sub" data-i18n="turnos_subtitulo">Clientes esperando en el taller, por orden de llegada</p>
+        </div>
+        <div class="toolbar" style="margin:0;">
+          <button class="btn-ghost" id="btn-imprimir-qr-turno" type="button" data-i18n="btn_imprimir_qr_turno">Imprimir QR para tomar turno</button>
+          <button class="btn-ghost" id="btn-abrir-pantalla-turnos" type="button" data-i18n="btn_abrir_pantalla_turnos">Abrir pantalla de turnos</button>
+        </div>
+      </header>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th data-i18n="col_turno_numero">N°</th><th data-i18n="col_cliente">Cliente</th><th data-i18n="col_turno_hora">Hora</th><th></th></tr></thead>
+          <tbody id="turnos-tbody"></tbody>
+        </table>
+        <p id="turnos-empty" class="empty-state" hidden data-i18n="turnos_vacio">No hay nadie esperando ahora mismo.</p>
       </div>
     </section>
     <section id="view-cliente-detalle" class="view" hidden>

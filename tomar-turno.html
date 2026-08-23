@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="es">
+<head>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<meta charset="utf-8" />
+<link rel="icon" type="image/png" href="logo-muffler.png" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title data-i18n="tomar_turno_titulo">Toma tu turno</title>
+<style>
+  body{position:relative;font-family:"Inter",Arial,Helvetica,sans-serif;color:#1f2430;padding:1.5rem;max-width:26rem;margin:0 auto;background:#f6f7f9;}
+  .watermark{position:absolute;top:45%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);font-size:2.4rem;font-weight:800;color:rgba(0,0,0,0.055);white-space:nowrap;z-index:0;pointer-events:none;}
+  .card{position:relative;overflow:hidden;background:#fff;border-radius:12px;padding:1.75rem;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-top:2rem;}
+  .idioma-toggle{position:absolute;top:.9rem;right:.9rem;width:auto;margin:0;padding:.3rem .7rem;font-size:.75rem;font-weight:600;border-radius:999px;background:#f0f1f3;color:#68707e;border:1px solid #d7dade;cursor:pointer;}
+  .header{border-bottom:3px solid #d5601a;padding-bottom:1rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:.8rem;}
+  .header img{height:3rem;width:3rem;object-fit:cover;object-position:68% 55%;border-radius:8px;flex:none;}
+  .header h1{font-size:1.2rem;margin:0;color:#d5601a;}
+  p.sub{color:#68707e;font-size:.9rem;margin-top:0;}
+  label{display:block;font-size:.85rem;color:#68707e;margin-bottom:.3rem;margin-top:1rem;}
+  input{width:100%;padding:.7rem .8rem;border:1px solid #d7dade;border-radius:8px;font-size:1rem;box-sizing:border-box;}
+  button{width:100%;margin-top:1.5rem;padding:.9rem 1rem;border-radius:8px;border:none;background:#d5601a;color:#fff;font-size:1rem;font-weight:600;cursor:pointer;}
+  button:disabled{opacity:.6;cursor:default;}
+  .error-msg{color:#d6293b;font-size:.85rem;margin-top:.5rem;}
+  .turno-resultado{text-align:center;margin-top:1rem;}
+  .turno-numero{font-size:4rem;font-weight:800;color:#d5601a;line-height:1;margin:1rem 0;}
+  .turno-nota{font-weight:400;font-size:.9rem;margin:.5rem 0 0;color:#68707e;}
+</style>
+</head>
+<body>
+  <div class="card" id="contenido">
+    <button type="button" class="idioma-toggle" id="idioma-toggle" data-i18n-toggle-label>English</button>
+    <div class="watermark" id="watermark-texto"></div>
+    <div class="header">
+      <img id="logo-img" src="logo-muffler.png" alt="" />
+      <h1 id="nombre-negocio">Gil Muffler</h1>
+    </div>
+    <p class="sub" data-i18n="tomar_turno_sub">Escribe tu nombre y te damos tu número. Te atendemos por orden de llegada.</p>
+    <form id="form-turno">
+      <label for="nombre" data-i18n="tomar_turno_nombre_label">Tu nombre</label>
+      <input type="text" id="nombre" required autocomplete="name" />
+      <p class="error-msg" id="error-msg" hidden></p>
+      <button type="submit" id="btn-enviar" data-i18n="tomar_turno_boton">Tomar mi turno</button>
+    </form>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="config.local.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    let sb;
+
+    function escapeHtml(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    async function cargarConfigNegocio() {
+      sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+      const { data: cfg } = await sb.from("configuracion_negocio").select("*").eq("id", 1).maybeSingle();
+      const nombreNegocio = (cfg && cfg.nombre_negocio) || "Gil Muffler";
+      document.getElementById("nombre-negocio").textContent = nombreNegocio;
+      document.getElementById("watermark-texto").textContent = nombreNegocio;
+      if (cfg && cfg.logo_url) document.getElementById("logo-img").src = cfg.logo_url;
+    }
+
+    document.getElementById("form-turno").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const nombre = document.getElementById("nombre").value.trim();
+      const errorMsg = document.getElementById("error-msg");
+      errorMsg.hidden = true;
+      if (!nombre) return;
+
+      const btn = document.getElementById("btn-enviar");
+      btn.disabled = true;
+      btn.textContent = t("enviando");
+
+      const { data, error } = await sb.from("turnos").insert({ nombre }).select().single();
+
+      if (error) {
+        errorMsg.textContent = t("tomar_turno_error");
+        errorMsg.hidden = false;
+        btn.disabled = false;
+        btn.textContent = t("tomar_turno_boton");
+        return;
+      }
+
+      const nombreNegocio = escapeHtml(document.getElementById("nombre-negocio").textContent);
+      const logoSrc = escapeHtml(document.getElementById("logo-img").src);
+      document.getElementById("contenido").innerHTML =
+        '<div class="watermark">' + nombreNegocio + "</div>" +
+        '<div class="header"><img src="' + logoSrc + '" alt="" /><h1>' + nombreNegocio + "</h1></div>" +
+        '<div class="turno-resultado">' +
+        "<p>" + escapeHtml(t("tomar_turno_tu_numero")) + "</p>" +
+        '<p class="turno-numero">' + escapeHtml(String(data.numero)) + "</p>" +
+        '<p class="turno-nota">' + escapeHtml(t("tomar_turno_exito_texto")) + "</p>" +
+        "</div>";
+    });
+
+    document.getElementById("idioma-toggle").addEventListener("click", () => {
+      setIdioma(getIdioma() === "es" ? "en" : "es");
+    });
+    aplicarIdioma();
+    cargarConfigNegocio();
+  </script>
+</body>
+</html>
