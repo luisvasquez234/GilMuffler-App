@@ -5,9 +5,9 @@
   --text:#1f2430;
   --text-dim:#68707e;
   --text-faint:#626a78;
-  --accent:#d5601a;
-  --accent-hover:#b34d13;
-  --accent-soft:#fdefe3;
+  --accent:#5cb85c;
+  --accent-hover:#449d44;
+  --accent-soft:#eaf6ea;
   --success:#1a7f5a;
   --success-soft:#e6f4ee;
   --warning:#8a6208;
@@ -225,7 +225,7 @@ body.tiene-banner-offline .app{padding-top:2.7rem;}
 .sidebar{
   background:
     repeating-linear-gradient(135deg, rgba(255,255,255,.025) 0 2px, transparent 2px 26px),
-    linear-gradient(165deg, #1c2431 0%, #211d1f 55%, #2b1a12 100%);
+    linear-gradient(165deg, #2b2e33 0%, #35393f 55%, #24272b 100%);
   color:#cbd2de;
   display:flex;
   flex-direction:column;
@@ -1484,7 +1484,7 @@ tr.is-vencida td:first-child{box-shadow:inset 3px 0 0 var(--danger);}
   display:flex;
   align-items:center;
   gap:.6rem;
-  background:#1c2431;
+  background:#2b2e33;
   color:#fff;
   padding:.65rem .7rem .65rem 1rem;
   border-radius:8px;
