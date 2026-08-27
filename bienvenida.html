@@ -697,12 +697,9 @@
   <section>
     <div class="wrap reveal">
       <h2 data-en="Our work">Nuestro trabajo</h2>
-      <p class="section-sub" data-en="Real photos of the shop and finished jobs (coming soon).">Fotos reales del taller y trabajos terminados (pendientes de subir).</p>
-      <div class="galeria-grid">
-        <div class="foto-placeholder" id="foto-trabajo-1-contenedor"><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span data-en="Photo 1">Foto 1</span></div>
-        <div class="foto-placeholder" id="foto-trabajo-2-contenedor"><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span data-en="Photo 2">Foto 2</span></div>
-        <div class="foto-placeholder" id="foto-trabajo-3-contenedor"><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span data-en="Photo 3">Foto 3</span></div>
-        <div class="foto-placeholder" id="foto-trabajo-4-contenedor"><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span data-en="Photo 4">Foto 4</span></div>
+      <p class="section-sub" data-en="Real photos of the shop and finished jobs.">Fotos reales del taller y trabajos terminados.</p>
+      <div class="galeria-grid" id="galeria-trabajo-contenedor">
+        <div class="foto-placeholder" id="galeria-trabajo-vacia"><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span data-en="Photos coming soon">Fotos próximamente</span></div>
       </div>
     </div>
   </section>
@@ -880,6 +877,27 @@
       img.style.objectFit = "cover";
       img.style.borderRadius = "inherit";
       contenedor.appendChild(img);
+    }
+
+    async function cargarGaleriaTrabajo() {
+      const { data, error } = await sb.from("galeria_trabajo_fotos").select("url").order("orden").order("created_at");
+      if (error || !data || !data.length) return;
+      const contenedor = document.getElementById("galeria-trabajo-contenedor");
+      if (!contenedor) return;
+      contenedor.innerHTML = "";
+      data.forEach((foto) => {
+        const img = document.createElement("img");
+        img.src = foto.url;
+        img.loading = "lazy";
+        img.alt = "";
+        img.className = "foto-lightbox-trigger";
+        img.style.width = "100%";
+        img.style.aspectRatio = "4/3";
+        img.style.objectFit = "cover";
+        img.style.borderRadius = "10px";
+        img.style.cursor = "zoom-in";
+        contenedor.appendChild(img);
+      });
     }
 
     function initReveal() {
@@ -1131,14 +1149,11 @@
       mostrarFotoWeb("foto-chasis-contenedor", cfg && cfg.web_foto_chasis_url);
       mostrarFotoWeb("foto-frenos-contenedor", cfg && cfg.web_foto_frenos_url);
       mostrarFotoWeb("foto-pintura-contenedor", cfg && cfg.web_foto_pintura_url);
-      mostrarFotoWeb("foto-trabajo-1-contenedor", cfg && cfg.web_foto_trabajo_1_url);
-      mostrarFotoWeb("foto-trabajo-2-contenedor", cfg && cfg.web_foto_trabajo_2_url);
-      mostrarFotoWeb("foto-trabajo-3-contenedor", cfg && cfg.web_foto_trabajo_3_url);
-      mostrarFotoWeb("foto-trabajo-4-contenedor", cfg && cfg.web_foto_trabajo_4_url);
       mostrarComparadorAntesDespues(cfg);
       mostrarResenasCarrusel(cfg);
       mostrarFormularioReservas(cfg);
       mostrarStats(cfg);
+      cargarGaleriaTrabajo();
 
       if (cfg && cfg.web_sobre_nosotros_texto) {
         document.getElementById("sobre-nosotros-texto").textContent = cfg.web_sobre_nosotros_texto;

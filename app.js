@@ -7204,6 +7204,7 @@
     document.getElementById("config-web-resena-3-texto").value = c.web_resena_3_texto || "";
     document.getElementById("config-web-resena-3-autor").value = c.web_resena_3_autor || "";
     renderConfigWebFotos();
+    await refreshGaleriaTrabajo();
   }
 
   const CAMPOS_FOTOS_WEB = [
@@ -7214,10 +7215,6 @@
     { campo: "web_foto_pintura_url", label: t("web_foto_pintura_label") },
     { campo: "web_foto_antes_url", label: t("web_foto_antes_label") },
     { campo: "web_foto_despues_url", label: t("web_foto_despues_label") },
-    { campo: "web_foto_trabajo_1_url", label: t("web_foto_trabajo_1_label") },
-    { campo: "web_foto_trabajo_2_url", label: t("web_foto_trabajo_2_label") },
-    { campo: "web_foto_trabajo_3_url", label: t("web_foto_trabajo_3_label") },
-    { campo: "web_foto_trabajo_4_url", label: t("web_foto_trabajo_4_label") },
   ];
 
   function renderConfigWebFotos() {
@@ -7289,6 +7286,92 @@
     }
     showToast(t("web_foto_quitada"));
     await refreshConfigNegocio();
+  }
+
+  async function refreshGaleriaTrabajo() {
+    const { data, error } = await sb.from("galeria_trabajo_fotos").select("*").order("orden").order("created_at");
+    if (error) {
+      console.error(error);
+      state.galeriaTrabajo = [];
+    } else {
+      state.galeriaTrabajo = data || [];
+    }
+    renderConfigGaleriaTrabajo();
+  }
+
+  function renderConfigGaleriaTrabajo() {
+    const grid = document.getElementById("config-galeria-trabajo-grid");
+    if (!grid) return;
+    const fotos = state.galeriaTrabajo || [];
+    grid.innerHTML =
+      fotos
+        .map(
+          (foto) =>
+            '<div class="foto-web-card">' +
+            '<img src="' + escapeHtml(foto.url) + '" class="foto-web-preview" alt="" />' +
+            '<div class="foto-web-acciones">' +
+            '<button type="button" class="btn-ghost" data-galeria-quitar="' + foto.id + '">' + t("web_foto_quitar_btn") + "</button>" +
+            "</div></div>"
+        )
+        .join("") +
+      '<div class="foto-web-card">' +
+      '<div class="foto-web-vacia">' + (fotos.length ? "" : t("web_galeria_sin_fotos")) + "</div>" +
+      '<div class="foto-web-acciones">' +
+      '<label class="btn-ghost">' +
+      t("web_galeria_agregar_btn") +
+      '<input type="file" accept="image/*" id="input-galeria-agregar" hidden /></label>' +
+      "</div></div>";
+
+    document.getElementById("input-galeria-agregar").addEventListener("change", (e) => subirFotoGaleria(e.target.files[0]));
+    grid.querySelectorAll("[data-galeria-quitar]").forEach((btn) => {
+      btn.addEventListener("click", () => quitarFotoGaleria(btn.dataset.galeriaQuitar));
+    });
+  }
+
+  async function subirFotoGaleria(file) {
+    if (!file) return;
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const storagePath = "galeria-trabajo/" + crypto.randomUUID() + "." + ext;
+
+    showToast(t("web_foto_subiendo"));
+    const { error: uploadError } = await sb.storage.from("fotos-web-publica").upload(storagePath, file);
+    if (uploadError) {
+      console.error(uploadError);
+      showToast(t("web_foto_error_subir"), true);
+      return;
+    }
+
+    const { data: urlData } = sb.storage.from("fotos-web-publica").getPublicUrl(storagePath);
+    const siguienteOrden = (state.galeriaTrabajo || []).length;
+    const { error } = await sb.from("galeria_trabajo_fotos").insert({
+      url: urlData.publicUrl,
+      storage_path: storagePath,
+      orden: siguienteOrden,
+    });
+    if (error) {
+      console.error(error);
+      showToast(t("web_foto_error_guardar"), true);
+      return;
+    }
+
+    showToast(t("web_foto_subida"));
+    await refreshGaleriaTrabajo();
+  }
+
+  async function quitarFotoGaleria(id) {
+    if (!(await confirmDialog(t("web_confirm_quitar_foto"), { title: t("confirm_eliminar_foto_titulo") }))) return;
+    const foto = (state.galeriaTrabajo || []).find((f) => f.id === id);
+    const { error } = await sb.from("galeria_trabajo_fotos").delete().eq("id", id);
+    if (error) {
+      console.error(error);
+      showToast(t("web_foto_error_guardar"), true);
+      return;
+    }
+    if (foto && foto.storage_path) {
+      await sb.storage.from("fotos-web-publica").remove([foto.storage_path]);
+    }
+    showToast(t("web_foto_quitada"));
+    await refreshGaleriaTrabajo();
   }
 
   async function saveConfiguracionWeb(e) {
