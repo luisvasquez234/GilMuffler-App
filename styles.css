@@ -1095,6 +1095,13 @@ tr.is-vencida td:first-child{box-shadow:inset 3px 0 0 var(--danger);}
 .kpi-card.is-clickable:focus-visible{outline:2px solid var(--kpi-color, var(--accent));outline-offset:2px;}
 .kpi-label{font-size:.78rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;}
 .kpi-value{font-size:1.6rem;font-variant-numeric:tabular-nums;}
+
+.resumen-cliente-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));
+  gap:.9rem;
+  margin-bottom:1.25rem;
+}
 .kpi-icon{width:1.6rem;height:1.6rem;color:var(--kpi-color, var(--text-dim));opacity:.85;margin-bottom:.3rem;}
 @keyframes kpi-pop{from{opacity:0;transform:scale(.9) translateY(3px);}to{opacity:1;transform:scale(1) translateY(0);}}
 .kpi-value.is-updated{animation:kpi-pop .28s ease;}

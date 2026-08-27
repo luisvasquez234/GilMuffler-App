@@ -30,6 +30,15 @@
   .estado-msg{text-align:center;color:#68707e;padding:3rem 1rem;}
   .estado-msg-icon{width:2.25rem;height:2.25rem;color:#d5601a;display:block;margin:0 auto .6rem;}
   .idioma-toggle{position:absolute;top:.9rem;right:.9rem;width:auto;margin:0;padding:.3rem .7rem;font-size:.75rem;font-weight:600;border-radius:999px;background:#f0f1f3;color:#68707e;border:1px solid #d7dade;cursor:pointer;}
+  .encuesta{margin-top:1.5rem;padding:1rem;background:#fafbfc;border-radius:8px;text-align:center;}
+  .encuesta strong{display:block;margin-bottom:.6rem;font-size:.9rem;}
+  .estrellas{display:flex;justify-content:center;gap:.3rem;margin-bottom:.75rem;}
+  .estrella{background:none;border:none;font-size:1.8rem;line-height:1;cursor:pointer;color:#d7dade;padding:0;}
+  .estrella.is-activa{color:#f0ad4e;}
+  .encuesta textarea{width:100%;box-sizing:border-box;padding:.6rem .7rem;border:1px solid #d7dade;border-radius:8px;font-size:.85rem;font-family:inherit;resize:vertical;margin-bottom:.75rem;}
+  .btn-encuesta{background:#d5601a;color:#fff;border:none;border-radius:8px;padding:.65rem 1.4rem;font-size:.9rem;font-weight:600;cursor:pointer;}
+  .encuesta-error{color:#d6293b;font-size:.8rem;margin:.5rem 0 0;}
+  .encuesta-gracias{color:#1a7f5a;font-weight:600;}
 </style>
 </head>
 <body style="position:relative;">
@@ -113,6 +122,23 @@
         ? "<div class='notas'><strong>" + t("diagnostico_label") + "</strong><p>" + escapeHtml(orden.diagnostico).replace(/\n/g, "<br>") + "</p></div>"
         : "";
 
+      const ordenCompletada = orden.etapa === "completado" || orden.etapa === "facturado";
+      let encuestaHtml = "";
+      if (ordenCompletada && orden.encuesta_respondida) {
+        encuestaHtml = "<div class='encuesta encuesta-gracias'>" + t("encuesta_gracias") + "</div>";
+      } else if (ordenCompletada) {
+        encuestaHtml =
+          "<div class='encuesta' id='encuesta-bloque'>" +
+          "<strong>" + t("encuesta_titulo") + "</strong>" +
+          "<div class='estrellas' id='encuesta-estrellas'>" +
+          [1, 2, 3, 4, 5].map((n) => "<button type='button' class='estrella' data-valor='" + n + "'>★</button>").join("") +
+          "</div>" +
+          "<textarea id='encuesta-comentario' rows='2' placeholder='" + t("encuesta_comentario_placeholder") + "'></textarea>" +
+          "<button type='button' class='btn-encuesta' id='btn-encuesta-enviar'>" + t("encuesta_enviar_btn") + "</button>" +
+          "<p class='encuesta-error' id='encuesta-error' hidden></p>" +
+          "</div>";
+      }
+
       contenido.innerHTML =
         "<div class='header'><div class='header-brand'><img src='" +
         escapeHtml(logoSrc) +
@@ -132,7 +158,45 @@
         (orden.fecha_estimada ? " · " + t("estimado_prefijo") + escapeHtml(formatDate(orden.fecha_estimada)) : "") +
         "</div>" +
         pasosHtml +
-        notasHtml;
+        notasHtml +
+        encuestaHtml;
+
+      if (ordenCompletada && !orden.encuesta_respondida) {
+        let puntajeSeleccionado = 0;
+        const estrellas = Array.from(document.querySelectorAll("#encuesta-estrellas .estrella"));
+        function pintarEstrellas(hasta) {
+          estrellas.forEach((el) => el.classList.toggle("is-activa", Number(el.dataset.valor) <= hasta));
+        }
+        estrellas.forEach((el) => {
+          el.addEventListener("mouseenter", () => pintarEstrellas(Number(el.dataset.valor)));
+          el.addEventListener("mouseleave", () => pintarEstrellas(puntajeSeleccionado));
+          el.addEventListener("click", () => {
+            puntajeSeleccionado = Number(el.dataset.valor);
+            pintarEstrellas(puntajeSeleccionado);
+          });
+        });
+        document.getElementById("btn-encuesta-enviar").addEventListener("click", async () => {
+          const errorEl = document.getElementById("encuesta-error");
+          errorEl.hidden = true;
+          if (!puntajeSeleccionado) {
+            errorEl.textContent = t("encuesta_error_sin_estrellas");
+            errorEl.hidden = false;
+            return;
+          }
+          const comentario = document.getElementById("encuesta-comentario").value.trim();
+          const { error } = await sb.from("encuestas_satisfaccion").insert({
+            orden_id: id,
+            puntaje: puntajeSeleccionado,
+            comentario: comentario || null,
+          });
+          if (error) {
+            errorEl.textContent = t("encuesta_error_enviar");
+            errorEl.hidden = false;
+            return;
+          }
+          document.getElementById("encuesta-bloque").outerHTML = "<div class='encuesta encuesta-gracias'>" + t("encuesta_gracias") + "</div>";
+        });
+      }
     }
 
     document.getElementById("idioma-toggle").addEventListener("click", () => {

@@ -1885,6 +1885,35 @@
       (saldoPendiente > 0 ? "<div><span>" + t("saldo_pendiente_label") + "</span><strong class='saldo-pendiente'>" + money(saldoPendiente) + "</strong></div>" : "") +
       (cliente.etiquetas ? "<div><span>" + t("etiquetas_label_simple") + "</span>" + etiquetasPillsHtml(cliente.etiquetas) + "</div>" : "");
 
+    const numVehiculos = state.vehiculos.filter((v) => v.cliente_id === cliente.id).length;
+    const numTareasPendientes = state.tareas.filter((tarea) => tarea.cliente_id === cliente.id && !tarea.completada).length;
+    const fechasVisita = []
+      .concat(state.ordenes.filter((o) => o.cliente_id === cliente.id).map((o) => o.fecha_recepcion))
+      .concat(state.facturas.filter((f) => f.cliente_id === cliente.id).map((f) => f.fecha))
+      .filter(Boolean)
+      .sort();
+    const ultimaVisita = fechasVisita.length ? fechasVisita[fechasVisita.length - 1] : null;
+
+    document.getElementById("cliente-detalle-resumen").innerHTML = [
+      { label: t("resumen_total_facturado"), value: money(totalGastado), color: "#1a9c5a" },
+      { label: t("resumen_vehiculos"), value: String(numVehiculos), color: "#3987e5" },
+      { label: t("resumen_ultima_visita"), value: ultimaVisita ? formatDate(ultimaVisita) : t("resumen_sin_visitas"), color: "#9085e9" },
+      { label: t("resumen_tareas_pendientes"), value: String(numTareasPendientes), color: "#d5601a" },
+    ]
+      .map(
+        (stat) =>
+          '<div class="kpi-card" style="--kpi-color:' +
+          stat.color +
+          '"><span class="kpi-label">' +
+          escapeHtml(stat.label) +
+          '</span><strong class="kpi-value">' +
+          escapeHtml(stat.value) +
+          "</strong></div>"
+      )
+      .join("");
+
+    document.getElementById("btn-detalle-qr").onclick = () => imprimirQrCliente(cliente);
+
     renderTelefonosClienteDetalle(cliente.id);
     const telefonoForm = document.getElementById("cliente-detalle-telefono-form");
     const telefonoInput = document.getElementById("cliente-detalle-telefono-nuevo");
@@ -2979,6 +3008,20 @@
           " días</p>"
         : "";
 
+    let selloGarantiaHtml = "";
+    const diasGarantiaMax = Math.max(garantiaLaborDias, garantiaPiezasDias);
+    if (factura.fecha && diasGarantiaMax > 0) {
+      const fechaVence = new Date(new Date(factura.fecha + "T00:00:00").getTime() + diasGarantiaMax * 86400000);
+      if (new Date() <= fechaVence) {
+        selloGarantiaHtml =
+          "<div class='sello-garantia'>✓ " +
+          t("factura_garantia_vigente") +
+          "<br><span>" +
+          t("factura_garantia_vence", { fecha: formatDate(fechaVence.toISOString()) }) +
+          "</span></div>";
+      }
+    }
+
     let qrBlockHtml = "";
     if (mostrarQr) {
       const origenFactura = typeof LAN_ORIGIN !== "undefined" && LAN_ORIGIN ? LAN_ORIGIN : location.origin;
@@ -3009,6 +3052,8 @@
       ".titulo .num-factura{font-size:1.15rem;font-weight:700;color:#1f2430;}" +
       ".titulo .estado{display:block;margin-top:.3rem;font-size:1.4rem;font-weight:800;letter-spacing:.03em;}" +
       ".titulo .metodo-pago{display:block;margin-top:.2rem;font-size:.8rem;font-weight:600;color:#68707e;}" +
+      ".sello-garantia{width:fit-content;margin:.6rem auto 0;padding:.35rem .9rem;border:2px dashed #1a7f5a;border-radius:8px;color:#1a7f5a;font-weight:700;font-size:.85rem;text-align:center;transform:rotate(-2deg);}" +
+      ".sello-garantia span{display:block;font-weight:400;font-size:.7rem;margin-top:.1rem;}" +
       ".meta{display:flex;justify-content:space-between;gap:2rem;margin:1.3rem 0;padding-bottom:1rem;border-bottom:1px solid #e1e4e9;font-size:.85rem;}" +
       ".meta div{flex:1;line-height:1.7;}" +
       ".meta .label{color:#68707e;}" +
@@ -3058,6 +3103,7 @@
         ? "<span class='metodo-pago'>" + t("pagado_con", { metodo: escapeHtml(metodoPagoLabel(factura.metodo_pago)) }) + "</span>"
         : "") +
       "</div>" +
+      selloGarantiaHtml +
       "<div class='meta'><div><span class='label'>" + t("col_fecha") + ":</span> " +
       escapeHtml(formatDate(factura.fecha)) +
       "<br><span class='label'>" + t("col_cliente") + ":</span> " +
@@ -3318,6 +3364,34 @@
       "</body></html>";
 
     if (preview) { previewInNewTab(html); } else { openPrintWindow(html); }
+  }
+
+  function imprimirQrCliente(cliente) {
+    const base = (typeof LAN_ORIGIN !== "undefined" && LAN_ORIGIN ? LAN_ORIGIN : location.origin) + location.pathname.replace(/index\.html$/, "") + "index.html";
+    const url = base + "?cliente=" + encodeURIComponent(cliente.id);
+    const qr = qrcode(0, "M");
+    qr.addData(url);
+    qr.make();
+    const qrDataUrl = qr.createDataURL(8, 8);
+
+    const html =
+      "<!doctype html><html><head><meta charset='utf-8'><title>QR — " + escapeHtml(cliente.nombre) + "</title><style>" +
+      "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:3rem;text-align:center;}" +
+      "h1{font-size:1.3rem;margin-bottom:.5rem;}" +
+      "p{color:#68707e;margin-top:0;}" +
+      "img{margin-top:1.5rem;}" +
+      "@media print{body{padding:0;}@page{margin:.5in;}}" +
+      "</style></head><body>" +
+      "<h1>" +
+      escapeHtml(cliente.nombre) +
+      "</h1>" +
+      "<p>" + t("escanea_qr_cliente") + "</p>" +
+      "<img src='" +
+      qrDataUrl +
+      "' alt='QR' />" +
+      "</body></html>";
+
+    openPrintWindow(html);
   }
 
   function imprimirQrLlamame() {
@@ -5190,6 +5264,13 @@
     const nombreCreadorOrden = orden && orden.creado_por ? nombreEmpleado(orden.creado_por) : null;
     notaCreadorOrden.hidden = !nombreCreadorOrden;
     if (nombreCreadorOrden) notaCreadorOrden.textContent = "Creada por: " + nombreCreadorOrden;
+    const notaEncuestaOrden = document.getElementById("orden-encuesta-nota");
+    const encuestaOrden = orden ? (state.encuestas || []).find((e) => e.orden_id === orden.id) : null;
+    notaEncuestaOrden.hidden = !encuestaOrden;
+    if (encuestaOrden) {
+      notaEncuestaOrden.textContent =
+        "⭐".repeat(encuestaOrden.puntaje) + "☆".repeat(5 - encuestaOrden.puntaje) + (encuestaOrden.comentario ? " — " + encuestaOrden.comentario : "");
+    }
     const btnCopiarOrden = document.getElementById("btn-copiar-link-orden");
     btnCopiarOrden.hidden = !orden;
     btnCopiarOrden.onclick = () => {
@@ -5597,6 +5678,19 @@
   async function refreshTareas() {
     state.tareas = await fetchTareas();
     renderDashboard();
+  }
+
+  async function fetchEncuestas() {
+    return fetchConCache(
+      "encuestas",
+      () => sb.from("encuestas_satisfaccion").select("*").order("created_at", { ascending: false }),
+      [],
+      t("error_cargar_encuestas")
+    );
+  }
+
+  async function refreshEncuestas() {
+    state.encuestas = await fetchEncuestas();
   }
 
   // ---------------- llamadas pendientes (por llamar) ----------------
@@ -8368,6 +8462,7 @@
     await refreshTelefonos();
     await refreshOrdenes();
     await refreshTareas();
+    await refreshEncuestas();
     await refreshFacturas();
     await refreshEstimados();
     await refreshCitas();

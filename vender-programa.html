@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Software para talleres de reparación de carros</title>
+<meta name="description" content="Sistema de gestión para talleres: clientes, órdenes de servicio, facturación, reservas y página web pública. Listo para usar." />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --accent:#43965c;
+    --accent-dark:#2d6f43;
+    --text:#1f2430;
+    --text-dim:#68707e;
+    --bg:#f6f7f9;
+    --surface:#ffffff;
+    --border:#e1e4e9;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Inter",Arial,Helvetica,sans-serif;color:var(--text);line-height:1.5;background:var(--bg);}
+  .wrap{max-width:40rem;margin:0 auto;padding:0 1.5rem;}
+  a{color:var(--accent);}
+
+  .hero{background:linear-gradient(165deg,#1c2b24 0%,#20241f 55%,#16261c 100%);color:#fff;padding:3.5rem 0 3rem;text-align:center;}
+  .hero .marca{font-weight:800;font-size:1.05rem;letter-spacing:.02em;color:#8fe0a8;margin-bottom:1rem;}
+  .hero h1{font-size:1.9rem;line-height:1.25;margin:0 0 1rem;font-weight:800;}
+  .hero p{color:#cbd2de;font-size:1.02rem;max-width:30rem;margin:0 auto;}
+
+  section{padding:2.5rem 0;}
+  h2{font-size:1.25rem;margin:0 0 1rem;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;box-shadow:0 1px 3px rgba(20,24,32,.05);}
+  .incluye-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.85rem;}
+  .incluye-lista li{display:flex;gap:.7rem;align-items:flex-start;font-size:.95rem;}
+  .incluye-lista svg{flex:none;width:1.3rem;height:1.3rem;color:var(--accent);margin-top:.1rem;}
+
+  .precio-card{text-align:center;border:2px solid var(--accent);}
+  .precio-numero{font-size:2.6rem;font-weight:800;color:var(--accent-dark);}
+  .precio-numero span{font-size:1rem;font-weight:400;color:var(--text-dim);}
+  .precio-nota{color:var(--text-dim);font-size:.92rem;margin:.5rem 0 0;}
+
+  .paypal-espacio{margin-top:1.5rem;padding:1.25rem;border:2px dashed var(--border);border-radius:10px;text-align:center;color:var(--text-dim);font-size:.85rem;}
+
+  .btn-contacto{
+    display:inline-flex;align-items:center;gap:.5rem;margin-top:1.5rem;
+    background:var(--accent);color:#fff;padding:.8rem 1.5rem;border-radius:8px;
+    font-weight:600;text-decoration:none;font-size:.95rem;
+  }
+  .btn-contacto:hover{background:var(--accent-dark);}
+
+  footer{text-align:center;color:var(--text-dim);font-size:.8rem;padding:2rem 0;}
+</style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="wrap">
+      <div class="marca">SOFTWARE PARA TALLERES</div>
+      <h1>El mismo sistema que usa Gil's Muffler Inc, listo para tu taller</h1>
+      <p>Clientes, órdenes de servicio, facturación, reservas y tu propia página web — todo en un solo lugar, sin papeles.</p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <section>
+      <h2>Qué incluye</h2>
+      <div class="card">
+        <ul class="incluye-lista">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Clientes, vehículos, órdenes de servicio y facturación</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Reservas, registro diario, inventario y reportes</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Página web pública con formulario de reserva en línea</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Acceso por empleado, con permisos distintos para mecánicos</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Precio</h2>
+      <div class="card precio-card">
+        <div class="precio-numero">$250<span>/mes</span></div>
+        <p class="precio-nota">Hasta completar $1,500 en total — después de eso, es tuyo, sin más cobros.</p>
+
+        <!-- ESPACIO PARA EL BOTÓN DE PAYPAL — se reemplaza este bloque por el código que genere PayPal (Suscripciones -> Crear plan -> Generar código) -->
+        <div class="paypal-espacio" id="paypal-boton-espacio">
+          Botón de pago próximamente — mientras tanto, escríbeme abajo.
+        </div>
+
+        <a class="btn-contacto" href="mailto:luis@beautonomous.ai?subject=Quiero%20este%20programa%20para%20mi%20taller">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M4 4h16v16H4z"/><path d="M22 6l-10 7L2 6"/></svg>
+          Escribir para comprarlo
+        </a>
+      </div>
+    </section>
+  </div>
+
+  <footer>luis@beautonomous.ai</footer>
+
+</body>
+</html>

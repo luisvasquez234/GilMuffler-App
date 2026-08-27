@@ -77,6 +77,12 @@
   <symbol id="icon-hash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/>
   </symbol>
+  <symbol id="icon-qrcode" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="3" width="7" height="7" rx="1"/>
+    <rect x="14" y="3" width="7" height="7" rx="1"/>
+    <rect x="3" y="14" width="7" height="7" rx="1"/>
+    <path d="M14 14h3v3h-3zM20 14h1.5v1.5H20zM14 19.5h1.5V21H14zM20 19.5h1.5V21H20zM17 17h1v1h-1z"/>
+  </symbol>
   <symbol id="icon-gauge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"/><path d="M12 12l3.5-3.5"/><path d="M12 4v1.2M4.8 12H6M18 12h1.2M6.5 6.5l.85.85M17.5 6.5l-.85.85"/>
   </symbol>
@@ -648,6 +654,7 @@
         <button type="button" class="config-tab" data-config-tab="export" data-i18n="tab_export">Export</button>
         <button type="button" class="config-tab" data-config-tab="cuenta" data-i18n="tab_cuenta">My Account</button>
         <button type="button" class="config-tab" data-config-tab="pagina-web" data-i18n="tab_pagina_web">Página web</button>
+        <button type="button" class="config-tab" data-config-tab="vender" data-i18n="tab_vender_programa">Vender este programa</button>
       </div>
 
       <div id="config-tab-finanzas" class="config-tab-panel" hidden>
@@ -927,6 +934,32 @@
           </footer>
         </form>
       </div>
+
+      <div id="config-tab-vender" class="config-tab-panel" hidden style="max-width:36rem;">
+        <h3 style="font-size:.95rem;margin:0 0 .25rem;" data-i18n="vender_titulo">Vende este mismo programa a otros talleres</h3>
+        <p class="view-sub" style="margin:0 0 1rem;" data-i18n="vender_subtitulo">Esta app fue hecha a la medida para tu taller — se puede armar la misma base para otro negocio de reparación de carros.</p>
+        <a href="vender-programa.html" target="_blank" rel="noopener" class="btn-ghost" style="margin-bottom:1rem;display:inline-flex;" data-i18n="vender_ver_pagina_publica">Ver página pública (para mandar el link)</a>
+        <br />
+        <div class="ard-panel" style="--panel-color:#1a9c5a;">
+          <div class="ard-panel-header">
+            <span data-i18n="vender_incluye_titulo">Qué incluye</span>
+          </div>
+          <ul style="margin:0;padding:0 0 0 1.2rem;font-size:.88rem;line-height:1.9;color:var(--text-dim);">
+            <li data-i18n="vender_incluye_1">Clientes, vehículos, órdenes de servicio y facturación</li>
+            <li data-i18n="vender_incluye_2">Reservas, registro diario, inventario y reportes</li>
+            <li data-i18n="vender_incluye_3">Página web pública con formulario de reserva en línea</li>
+            <li data-i18n="vender_incluye_4">Acceso por empleado, con permisos distintos para mecánicos</li>
+          </ul>
+        </div>
+        <div class="ard-panel" style="--panel-color:#d5601a;margin-top:1rem;">
+          <div class="ard-panel-header">
+            <span data-i18n="vender_precio_titulo">Precio</span>
+          </div>
+          <p style="margin:0;font-size:1.3rem;font-weight:700;">$250<span style="font-size:.85rem;font-weight:400;color:var(--text-dim);" data-i18n="vender_precio_periodo">/mes</span></p>
+          <p style="margin:.3rem 0 0;font-size:.85rem;color:var(--text-dim);" data-i18n="vender_precio_nota">Hasta completar $1,500 en total — después de eso, es suyo, sin más cobros.</p>
+        </div>
+        <a class="btn-primary" style="display:inline-flex;margin-top:1.25rem;text-decoration:none;" id="link-vender-contacto" href="mailto:luis@beautonomous.ai?subject=Quiero%20este%20programa%20para%20mi%20taller" data-i18n="vender_contacto_btn">Escribir para comprarlo</a>
+      </div>
     </section>
 
     <section id="view-ordenes" class="view" hidden>
@@ -1061,7 +1094,13 @@
               <svg class="icon" aria-hidden="true"><use href="#icon-printer"></use></svg>
               <span data-i18n="btn_imprimir_simple">Imprimir</span>
             </button>
+            <button type="button" class="cliente-accion-btn" id="btn-detalle-qr" style="--accion-color:#8a6208;">
+              <svg class="icon" aria-hidden="true"><use href="#icon-qrcode"></use></svg>
+              <span data-i18n="btn_qr_cliente">QR del cliente</span>
+            </button>
           </div>
+
+          <div class="resumen-cliente-grid" id="cliente-detalle-resumen"></div>
 
           <div class="ard-grid">
             <div class="ard-col-izq">
@@ -1949,6 +1988,7 @@
     <form id="form-orden" class="modal-body">
       <input type="hidden" id="orden-id" />
       <p id="orden-creado-por-nota" class="orden-nota" hidden></p>
+      <p id="orden-encuesta-nota" class="orden-nota" style="color:#b8860b;" hidden></p>
       <div class="field-row">
         <div class="field">
           <label for="orden-cliente" data-i18n="cliente_requerido_label">Cliente *</label>
