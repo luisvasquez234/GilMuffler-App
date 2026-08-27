@@ -662,6 +662,15 @@
     <p class="chart-note" data-en="* Scores are illustrative, meant to visually represent the benefits.">* Puntuaciones ilustrativas para representar visualmente los beneficios.</p>
   </section>
 
+  <section>
+    <div class="wrap reveal">
+      <div class="escape-ilustracion">
+        <img src="fotos-bienvenida/infografia-beneficios-muffler.jpg" alt="Infografía: por qué reparar tu muffler — menos ruido, más seguridad, mejor flujo de escape, menor consumo, menos emisiones y mayor vida útil del sistema" loading="lazy" />
+      </div>
+      <p class="chart-note" data-en="* Illustrative graphic, not a real measurement of your specific car.">* Gráfico ilustrativo, no es una medición real de tu carro específico.</p>
+    </div>
+  </section>
+
   <section class="porque-bg">
     <div class="wrap reveal">
       <h2 data-en="Why choose us?">¿Por qué elegirnos?</h2>
@@ -1059,6 +1068,10 @@
         if (el.dataset.esAriaLabel === undefined) el.dataset.esAriaLabel = el.getAttribute("aria-label");
         el.setAttribute("aria-label", idiomaActual === "en" ? el.dataset.enAriaLabel : el.dataset.esAriaLabel);
       });
+      document.querySelectorAll(".stat-num[data-animado]").forEach((el) => {
+        const sufijo = (idiomaActual === "en" ? el.dataset.enSuffix : el.dataset.suffix) || "";
+        el.textContent = el.dataset.target + sufijo;
+      });
       document.documentElement.lang = idiomaActual;
       document.getElementById("idioma-toggle").textContent = idiomaActual === "en" ? "ES" : "EN";
       calcularAbierto();
@@ -1221,15 +1234,28 @@
       const stats = [];
       const anios = cfg && String(cfg.web_anios_experiencia || "").trim();
       if (anios && /\d/.test(anios)) {
-        stats.push({ target: parseInt(anios, 10), suffix: "+", esLabel: "Años de experiencia", enLabel: "Years in business" });
+        stats.push({ target: parseInt(anios, 10), esSuffix: "+", enSuffix: "+", esLabel: "Años de experiencia", enLabel: "Years in business" });
       }
       const garantiaDias = cfg && Number(cfg.garantia_dias);
       if (garantiaDias > 0) {
-        stats.push({ target: garantiaDias, suffix: "", esLabel: "Días de garantía", enLabel: "Days of warranty" });
+        const esLabel = "Garantía en piezas de nuestro local";
+        const enLabel = "Warranty on parts from our shop";
+        if (garantiaDias % 365 === 0) {
+          const anios = garantiaDias / 365;
+          stats.push({
+            target: anios,
+            esSuffix: anios === 1 ? " año" : " años",
+            enSuffix: anios === 1 ? " year" : " years",
+            esLabel,
+            enLabel,
+          });
+        } else {
+          stats.push({ target: garantiaDias, esSuffix: " días", enSuffix: " days", esLabel, enLabel });
+        }
       }
       const carros = cfg && String(cfg.web_carros_atendidos || "").trim();
       if (carros && /\d/.test(carros)) {
-        stats.push({ target: parseInt(carros, 10), suffix: "+", esLabel: "Carros atendidos", enLabel: "Cars serviced" });
+        stats.push({ target: parseInt(carros, 10), esSuffix: "+", enSuffix: "+", esLabel: "Carros atendidos", enLabel: "Cars serviced" });
       }
       if (!stats.length) return;
 
@@ -1240,7 +1266,9 @@
             '<div class="stat-item"><strong class="stat-num" data-target="' +
             s.target +
             '" data-suffix="' +
-            s.suffix +
+            s.esSuffix +
+            '" data-en-suffix="' +
+            s.enSuffix +
             '">0</strong><span data-en="' +
             s.enLabel +
             '">' +
@@ -1258,19 +1286,24 @@
       if (!numeros.length) return;
       const reducido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+      function sufijoActual(el) {
+        return (idiomaActual === "en" ? el.dataset.enSuffix : el.dataset.suffix) || "";
+      }
+
       function animar(el) {
         const meta = parseInt(el.dataset.target, 10) || 0;
-        const sufijo = el.dataset.suffix || "";
         if (reducido || !("IntersectionObserver" in window)) {
-          el.textContent = meta + sufijo;
+          el.textContent = meta + sufijoActual(el);
+          el.dataset.animado = "1";
           return;
         }
         const duracion = 1200;
         const inicio = performance.now();
         function paso(ahora) {
           const avance = Math.min(1, (ahora - inicio) / duracion);
-          el.textContent = Math.round(meta * (1 - Math.pow(1 - avance, 3))) + sufijo;
+          el.textContent = Math.round(meta * (1 - Math.pow(1 - avance, 3))) + sufijoActual(el);
           if (avance < 1) requestAnimationFrame(paso);
+          else el.dataset.animado = "1";
         }
         requestAnimationFrame(paso);
       }
