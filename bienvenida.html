@@ -48,6 +48,7 @@
     padding:.65rem 1.15rem;border-radius:8px;font-weight:600;font-size:.92rem;
     text-decoration:none;border:1px solid transparent;cursor:pointer;white-space:nowrap;
   }
+  .btn[hidden]{display:none;}
   .btn-primary{background:var(--accent);color:#fff;}
   .btn-primary:hover{background:var(--accent-dark);}
   .btn-outline{background:transparent;color:var(--accent);border-color:var(--accent);}
@@ -77,6 +78,33 @@
   .hero p.lead{color:#cbd2de;font-size:1.05rem;margin:0 0 1.75rem;max-width:32rem;}
   .hero .cta-row{display:flex;gap:.8rem;flex-wrap:wrap;}
   .hero .cta-row .btn{padding:.8rem 1.4rem;font-size:1rem;}
+
+  /* íconos flotando de fondo en el hero */
+  .hero-fondo-icono{
+    position:absolute;z-index:0;color:#fff;opacity:.07;pointer-events:none;
+    animation:flotarIcono 22s ease-in-out infinite;
+  }
+  .hero-fondo-icono svg{display:block;}
+  .hero-fondo-icono.icono-1{top:8%;left:6%;width:5.5rem;height:5.5rem;animation-duration:26s;}
+  .hero-fondo-icono.icono-2{bottom:12%;left:38%;width:4rem;height:4rem;animation-duration:19s;animation-delay:-6s;}
+  .hero-fondo-icono.icono-3{top:20%;right:34%;width:3.2rem;height:3.2rem;animation-duration:23s;animation-delay:-11s;}
+  @keyframes flotarIcono{
+    0%,100%{transform:translateY(0) rotate(0deg);}
+    50%{transform:translateY(-16px) rotate(8deg);}
+  }
+  @media (prefers-reduced-motion:reduce){ .hero-fondo-icono{animation:none;} }
+  @media (max-width:30rem){ .hero-fondo-icono{display:none;} }
+
+  /* insignias de confianza debajo del hero */
+  .insignias-fila{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1.5rem;}
+  .insignia{
+    display:inline-flex;align-items:center;gap:.4rem;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);
+    border-radius:999px;padding:.4rem .8rem;font-size:.8rem;font-weight:600;color:#fff;
+    transition:transform .18s ease,background .18s ease;
+  }
+  .insignia:hover{transform:translateY(-2px);background:rgba(255,255,255,.14);}
+  .insignia svg{width:1rem;height:1rem;display:block;flex:none;color:#8fe0a8;}
   .hero-photo{
     aspect-ratio:4/3;border-radius:14px;border:2px dashed rgba(255,255,255,.3);
     background:rgba(255,255,255,.05);
@@ -85,6 +113,14 @@
   }
   .hero-photo .emoji{font-size:2.4rem;}
   .hero-photo .emoji svg{width:1em;height:1em;display:block;}
+
+  /* bloque de números (años, garantía, carros atendidos) */
+  .stats-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:2.25rem 0;}
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(10rem,1fr));gap:1.5rem;text-align:center;}
+  .stat-item strong{
+    display:block;font-size:2.4rem;font-weight:800;color:var(--accent-dark);line-height:1;margin-bottom:.35rem;
+  }
+  .stat-item span{color:var(--text-dim);font-size:.88rem;}
 
   /* secciones genéricas */
   section{padding:3.5rem 0;}
@@ -104,11 +140,17 @@
   .servicio-card{transition:transform .18s ease,box-shadow .18s ease;}
   .servicio-card:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(20,24,32,.1);}
   .servicio-card .icon-badge{
-    width:3rem;height:3rem;margin:0 auto .6rem;border-radius:50%;
+    position:relative;z-index:0;width:3.6rem;height:3.6rem;margin:0 auto .8rem;border-radius:16px;
     background:linear-gradient(135deg,#e3f4e8,#c3e6cd);color:var(--accent-dark);
     display:flex;align-items:center;justify-content:center;font-size:1.5rem;
+    box-shadow:0 6px 14px rgba(67,150,92,.18);
   }
-  .icon-badge svg{width:1.5rem;height:1.5rem;display:block;}
+  .servicio-card .icon-badge::before{
+    content:"";position:absolute;inset:0;border-radius:14px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-dark));opacity:.9;
+    transform:rotate(12deg) scale(.86);z-index:-1;
+  }
+  .icon-badge svg{width:1.7rem;height:1.7rem;display:block;}
   .servicio-card h3{font-size:1rem;margin:.2rem 0 .35rem;}
   .servicio-card p{font-size:.85rem;color:var(--text-dim);margin:0;}
 
@@ -212,6 +254,22 @@
     .benefit-info{font-size:13px;}
     .bar{height:11px;}
   }
+
+  /* consejos de mantenimiento */
+  .consejos-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1.25rem;}
+  .consejo-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.4rem;
+    transition:transform .18s ease,box-shadow .18s ease;
+  }
+  .consejo-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(20,24,32,.08);}
+  .consejo-card .icon-badge{
+    width:2.6rem;height:2.6rem;margin:0 0 .7rem;font-size:1.1rem;border-radius:10px;
+    background:linear-gradient(135deg,#e3f4e8,#c3e6cd);color:var(--accent-dark);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .consejo-card .icon-badge svg{width:1.3rem;height:1.3rem;}
+  .consejo-card h3{margin:0 0 .4rem;font-size:1rem;}
+  .consejo-card p{margin:0;color:var(--text-dim);font-size:.88rem;}
 
   /* ilustración del sistema de escape (imagen generada) */
   .escape-ilustracion{max-width:56rem;margin:0 auto;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.1);}
@@ -381,6 +439,9 @@
   </header>
 
   <section class="hero">
+    <span class="hero-fondo-icono icono-1" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.7 6.3a4 4 0 1 1-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.2 2.2-2-2z"/></svg></span>
+    <span class="hero-fondo-icono icono-2" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 9v6h4l5 5V4L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19.5 6a9 9 0 0 1 0 12"/></svg></span>
+    <span class="hero-fondo-icono icono-3" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></span>
     <div class="wrap">
       <div>
         <h1 data-en="Muffler &amp; Exhaust <span>Repair</span> in Lawrence, MA">Reparación de <span>mofles y escapes</span> en Lawrence, MA</h1>
@@ -389,6 +450,11 @@
           <a class="btn btn-primary" id="cta-llamar-hero" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg> <span data-en="Call now">Llamar ahora</span></a>
           <a class="btn btn-outline" id="cta-whatsapp-hero" href="#" target="_blank" rel="noopener" style="border-color:#fff;color:#fff;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> <span data-en="Message us on WhatsApp">Escríbenos por WhatsApp</span></a>
           <a class="btn btn-outline" id="hero-btn-reservar" href="#reservar-cita" hidden style="border-color:#fff;color:#fff;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> <span data-en="Book an appointment">Reservar cita</span></a>
+        </div>
+        <div class="insignias-fila">
+          <span class="insignia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5z"/><path d="M9 12l2 2 4-4"/></svg> <span data-en="Written warranty">Garantía por escrito</span></span>
+          <span class="insignia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> <span data-en="No-surprise estimate">Presupuesto sin sorpresas</span></span>
+          <span class="insignia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> <span data-en="Experienced mechanics">Mecánicos con experiencia</span></span>
         </div>
       </div>
       <div class="hero-photo" id="hero-foto-contenedor">
@@ -399,6 +465,10 @@
     <div class="hero-wave">
       <svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path d="M0,32 C360,80 1080,0 1440,48 L1440,80 L0,80 Z" fill="var(--bg)"/></svg>
     </div>
+  </section>
+
+  <section class="stats-bar" id="stats-bar" hidden>
+    <div class="wrap stats-grid" id="stats-grid"></div>
   </section>
 
   <section>
@@ -661,6 +731,35 @@
         <span class="zona-chip">Methuen</span>
         <span class="zona-chip">Haverhill</span>
         <span class="zona-chip">Lowell</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="franja-color">
+    <div class="wrap reveal">
+      <h2 data-en="Car care tips">Consejos para tu carro</h2>
+      <p class="section-sub" data-en="A few basics to keep your car running well longer.">Algunos básicos para que tu carro dure más y ande mejor.</p>
+      <div class="consejos-grid">
+        <div class="consejo-card">
+          <div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s6 7.2 6 11.5a6 6 0 0 1-12 0C6 9.2 12 2 12 2z"/></svg></div>
+          <h3 data-en="How often should you change your oil?">¿Cada cuánto cambiar el aceite?</h3>
+          <p data-en="Most cars need it every 5,000–7,500 miles, but check your owner's manual for the exact number — it depends on the oil type and your car.">La mayoría de los carros lo necesita cada 5,000–7,500 millas, pero revisa el manual de tu carro para el número exacto — depende del tipo de aceite y del modelo.</p>
+        </div>
+        <div class="consejo-card">
+          <div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 1 1-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.2 2.2-2-2z"/></svg></div>
+          <h3 data-en="Signs your muffler needs a check">Señales de que tu muffler necesita revisión</h3>
+          <p data-en="A louder engine sound, vibration in the pedal, or a gas smell inside the car are all signs it's time to bring it in.">Un sonido de motor más fuerte, vibración en el pedal, o un olor a gas dentro del carro son señales de que ya es momento de traerlo.</p>
+        </div>
+        <div class="consejo-card">
+          <div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg></div>
+          <h3 data-en="Why you shouldn't ignore the check engine light">¿Por qué no ignorar la luz de check engine?</h3>
+          <p data-en="It can be something small, but it can also turn into a bigger, more expensive repair the longer you wait to check it.">Puede ser algo simple, pero también se puede convertir en una reparación más grande y más cara mientras más tiempo pase sin revisarlo.</p>
+        </div>
+        <div class="consejo-card">
+          <div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></div>
+          <h3 data-en="When to change your brake pads">¿Cuándo cambiar las pastillas de freno?</h3>
+          <p data-en="If you hear a metallic squeal or the pedal feels different, get them checked — most pads last 25,000–70,000 miles depending on how you drive.">Si escuchas un chillido metálico o el pedal se siente distinto, tráelo a revisar — la mayoría de las pastillas dura entre 25,000 y 70,000 millas, según cómo manejes.</p>
+        </div>
       </div>
     </div>
   </section>
@@ -1026,6 +1125,7 @@
       mostrarComparadorAntesDespues(cfg);
       mostrarResenasCarrusel(cfg);
       mostrarFormularioReservas(cfg);
+      mostrarStats(cfg);
 
       if (cfg && cfg.web_sobre_nosotros_texto) {
         document.getElementById("sobre-nosotros-texto").textContent = cfg.web_sobre_nosotros_texto;
@@ -1115,6 +1215,82 @@
       const activo = !!(cfg && cfg.web_reservas_activo);
       document.getElementById("reservar-cita").hidden = !activo;
       document.getElementById("hero-btn-reservar").hidden = !activo;
+    }
+
+    function mostrarStats(cfg) {
+      const stats = [];
+      const anios = cfg && String(cfg.web_anios_experiencia || "").trim();
+      if (anios && /\d/.test(anios)) {
+        stats.push({ target: parseInt(anios, 10), suffix: "+", esLabel: "Años de experiencia", enLabel: "Years in business" });
+      }
+      const garantiaDias = cfg && Number(cfg.garantia_dias);
+      if (garantiaDias > 0) {
+        stats.push({ target: garantiaDias, suffix: "", esLabel: "Días de garantía", enLabel: "Days of warranty" });
+      }
+      const carros = cfg && String(cfg.web_carros_atendidos || "").trim();
+      if (carros && /\d/.test(carros)) {
+        stats.push({ target: parseInt(carros, 10), suffix: "+", esLabel: "Carros atendidos", enLabel: "Cars serviced" });
+      }
+      if (!stats.length) return;
+
+      const grid = document.getElementById("stats-grid");
+      grid.innerHTML = stats
+        .map(
+          (s) =>
+            '<div class="stat-item"><strong class="stat-num" data-target="' +
+            s.target +
+            '" data-suffix="' +
+            s.suffix +
+            '">0</strong><span data-en="' +
+            s.enLabel +
+            '">' +
+            s.esLabel +
+            "</span></div>"
+        )
+        .join("");
+      document.getElementById("stats-bar").hidden = false;
+      aplicarIdioma();
+      initContadorStats();
+    }
+
+    function initContadorStats() {
+      const numeros = document.querySelectorAll(".stat-num");
+      if (!numeros.length) return;
+      const reducido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      function animar(el) {
+        const meta = parseInt(el.dataset.target, 10) || 0;
+        const sufijo = el.dataset.suffix || "";
+        if (reducido || !("IntersectionObserver" in window)) {
+          el.textContent = meta + sufijo;
+          return;
+        }
+        const duracion = 1200;
+        const inicio = performance.now();
+        function paso(ahora) {
+          const avance = Math.min(1, (ahora - inicio) / duracion);
+          el.textContent = Math.round(meta * (1 - Math.pow(1 - avance, 3))) + sufijo;
+          if (avance < 1) requestAnimationFrame(paso);
+        }
+        requestAnimationFrame(paso);
+      }
+
+      if (!("IntersectionObserver" in window)) {
+        numeros.forEach(animar);
+        return;
+      }
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              animar(entry.target);
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.4 }
+      );
+      numeros.forEach((el) => observer.observe(el));
     }
 
     document.getElementById("reserva-telefono").addEventListener("input", (e) => {

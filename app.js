@@ -7191,6 +7191,8 @@
     updateConfigPreview();
 
     document.getElementById("config-web-sobre-nosotros").value = c.web_sobre_nosotros_texto || "";
+    document.getElementById("config-web-anios-experiencia").value = c.web_anios_experiencia || "";
+    document.getElementById("config-web-carros-atendidos").value = c.web_carros_atendidos || "";
     document.getElementById("config-web-reservas-activo").checked = !!c.web_reservas_activo;
     document.getElementById("config-web-promo-activo").checked = !!c.web_promo_banner_activo;
     document.getElementById("config-web-promo-texto").value = c.web_promo_banner_texto || "";
@@ -7294,6 +7296,8 @@
     const payload = {
       id: 1,
       web_sobre_nosotros_texto: document.getElementById("config-web-sobre-nosotros").value.trim(),
+      web_anios_experiencia: document.getElementById("config-web-anios-experiencia").value.trim(),
+      web_carros_atendidos: document.getElementById("config-web-carros-atendidos").value.trim(),
       web_reservas_activo: document.getElementById("config-web-reservas-activo").checked,
       web_promo_banner_activo: document.getElementById("config-web-promo-activo").checked,
       web_promo_banner_texto: document.getElementById("config-web-promo-texto").value.trim(),
