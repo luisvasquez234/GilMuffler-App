@@ -7169,6 +7169,27 @@
     if (footerEl) footerEl.textContent = nombreNegocio + " © " + new Date().getFullYear();
   }
 
+  function hexAJusteLuminosidad(hex, delta) {
+    const num = parseInt(hex.replace("#", ""), 16);
+    let r = (num >> 16) & 255,
+      g = (num >> 8) & 255,
+      b = num & 255;
+    r = Math.max(0, Math.min(255, r + delta));
+    g = Math.max(0, Math.min(255, g + delta));
+    b = Math.max(0, Math.min(255, b + delta));
+    return "#" + [r, g, b].map((c) => Math.round(c).toString(16).padStart(2, "0")).join("");
+  }
+
+  function aplicarAparienciaPanel(colorAcento, colorMenu) {
+    const root = document.documentElement.style;
+    root.setProperty("--accent", colorAcento);
+    root.setProperty("--accent-hover", hexAJusteLuminosidad(colorAcento, -35));
+    root.setProperty("--accent-soft", hexAJusteLuminosidad(colorAcento, 110));
+    root.setProperty("--panel-menu-1", colorMenu);
+    root.setProperty("--panel-menu-2", hexAJusteLuminosidad(colorMenu, 16));
+    root.setProperty("--panel-menu-3", hexAJusteLuminosidad(colorMenu, -12));
+  }
+
   async function refreshConfigNegocio() {
     state.configNegocio = await fetchConfigNegocio();
     const c = state.configNegocio || {};
@@ -7187,6 +7208,9 @@
     document.getElementById("config-color-acento").value = c.color_acento || "#d5601a";
     document.getElementById("config-factura-titulo").value = c.factura_titulo || "Factura";
     document.getElementById("config-mostrar-qr").checked = c.mostrar_qr !== false;
+    document.getElementById("config-panel-color-acento").value = c.panel_color_acento || "#5cb85c";
+    document.getElementById("config-panel-color-menu").value = c.panel_color_menu || "#2b2e33";
+    aplicarAparienciaPanel(c.panel_color_acento || "#5cb85c", c.panel_color_menu || "#2b2e33");
     aplicarNombreNegocioGlobal(c.nombre_negocio || "Gil's Muffler Inc");
     updateConfigPreview();
 
@@ -7456,6 +7480,8 @@
       color_acento: document.getElementById("config-color-acento").value || "#d5601a",
       factura_titulo: document.getElementById("config-factura-titulo").value.trim() || "Factura",
       mostrar_qr: document.getElementById("config-mostrar-qr").checked,
+      panel_color_acento: document.getElementById("config-panel-color-acento").value || "#5cb85c",
+      panel_color_menu: document.getElementById("config-panel-color-menu").value || "#2b2e33",
       updated_at: new Date().toISOString(),
     };
 
@@ -8193,6 +8219,11 @@
     document.getElementById("form-configuracion-web").addEventListener("submit", conSpinnerAlGuardar(saveConfiguracionWeb));
     ["config-nombre", "config-direccion", "config-telefono", "config-email", "config-mensaje-pie", "config-logo-url", "config-texto-adicional", "config-color-acento"].forEach((id) => {
       document.getElementById(id).addEventListener("input", updateConfigPreview);
+    });
+    ["config-panel-color-acento", "config-panel-color-menu"].forEach((id) => {
+      document.getElementById(id).addEventListener("input", () => {
+        aplicarAparienciaPanel(document.getElementById("config-panel-color-acento").value, document.getElementById("config-panel-color-menu").value);
+      });
     });
 
     document.querySelectorAll("[data-close-modal]").forEach((btn) => {
