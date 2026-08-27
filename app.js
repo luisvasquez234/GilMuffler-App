@@ -4324,8 +4324,9 @@
         ")</p>" +
         grupo.items
           .map((c) => {
-            const clienteNombre = c.clientes ? [c.clientes.nombre, c.clientes.apellido].filter(Boolean).join(" ") : "";
-            const horaTxt = c.hora ? c.hora.slice(0, 5) : "";
+            const clienteNombre = c.clientes ? [c.clientes.nombre, c.clientes.apellido].filter(Boolean).join(" ") : c.nombre_contacto || "";
+            const horaTxt = c.hora ? c.hora.slice(0, 5) : c.hora_preferida || "";
+            const esWeb = !c.cliente_id && c.nombre_contacto;
             return (
               '<div class="tarea-row" data-cita-id="' +
               c.id +
@@ -4336,10 +4337,11 @@
               '<div class="tarea-row-title">' +
               escapeHtml(c.servicio || "Cita") +
               (clienteNombre ? " — " + escapeHtml(clienteNombre) : "") +
+              (esWeb ? ' <span class="pill" style="background:var(--success-soft);color:var(--success);">' + t("reserva_pill_web") + "</span>" : "") +
               "</div>" +
               '<div class="tarea-row-meta">' +
               escapeHtml(formatDate(c.fecha)) +
-              (horaTxt ? " · " + horaTxt : "") +
+              (horaTxt ? " · " + escapeHtml(horaTxt) : "") +
               " · " +
               ESTADO_RESERVA_LABELS[c.estado] +
               "</div>" +
@@ -4420,6 +4422,21 @@
   function openReservaModal(cita) {
     document.getElementById("modal-reserva-title").textContent = cita ? "Editar reserva" : "Nueva reserva";
     document.getElementById("reserva-id").value = cita ? cita.id : "";
+
+    const infoOnline = document.getElementById("reserva-info-online");
+    const esWeb = cita && !cita.cliente_id && cita.nombre_contacto;
+    infoOnline.hidden = !esWeb;
+    if (esWeb) {
+      const carro = [cita.vehiculo_marca, cita.vehiculo_modelo, cita.vehiculo_anio].filter(Boolean).join(" ");
+      document.getElementById("reserva-info-online-texto").textContent = [
+        cita.nombre_contacto,
+        cita.telefono_contacto,
+        carro || null,
+        cita.hora_preferida ? "Prefiere: " + cita.hora_preferida : null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+    }
     populateClientesDatalist();
     const clienteExistente = cita ? state.clientes.find((c) => c.id === cita.cliente_id) : null;
     document.getElementById("reserva-cliente").value = cita
@@ -7174,6 +7191,7 @@
     updateConfigPreview();
 
     document.getElementById("config-web-sobre-nosotros").value = c.web_sobre_nosotros_texto || "";
+    document.getElementById("config-web-reservas-activo").checked = !!c.web_reservas_activo;
     document.getElementById("config-web-promo-activo").checked = !!c.web_promo_banner_activo;
     document.getElementById("config-web-promo-texto").value = c.web_promo_banner_texto || "";
     document.getElementById("config-web-google-reviews").value = c.web_google_reviews_url || "";
@@ -7276,6 +7294,7 @@
     const payload = {
       id: 1,
       web_sobre_nosotros_texto: document.getElementById("config-web-sobre-nosotros").value.trim(),
+      web_reservas_activo: document.getElementById("config-web-reservas-activo").checked,
       web_promo_banner_activo: document.getElementById("config-web-promo-activo").checked,
       web_promo_banner_texto: document.getElementById("config-web-promo-texto").value.trim(),
       web_google_reviews_url: document.getElementById("config-web-google-reviews").value.trim(),

@@ -16,8 +16,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
   :root{
-    --accent:#d5601a;
-    --accent-dark:#a84a14;
+    --accent:#43965c;
+    --accent-dark:#2d6f43;
     --text:#1f2430;
     --text-dim:#68707e;
     --bg:#f6f7f9;
@@ -51,29 +51,29 @@
   .btn-primary{background:var(--accent);color:#fff;}
   .btn-primary:hover{background:var(--accent-dark);}
   .btn-outline{background:transparent;color:var(--accent);border-color:var(--accent);}
-  .btn-outline:hover{background:#fdefe3;}
+  .btn-outline:hover{background:#e3f4e8;}
   @media (max-width:40rem){ .header-cta .btn span.solo-desktop{display:none;} }
   .btn svg{width:1.1em;height:1.1em;display:block;flex:none;}
 
   /* hero */
   .hero{
     position:relative;overflow:hidden;
-    background:linear-gradient(165deg,#1c2431 0%,#211d1f 55%,#2b1a12 100%);color:#fff;padding:4rem 0 5rem;
+    background:linear-gradient(165deg,#1c2b24 0%,#20241f 55%,#16261c 100%);color:#fff;padding:4rem 0 5rem;
   }
   .hero::before{
     content:"";position:absolute;top:-12%;right:-8%;width:28rem;height:28rem;border-radius:50%;
-    background:radial-gradient(circle,rgba(213,96,26,.4),transparent 70%);filter:blur(10px);pointer-events:none;
+    background:radial-gradient(circle,rgba(67,150,92,.4),transparent 70%);filter:blur(10px);pointer-events:none;
   }
   .hero::after{
     content:"";position:absolute;bottom:-20%;left:-10%;width:24rem;height:24rem;border-radius:50%;
-    background:radial-gradient(circle,rgba(11,59,130,.35),transparent 70%);filter:blur(10px);pointer-events:none;
+    background:radial-gradient(circle,rgba(140,150,145,.3),transparent 70%);filter:blur(10px);pointer-events:none;
   }
   .hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:1.1fr .9fr;gap:2.5rem;align-items:center;}
   .hero-wave{position:absolute;left:0;bottom:-1px;width:100%;line-height:0;z-index:1;}
   .hero-wave svg{width:100%;height:3.2rem;display:block;}
   @media (max-width:48rem){ .hero .wrap{grid-template-columns:1fr;} }
   .hero h1{font-size:2.3rem;line-height:1.15;margin:0 0 1rem;font-weight:800;letter-spacing:-.01em;}
-  .hero h1 span{color:#ff9a52;}
+  .hero h1 span{color:#8fe0a8;}
   .hero p.lead{color:#cbd2de;font-size:1.05rem;margin:0 0 1.75rem;max-width:32rem;}
   .hero .cta-row{display:flex;gap:.8rem;flex-wrap:wrap;}
   .hero .cta-row .btn{padding:.8rem 1.4rem;font-size:1rem;}
@@ -105,7 +105,7 @@
   .servicio-card:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(20,24,32,.1);}
   .servicio-card .icon-badge{
     width:3rem;height:3rem;margin:0 auto .6rem;border-radius:50%;
-    background:linear-gradient(135deg,#fdefe3,#ffd9b8);color:var(--accent-dark);
+    background:linear-gradient(135deg,#e3f4e8,#c3e6cd);color:var(--accent-dark);
     display:flex;align-items:center;justify-content:center;font-size:1.5rem;
   }
   .icon-badge svg{width:1.5rem;height:1.5rem;display:block;}
@@ -119,7 +119,7 @@
     width:2.6rem;height:2.6rem;margin:0 auto .8rem;border-radius:50%;
     background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;
     display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;
-    box-shadow:0 4px 12px rgba(213,96,26,.35);
+    box-shadow:0 4px 12px rgba(67,150,92,.35);
   }
   .paso h3{margin:0 0 .3rem;font-size:1rem;}
   .paso p{margin:0;color:var(--text-dim);font-size:.88rem;}
@@ -146,11 +146,11 @@
   /* franja decorativa entre secciones claras */
   .franja-color{
     position:relative;overflow:hidden;
-    background:linear-gradient(120deg,#fdefe3 0%,#f6f7f9 55%,#eaf0fb 100%);
+    background:linear-gradient(120deg,#e3f4e8 0%,#f6f7f9 55%,#eef3ef 100%);
   }
   .franja-color::before{
     content:"";position:absolute;top:-30%;right:10%;width:20rem;height:20rem;border-radius:50%;
-    background:radial-gradient(circle,rgba(213,96,26,.16),transparent 70%);pointer-events:none;
+    background:radial-gradient(circle,rgba(67,150,92,.16),transparent 70%);pointer-events:none;
   }
   .franja-color .wrap{position:relative;z-index:1;}
 
@@ -158,7 +158,7 @@
   .porque-bg{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
   .porque-item .icon-badge{
     width:2.6rem;height:2.6rem;flex:none;border-radius:10px;
-    background:linear-gradient(135deg,#fdefe3,#ffd9b8);color:var(--accent-dark);
+    background:linear-gradient(135deg,#e3f4e8,#c3e6cd);color:var(--accent-dark);
     display:flex;align-items:center;justify-content:center;font-size:1.25rem;
   }
   .porque-item .icon-badge svg{width:1.25rem;height:1.25rem;display:block;}
@@ -202,7 +202,7 @@
   .benefit-info strong{color:var(--accent-dark);}
   .bar{width:100%;height:14px;background:#e5e7eb;border-radius:999px;overflow:hidden;}
   .bar span{
-    display:block;height:100%;background:linear-gradient(90deg,#0b3b82,var(--accent));border-radius:inherit;
+    display:block;height:100%;background:linear-gradient(90deg,#c3cbc6,var(--accent));border-radius:inherit;
     transform-origin:left;animation:growBar 1.2s ease-out;
   }
   @keyframes growBar{from{transform:scaleX(0);}to{transform:scaleX(1);}}
@@ -233,12 +233,12 @@
 
   /* reseñas */
   .reseñas-nota{
-    max-width:34rem;margin:0 auto;text-align:center;background:#fdefe3;border:1px dashed var(--accent);
+    max-width:34rem;margin:0 auto;text-align:center;background:#e3f4e8;border:1px dashed var(--accent);
     border-radius:12px;padding:1.5rem;color:var(--accent-dark);font-size:.9rem;
   }
 
   /* contacto */
-  .contacto-bg{background:linear-gradient(165deg,#1c2431 0%,#211d1f 55%,#2b1a12 100%);color:#fff;}
+  .contacto-bg{background:linear-gradient(165deg,#1c2b24 0%,#20241f 55%,#16261c 100%);color:#fff;}
   .contacto-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;align-items:start;}
   @media (max-width:48rem){ .contacto-grid{grid-template-columns:1fr;} }
   .info-lista{list-style:none;padding:0;margin:0 0 1.5rem;display:flex;flex-direction:column;gap:.9rem;}
@@ -251,7 +251,8 @@
   .form-card p.sub{color:var(--text-dim);font-size:.85rem;margin:0 0 1.25rem;}
   label{display:block;font-size:.85rem;color:var(--text-dim);margin-bottom:.3rem;margin-top:1rem;}
   label:first-of-type{margin-top:0;}
-  input{width:100%;padding:.7rem .8rem;border:1px solid #d7dade;border-radius:8px;font-size:1rem;font-family:inherit;}
+  input,select,textarea{width:100%;padding:.7rem .8rem;border:1px solid #d7dade;border-radius:8px;font-size:1rem;font-family:inherit;background:#fff;}
+  textarea{resize:vertical;}
   .field-row{display:flex;gap:.6rem;}
   .field-row > div{flex:1;}
   .form-card button{width:100%;margin-top:1.5rem;}
@@ -275,8 +276,8 @@
 
   /* ícono con más vida al pasar el mouse */
   .icon-badge{transition:transform .25s ease,box-shadow .25s ease;}
-  .servicio-card:hover .icon-badge{transform:scale(1.12) rotate(-4deg);box-shadow:0 0 0 6px rgba(213,96,26,.15);}
-  .porque-item:hover .icon-badge{transform:scale(1.1);box-shadow:0 0 0 5px rgba(213,96,26,.15);}
+  .servicio-card:hover .icon-badge{transform:scale(1.12) rotate(-4deg);box-shadow:0 0 0 6px rgba(67,150,92,.15);}
+  .porque-item:hover .icon-badge{transform:scale(1.1);box-shadow:0 0 0 5px rgba(67,150,92,.15);}
 
   /* efecto de onda al hacer clic en un botón */
   .btn{position:relative;overflow:hidden;}
@@ -292,7 +293,7 @@
   .badge-popular{
     position:absolute;top:-.6rem;right:.9rem;background:var(--accent);color:#fff;
     font-size:.65rem;font-weight:700;padding:.25rem .6rem;border-radius:999px;
-    box-shadow:0 3px 8px rgba(213,96,26,.4);letter-spacing:.02em;
+    box-shadow:0 3px 8px rgba(67,150,92,.4);letter-spacing:.02em;
   }
 
   /* links con subrayado animado */
@@ -387,6 +388,7 @@
         <div class="cta-row">
           <a class="btn btn-primary" id="cta-llamar-hero" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg> <span data-en="Call now">Llamar ahora</span></a>
           <a class="btn btn-outline" id="cta-whatsapp-hero" href="#" target="_blank" rel="noopener" style="border-color:#fff;color:#fff;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> <span data-en="Message us on WhatsApp">Escríbenos por WhatsApp</span></a>
+          <a class="btn btn-outline" id="hero-btn-reservar" href="#reservar-cita" hidden style="border-color:#fff;color:#fff;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> <span data-en="Book an appointment">Reservar cita</span></a>
         </div>
       </div>
       <div class="hero-photo" id="hero-foto-contenedor">
@@ -407,6 +409,63 @@
         <div class="paso"><div class="paso-num">1</div><h3 data-en="Call or message us">Llamas o escribes</h3><p data-en="Tell us what's going on with your car, by phone or WhatsApp.">Nos contás qué le pasa a tu carro, por teléfono o WhatsApp.</p></div>
         <div class="paso"><div class="paso-num">2</div><h3 data-en="We inspect &amp; quote">Revisamos y presupuestamos</h3><p data-en="We tell you exactly what it needs and what it costs, before touching your car.">Te decimos exactamente qué necesita y cuánto cuesta, antes de tocar el carro.</p></div>
         <div class="paso"><div class="paso-num">3</div><h3 data-en="We repair with warranty">Reparamos con garantía</h3><p data-en="We do the work and back it with our warranty.">Hacemos el trabajo y te lo entregamos respaldado por nuestra garantía.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="franja-color" id="reservar-cita" hidden>
+    <div class="wrap reveal">
+      <h2 data-en="Book your appointment">Reserva tu cita</h2>
+      <p class="section-sub" data-en="Pick a day and we'll confirm your exact time by phone.">Elige un día y te confirmamos la hora exacta por teléfono.</p>
+      <div class="form-card" id="contenido-form-reserva" style="max-width:34rem;margin:0 auto;">
+        <form id="form-reserva-cita">
+          <input type="text" id="empresa-web-reserva" name="empresa-web-reserva" autocomplete="off" tabindex="-1" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" aria-hidden="true" />
+          <div class="field-row">
+            <div>
+              <label for="reserva-nombre" data-en="Your name">Tu nombre</label>
+              <input type="text" id="reserva-nombre" required autocomplete="name" />
+            </div>
+            <div>
+              <label for="reserva-telefono" data-en="Your phone">Tu teléfono</label>
+              <input type="tel" id="reserva-telefono" required autocomplete="tel" />
+            </div>
+          </div>
+          <label for="reserva-servicio-select" data-en="What does your car need?">¿Qué necesita tu carro?</label>
+          <select id="reserva-servicio-select" required>
+            <option value="" data-en="Choose one...">Elige una opción...</option>
+            <option value="Mofles y escapes" data-en="Mufflers &amp; exhaust">Mofles y escapes</option>
+            <option value="Frenos" data-en="Brakes">Frenos</option>
+            <option value="Cambio de aceite" data-en="Oil change">Cambio de aceite</option>
+            <option value="Diagnóstico" data-en="Diagnostic">Diagnóstico</option>
+            <option value="Suspensión" data-en="Suspension">Suspensión</option>
+            <option value="Inspección estatal" data-en="State inspection">Inspección estatal</option>
+            <option value="Chasis y pintura anticorrosiva" data-en="Chassis &amp; rust-proof coating">Chasis y pintura anticorrosiva</option>
+            <option value="Otro" data-en="Other">Otro</option>
+          </select>
+          <div class="field-row">
+            <div>
+              <label for="reserva-fecha-input" data-en="Preferred day">Día que prefieres</label>
+              <input type="date" id="reserva-fecha-input" required />
+            </div>
+            <div>
+              <label for="reserva-hora-select" data-en="Preferred time">Hora que prefieres</label>
+              <select id="reserva-hora-select" required>
+                <option value="Mañana" data-en="Morning">Mañana</option>
+                <option value="Tarde" data-en="Afternoon">Tarde</option>
+              </select>
+            </div>
+          </div>
+          <label data-en="Your car (optional)">Tu carro (opcional)</label>
+          <div class="field-row">
+            <div><input type="text" id="reserva-marca" placeholder="Marca" aria-label="Marca" data-en-placeholder="Make" data-en-aria-label="Make" /></div>
+            <div><input type="text" id="reserva-modelo" placeholder="Modelo" aria-label="Modelo" data-en-placeholder="Model" data-en-aria-label="Model" /></div>
+            <div><input type="text" id="reserva-anio-input" placeholder="Año" aria-label="Año" data-en-placeholder="Year" data-en-aria-label="Year" /></div>
+          </div>
+          <label for="reserva-notas-textarea" data-en="Anything else we should know? (optional)">¿Algo más que debamos saber? (opcional)</label>
+          <textarea id="reserva-notas-textarea" rows="2"></textarea>
+          <p class="error-msg" id="reserva-error-msg" hidden></p>
+          <button type="submit" class="btn btn-primary" id="btn-reservar-cita" style="width:100%;margin-top:1.25rem;" data-en="Book my appointment">Reservar mi cita</button>
+        </form>
       </div>
     </div>
   </section>
@@ -897,6 +956,10 @@
         if (el.dataset.esPlaceholder === undefined) el.dataset.esPlaceholder = el.placeholder;
         el.placeholder = idiomaActual === "en" ? el.dataset.enPlaceholder : el.dataset.esPlaceholder;
       });
+      document.querySelectorAll("[data-en-aria-label]").forEach((el) => {
+        if (el.dataset.esAriaLabel === undefined) el.dataset.esAriaLabel = el.getAttribute("aria-label");
+        el.setAttribute("aria-label", idiomaActual === "en" ? el.dataset.enAriaLabel : el.dataset.esAriaLabel);
+      });
       document.documentElement.lang = idiomaActual;
       document.getElementById("idioma-toggle").textContent = idiomaActual === "en" ? "ES" : "EN";
       calcularAbierto();
@@ -962,6 +1025,7 @@
       mostrarFotoWeb("foto-trabajo-4-contenedor", cfg && cfg.web_foto_trabajo_4_url);
       mostrarComparadorAntesDespues(cfg);
       mostrarResenasCarrusel(cfg);
+      mostrarFormularioReservas(cfg);
 
       if (cfg && cfg.web_sobre_nosotros_texto) {
         document.getElementById("sobre-nosotros-texto").textContent = cfg.web_sobre_nosotros_texto;
@@ -1045,6 +1109,86 @@
         idiomaActual === "en"
           ? '<div class="respuesta-msg">All set! We got your info.<p>We\'ll call you back once we review your case.</p></div>'
           : '<div class="respuesta-msg">¡Listo! Ya recibimos tus datos.<p>Te vamos a llamar en cuanto revisemos tu caso.</p></div>';
+    });
+
+    function mostrarFormularioReservas(cfg) {
+      const activo = !!(cfg && cfg.web_reservas_activo);
+      document.getElementById("reservar-cita").hidden = !activo;
+      document.getElementById("hero-btn-reservar").hidden = !activo;
+    }
+
+    document.getElementById("reserva-telefono").addEventListener("input", (e) => {
+      const digitos = soloDigitos(e.target.value).slice(0, 10);
+      e.target.value =
+        digitos.length <= 3 ? digitos : digitos.length <= 6 ? "(" + digitos.slice(0, 3) + ") " + digitos.slice(3) : "(" + digitos.slice(0, 3) + ") " + digitos.slice(3, 6) + "-" + digitos.slice(6);
+    });
+
+    (function initFechaReserva() {
+      const hoy = new Date();
+      const tz = hoy.getTimezoneOffset();
+      const hoyISO = new Date(hoy.getTime() - tz * 60000).toISOString().slice(0, 10);
+      document.getElementById("reserva-fecha-input").min = hoyISO;
+    })();
+
+    document.getElementById("form-reserva-cita").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (document.getElementById("empresa-web-reserva").value) return;
+      if (Date.now() - formCargadoEn < 2000) return;
+
+      const nombre = document.getElementById("reserva-nombre").value.trim();
+      const telefono = document.getElementById("reserva-telefono").value.trim();
+      const servicio = document.getElementById("reserva-servicio-select").value;
+      const fecha = document.getElementById("reserva-fecha-input").value;
+      const horaPreferida = document.getElementById("reserva-hora-select").value;
+      const marca = document.getElementById("reserva-marca").value.trim();
+      const modelo = document.getElementById("reserva-modelo").value.trim();
+      const anio = document.getElementById("reserva-anio-input").value.trim();
+      const notas = document.getElementById("reserva-notas-textarea").value.trim();
+      const errorMsg = document.getElementById("reserva-error-msg");
+      errorMsg.hidden = true;
+      if (!nombre || !telefono || !servicio || !fecha) return;
+
+      if (soloDigitos(telefono).length !== 10) {
+        errorMsg.textContent = idiomaActual === "en" ? "Please enter a valid 10-digit phone number." : "Ingresá un teléfono válido de 10 dígitos.";
+        errorMsg.hidden = false;
+        return;
+      }
+
+      if (new Date(fecha + "T00:00:00").getDay() === 0) {
+        errorMsg.textContent = idiomaActual === "en" ? "We're closed on Sundays — please pick another day." : "Cerramos los domingos, elige otro día.";
+        errorMsg.hidden = false;
+        return;
+      }
+
+      const btn = document.getElementById("btn-reservar-cita");
+      btn.disabled = true;
+      btn.textContent = idiomaActual === "en" ? "Booking..." : "Reservando...";
+
+      const { error } = await sb.from("citas").insert({
+        nombre_contacto: nombre,
+        telefono_contacto: telefono,
+        servicio,
+        fecha,
+        hora_preferida: horaPreferida,
+        vehiculo_marca: marca || null,
+        vehiculo_modelo: modelo || null,
+        vehiculo_anio: anio || null,
+        notas: notas || null,
+        estado: "agendada",
+      });
+
+      if (error) {
+        errorMsg.textContent = idiomaActual === "en" ? "Couldn't book it. Try again or call us directly." : "No se pudo reservar. Intenta de nuevo o llámanos directo.";
+        errorMsg.hidden = false;
+        btn.disabled = false;
+        btn.textContent = idiomaActual === "en" ? "Book my appointment" : "Reservar mi cita";
+        return;
+      }
+
+      document.getElementById("contenido-form-reserva").innerHTML =
+        idiomaActual === "en"
+          ? '<div class="respuesta-msg">All set! We got your request.<p>We\'ll call you to confirm the exact time.</p></div>'
+          : '<div class="respuesta-msg">¡Listo! Ya recibimos tu solicitud.<p>Te vamos a llamar para confirmar la hora exacta.</p></div>';
     });
 
     cargarConfigNegocio();
