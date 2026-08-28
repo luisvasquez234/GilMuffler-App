@@ -70,6 +70,24 @@
     return fmt.format(Number(n) || 0);
   }
 
+  function csvCelda(valor) {
+    const s = String(valor == null ? "" : valor);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+
+  function descargarCsv(nombreArchivo, encabezados, filas) {
+    const contenido = [encabezados, ...filas].map((fila) => fila.map(csvCelda).join(",")).join("\r\n");
+    const blob = new Blob(["﻿" + contenido], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = nombreArchivo;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
   function formatearTelefono(valor) {
     const digitos = String(valor || "").replace(/\D/g, "").slice(0, 10);
     if (digitos.length <= 3) return digitos;
@@ -1627,31 +1645,85 @@
     return { cantidad: Math.ceil(sugeridoSimple), basadoEnUso: false };
   }
 
-  function mostrarParaReordenar() {
+  function agruparPiezasParaReordenar() {
     const bajas = state.piezas.filter((p) => Number(p.stock) <= Number(p.stock_minimo));
+    const grupos = {};
+    bajas.forEach((p) => {
+      const clave = p.proveedor && p.proveedor.trim() ? p.proveedor.trim() : t("sin_proveedor_asignado");
+      (grupos[clave] = grupos[clave] || []).push(p);
+    });
+    const sinProveedor = t("sin_proveedor_asignado");
+    const proveedores = Object.keys(grupos).sort((a, b) => (a === sinProveedor ? 1 : b === sinProveedor ? -1 : a.localeCompare(b)));
+    return proveedores.map((proveedor) => ({ proveedor, piezas: grupos[proveedor] }));
+  }
+
+  function mostrarParaReordenar() {
+    const grupos = agruparPiezasParaReordenar();
     const tbody = document.getElementById("reordenar-tbody");
-    tbody.innerHTML = bajas.length
-      ? bajas
-          .map((p) => {
-            const sugerencia = calcularSugerenciaPedido(p);
+    tbody.innerHTML = grupos.length
+      ? grupos
+          .map(({ proveedor, piezas }) => {
+            const filas = piezas
+              .map((p) => {
+                const sugerencia = calcularSugerenciaPedido(p);
+                return (
+                  "<tr><td>" +
+                  escapeHtml(p.nombre) +
+                  "</td><td>" +
+                  p.stock +
+                  "</td><td>" +
+                  p.stock_minimo +
+                  "</td><td>" +
+                  sugerencia.cantidad +
+                  (sugerencia.basadoEnUso ? ' <span class="view-sub" style="margin:0;">(' + t("sugerencia_pedido_uso_real") + ")</span>" : "") +
+                  "</td></tr>"
+                );
+              })
+              .join("");
+            return "<tr class='reordenar-grupo-header'><td colspan='4'><strong>" + escapeHtml(proveedor) + "</strong></td></tr>" + filas;
+          })
+          .join("")
+      : "<tr><td colspan='4'>" + t("sin_piezas_reordenar") + "</td></tr>";
+    openModal("modal-reordenar");
+  }
+
+  function imprimirListaPedido() {
+    const grupos = agruparPiezasParaReordenar();
+    const cfg = state.configNegocio || {};
+    const nombreNegocio = cfg.nombre_negocio || "Gil Muffler";
+    const cuerpo = grupos.length
+      ? grupos
+          .map(({ proveedor, piezas }) => {
+            const filas = piezas
+              .map((p) => {
+                const sugerencia = calcularSugerenciaPedido(p);
+                return "<tr><td>" + escapeHtml(p.nombre) + "</td><td>" + p.stock + "</td><td>" + p.stock_minimo + "</td><td>" + sugerencia.cantidad + "</td></tr>";
+              })
+              .join("");
             return (
-              "<tr><td>" +
-              escapeHtml(p.nombre) +
-              "</td><td>" +
-              escapeHtml(p.proveedor || "—") +
-              "</td><td>" +
-              p.stock +
-              "</td><td>" +
-              p.stock_minimo +
-              "</td><td>" +
-              sugerencia.cantidad +
-              (sugerencia.basadoEnUso ? ' <span class="view-sub" style="margin:0;">(' + t("sugerencia_pedido_uso_real") + ")</span>" : "") +
-              "</td></tr>"
+              "<h2>" + escapeHtml(proveedor) + "</h2><table><thead><tr><th>" +
+              t("col_pieza") + "</th><th>" + t("col_stock_actual") + "</th><th>" + t("col_minimo") + "</th><th>" + t("col_sugerido_pedir") +
+              "</th></tr></thead><tbody>" + filas + "</tbody></table>"
             );
           })
           .join("")
-      : "<tr><td colspan='5'>" + t("sin_piezas_reordenar") + "</td></tr>";
-    openModal("modal-reordenar");
+      : "<p>" + t("sin_piezas_reordenar") + "</p>";
+
+    const html =
+      "<!doctype html><html><head><meta charset='utf-8'><title>" + t("btn_imprimir_lista_pedido") + "</title><style>" +
+      "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:2rem;}" +
+      "h1{font-size:1.3rem;margin-bottom:.25rem;}" +
+      "h2{font-size:1rem;margin-top:1.5rem;margin-bottom:.5rem;border-bottom:2px solid #1f2430;padding-bottom:.25rem;}" +
+      "table{width:100%;border-collapse:collapse;margin-bottom:.5rem;}" +
+      "th,td{text-align:left;padding:.4rem .5rem;border-bottom:1px solid #d7dade;font-size:.9rem;}" +
+      "@media print{body{padding:0;}}" +
+      "</style></head><body>" +
+      "<h1>" + escapeHtml(nombreNegocio) + " — " + t("btn_imprimir_lista_pedido") + "</h1>" +
+      "<p>" + escapeHtml(formatDate(todayISO())) + "</p>" +
+      cuerpo +
+      "</body></html>";
+
+    openPrintWindow(html);
   }
 
   async function fetchTareas() {
@@ -2318,6 +2390,7 @@
             (c.nombre || "").toLowerCase().includes(q) ||
             (c.telefono || "").toLowerCase().includes(q) ||
             (c.etiquetas || "").toLowerCase().includes(q) ||
+            state.telefonos.some((tel) => tel.cliente_id === c.id && (tel.telefono || "").toLowerCase().includes(q)) ||
             state.vehiculos.some(
               (v) =>
                 v.cliente_id === c.id &&
@@ -2336,6 +2409,12 @@
     }
     if (soloDealers) list = list.filter((c) => esClienteDealer(c));
     return sortByField(list, clientesSortState, clienteSortValue);
+  }
+
+  function exportarClientesCsv() {
+    const lista = filterClientes();
+    const filas = lista.map((c) => [c.nombre || "", c.telefono || "", c.email || "", c.direccion || ""]);
+    descargarCsv("clientes.csv", ["Nombre", "Teléfono", "Email", "Dirección"], filas);
   }
 
   const CLIENTE_BORRADOR_KEY = "clienteNuevoBorrador";
@@ -2711,6 +2790,51 @@
     });
 
     updateFacturasBulkBar();
+    renderResumenMetodoPago(list);
+  }
+
+  function renderResumenMetodoPago(list) {
+    const panel = document.getElementById("facturas-resumen-metodo-pago");
+    if (!panel) return;
+    const desde = document.getElementById("facturas-filter-desde").value;
+    const hasta = document.getElementById("facturas-filter-hasta").value;
+    const idsVisibles = new Set(list.map((f) => f.id));
+
+    const totales = {};
+    const facturasConAbono = new Set();
+
+    (state.facturaPagos || [])
+      .filter((a) => idsVisibles.has(a.factura_id) && (!desde || a.fecha >= desde) && (!hasta || a.fecha <= hasta))
+      .forEach((a) => {
+        facturasConAbono.add(a.factura_id);
+        const m = a.metodo_pago || "sin_metodo";
+        totales[m] = (totales[m] || 0) + Number(a.monto);
+      });
+
+    list
+      .filter((f) => f.estado === "pagada" && !facturasConAbono.has(f.id))
+      .forEach((f) => {
+        const monto = Number(f.total) || 0;
+        if (!f.metodo_pago) {
+          totales["sin_metodo"] = (totales["sin_metodo"] || 0) + monto;
+          return;
+        }
+        const monto1 = f.monto_metodo_1 != null ? Number(f.monto_metodo_1) : monto;
+        totales[f.metodo_pago] = (totales[f.metodo_pago] || 0) + monto1;
+        if (f.metodo_pago_2) {
+          const monto2 = f.monto_metodo_2 != null ? Number(f.monto_metodo_2) : 0;
+          totales[f.metodo_pago_2] = (totales[f.metodo_pago_2] || 0) + monto2;
+        }
+      });
+
+    if (!Object.keys(totales).length) {
+      panel.hidden = true;
+      return;
+    }
+    panel.hidden = false;
+    panel.innerHTML = Object.keys(totales)
+      .map((m) => '<span class="metodo-pago-tag">' + (m === "sin_metodo" ? t("sin_metodo_pago") : escapeHtml(metodoPagoLabel(m))) + ": " + money(totales[m]) + "</span>")
+      .join(" ");
   }
 
   function updateFacturasBulkBar() {
@@ -2780,6 +2904,24 @@
     }
   }
 
+  async function avisarOrdenListaEmail(ordenId) {
+    try {
+      const { data: sessionData } = await sb.auth.getSession();
+      const ordenUrl = location.origin + location.pathname.replace(/index\.html$/, "") + "ver-orden.html?id=" + ordenId;
+      await fetch(CONFIG.SUPABASE_URL + "/functions/v1/avisar-orden-lista-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: CONFIG.SUPABASE_ANON_KEY,
+          Authorization: "Bearer " + sessionData.session.access_token,
+        },
+        body: JSON.stringify({ orden_id: ordenId, orden_url: ordenUrl }),
+      });
+    } catch (e) {
+      // el email es un extra silencioso; si falla no debe bloquear el cambio de etapa
+    }
+  }
+
   async function bulkMarcarPagadas() {
     if (!facturasSeleccionadas.size) return;
     const ids = Array.from(facturasSeleccionadas);
@@ -2803,6 +2945,10 @@
     if (error) {
       showToast(t("error_marcar_facturas"), true);
       return;
+    }
+    for (const fid of ids) {
+      const f = state.facturas.find((x) => x.id === fid);
+      if (f) await registrarAbonoFaltante(fid, f.total, pago.metodo_pago);
     }
     ids.forEach(enviarFacturaEmail);
     showToast(t("facturas_marcadas_pagadas_msg", { n: ids.length }));
@@ -2843,6 +2989,7 @@
       showToast(t("error_marcar_pagada"), true);
       return;
     }
+    await registrarAbonoFaltante(id, factura ? factura.total : 0, pago.metodo_pago);
     enviarFacturaEmail(id);
     showToast(t("factura_marcada_pagada"));
     await refreshFacturas();
@@ -2921,6 +3068,7 @@
     const ESTADO_ESTILO = {
       pagada: { label: t("factura_print_pagada"), color: "#1a7f5a" },
       pendiente: { label: t("factura_print_pendiente"), color: "#b8860b" },
+      parcial: { label: estadoFacturaLabel("parcial"), color: "#1a6fb0" },
       cancelada: { label: t("factura_print_cancelada"), color: "#d6293b" },
     };
     const estadoInfo = ESTADO_ESTILO[factura.estado] || { label: estadoFacturaLabel(factura.estado), color: "#68707e" };
@@ -3367,8 +3515,8 @@
   }
 
   function imprimirQrCliente(cliente) {
-    const base = (typeof LAN_ORIGIN !== "undefined" && LAN_ORIGIN ? LAN_ORIGIN : location.origin) + location.pathname.replace(/index\.html$/, "") + "index.html";
-    const url = base + "?cliente=" + encodeURIComponent(cliente.id);
+    const base = location.origin + location.pathname.replace(/index\.html$/, "") + "ver-cliente.html";
+    const url = base + "?id=" + encodeURIComponent(cliente.id);
     const qr = qrcode(0, "M");
     qr.addData(url);
     qr.make();
@@ -3506,12 +3654,12 @@
     return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
   }
 
-  const ESTADO_FACTURA_LABELS = { pendiente: "Sin pagar", pagada: "Pagada", cancelada: "Cancelada" };
+  const ESTADO_FACTURA_LABELS = { pendiente: "Sin pagar", parcial: "Pago parcial", pagada: "Pagada", cancelada: "Cancelada" };
   function estadoFacturaLabel(estado) {
     return ESTADO_FACTURA_LABELS[estado] || capitalize(estado);
   }
 
-  const ESTADO_FACTURA_ICONS = { pagada: "check-circle", pendiente: "alert-circle" };
+  const ESTADO_FACTURA_ICONS = { pagada: "check-circle", pendiente: "alert-circle", parcial: "alert-circle" };
   function estadoFacturaIconSvg(estado) {
     const icon = ESTADO_FACTURA_ICONS[estado];
     return icon ? '<svg class="icon" aria-hidden="true"><use href="#icon-' + icon + '"></use></svg>' : "";
@@ -3622,6 +3770,18 @@
     });
     renderFacturasFilterChips(q, estado, metodoPago, desde, hasta);
     return sortByField(list, facturasSortState, facturaSortValue);
+  }
+
+  function exportarFacturasCsv() {
+    const lista = filterFacturas();
+    const filas = lista.map((f) => [
+      String(f.numero || "").padStart(4, "0"),
+      f.clientes ? [f.clientes.nombre, f.clientes.apellido].filter(Boolean).join(" ") : "",
+      f.fecha || "",
+      f.estado || "",
+      Number(f.total) || 0,
+    ]);
+    descargarCsv("facturas.csv", ["Número", "Cliente", "Fecha", "Estado", "Total"], filas);
   }
 
   function renderFacturasFilterChips(q, estado, metodoPago, desde, hasta) {
@@ -3853,7 +4013,135 @@
     }
 
     recalcTotals();
+
+    const abonosWrap = document.getElementById("factura-abonos-wrap");
+    abonosWrap.hidden = !factura;
+    if (factura) {
+      document.getElementById("factura-abono-fecha").value = todayISO();
+      await cargarAbonosFactura(factura.id);
+    }
+
     openModal("modal-factura");
+  }
+
+  async function fetchAbonosFactura(facturaId) {
+    const { data, error } = await sb.from("factura_pagos").select("*").eq("factura_id", facturaId).order("fecha", { ascending: true });
+    if (error) return [];
+    return data || [];
+  }
+
+  async function cargarAbonosFactura(facturaId) {
+    const abonos = await fetchAbonosFactura(facturaId);
+    renderAbonosFactura(facturaId, abonos);
+  }
+
+  async function registrarAbonoFaltante(facturaId, totalFactura, metodoPago) {
+    const abonosExistentes = await fetchAbonosFactura(facturaId);
+    const yaAbonado = abonosExistentes.reduce((sum, a) => sum + Number(a.monto), 0);
+    const faltante = Number(totalFactura) - yaAbonado;
+    if (faltante <= 0.004) return;
+    const { data } = await sb.from("factura_pagos").insert({ factura_id: facturaId, monto: faltante, fecha: todayISO(), metodo_pago: metodoPago }).select().single();
+    if (data) {
+      state.facturaPagos = state.facturaPagos || [];
+      state.facturaPagos.push(data);
+    }
+  }
+
+  function renderAbonosFactura(facturaId, abonos) {
+    const lista = document.getElementById("factura-abonos-lista");
+    const factura = state.facturas.find((f) => f.id === facturaId);
+    const total = factura ? Number(factura.total) : 0;
+    const abonado = abonos.reduce((sum, a) => sum + Number(a.monto), 0);
+    const saldo = total - abonado;
+
+    lista.innerHTML = abonos.length
+      ? abonos
+          .map(
+            (a) =>
+              '<div class="detalle-list-item" data-abono-id="' +
+              a.id +
+              '"><span style="flex:1;">' +
+              escapeHtml(formatDate(a.fecha)) +
+              "</span><span>" +
+              money(a.monto) +
+              "</span><span>" +
+              escapeHtml(metodoPagoLabel(a.metodo_pago)) +
+              '</span><button type="button" class="btn-ghost btn-eliminar-abono">' +
+              t("btn_eliminar_abono") +
+              "</button></div>"
+          )
+          .join("")
+      : "<p class='view-sub' style='margin:0;'>" + t("sin_abonos_registrados") + "</p>";
+
+    lista.querySelectorAll(".btn-eliminar-abono").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const fila = btn.closest("[data-abono-id]");
+        eliminarAbonoFactura(facturaId, fila.dataset.abonoId);
+      });
+    });
+
+    const notaSaldo = document.getElementById("factura-saldo-pendiente-nota");
+    if (abonos.length && total > 0) {
+      notaSaldo.hidden = false;
+      notaSaldo.textContent = t("saldo_pendiente_prefijo") + money(Math.max(saldo, 0));
+    } else {
+      notaSaldo.hidden = true;
+    }
+  }
+
+  async function actualizarEstadoPorAbonos(facturaId) {
+    const factura = state.facturas.find((f) => f.id === facturaId);
+    if (!factura || factura.estado === "cancelada") return;
+    const abonos = await fetchAbonosFactura(facturaId);
+    const abonado = abonos.reduce((sum, a) => sum + Number(a.monto), 0);
+    const total = Number(factura.total) || 0;
+    const nuevoEstado = abonado <= 0 ? "pendiente" : abonado >= total ? "pagada" : "parcial";
+    if (nuevoEstado !== factura.estado) {
+      await sb.from("facturas").update({ estado: nuevoEstado }).eq("id", facturaId);
+      factura.estado = nuevoEstado;
+      document.getElementById("factura-estado").value = nuevoEstado;
+    }
+    return abonos;
+  }
+
+  async function agregarAbonoFactura() {
+    const facturaId = document.getElementById("factura-id").value;
+    if (!facturaId) return;
+    const monto = parseFloat(document.getElementById("factura-abono-monto").value);
+    if (!monto || monto <= 0) {
+      showToast(t("monto_abono_invalido_error"), true);
+      return;
+    }
+    const fecha = document.getElementById("factura-abono-fecha").value || todayISO();
+    const metodo_pago = document.getElementById("factura-abono-metodo").value;
+
+    const { data, error } = await sb.from("factura_pagos").insert({ factura_id: facturaId, monto, fecha, metodo_pago }).select().single();
+    if (error) {
+      showToast(t("error_agregar_abono"), true);
+      return;
+    }
+    state.facturaPagos = state.facturaPagos || [];
+    state.facturaPagos.push(data);
+    document.getElementById("factura-abono-monto").value = "";
+    const abonos = await actualizarEstadoPorAbonos(facturaId);
+    renderAbonosFactura(facturaId, abonos);
+    renderFacturas(filterFacturas());
+    renderDashboard();
+    showToast(t("abono_agregado_msg"));
+  }
+
+  async function eliminarAbonoFactura(facturaId, abonoId) {
+    if (!(await confirmDialog(t("confirm_eliminar_abono")))) return;
+    const { error } = await sb.from("factura_pagos").delete().eq("id", abonoId);
+    if (error) {
+      showToast(t("error_agregar_abono"), true);
+      return;
+    }
+    state.facturaPagos = (state.facturaPagos || []).filter((a) => a.id !== abonoId);
+    const abonos = await actualizarEstadoPorAbonos(facturaId);
+    renderAbonosFactura(facturaId, abonos);
+    renderFacturas(filterFacturas());
+    renderDashboard();
   }
 
   function collectItems() {
@@ -5149,7 +5437,10 @@
     await refreshOrdenes();
 
     if (etapa === "presupuesto") await crearLlamadaPendiente(ordenId, "presupuesto");
-    if (etapa === "completado") await crearLlamadaPendiente(ordenId, "listo");
+    if (etapa === "completado") {
+      await crearLlamadaPendiente(ordenId, "listo");
+      avisarOrdenListaEmail(ordenId);
+    }
     await refreshLlamadas();
 
     const card = document.querySelector('.kanban-card[data-orden-id="' + ordenId + '"]');
@@ -5691,6 +5982,19 @@
 
   async function refreshEncuestas() {
     state.encuestas = await fetchEncuestas();
+  }
+
+  async function fetchFacturaPagos() {
+    return fetchConCache(
+      "facturaPagos",
+      () => sb.from("factura_pagos").select("*").order("fecha", { ascending: true }),
+      [],
+      t("error_cargar_abonos")
+    );
+  }
+
+  async function refreshFacturaPagos() {
+    state.facturaPagos = await fetchFacturaPagos();
   }
 
   // ---------------- llamadas pendientes (por llamar) ----------------
@@ -7019,6 +7323,7 @@
     }
     showToast(t("dia_cerrado_msg"));
     await cargarRegistroDiario(document.getElementById("registro-fecha").value);
+    await cargarRegistrosSinCerrar();
   }
 
   async function reabrirRegistroDiario() {
@@ -7030,6 +7335,59 @@
     }
     showToast(t("dia_reabierto_msg"));
     await cargarRegistroDiario(document.getElementById("registro-fecha").value);
+    await cargarRegistrosSinCerrar();
+  }
+
+  async function cargarRegistrosSinCerrar() {
+    const hoy = todayISO();
+    const hace2Dias = sumarDias(hoy, -2);
+    const hace30Dias = sumarDias(hoy, -30);
+    const { data, error } = await sb
+      .from("registro_diario")
+      .select("id, fecha")
+      .eq("cerrado", false)
+      .lte("fecha", hace2Dias)
+      .gte("fecha", hace30Dias)
+      .order("fecha", { ascending: true });
+    if (error) return;
+    renderRegistrosSinCerrar(data || [], hoy);
+  }
+
+  function renderRegistrosSinCerrar(rows, hoy) {
+    const panel = document.getElementById("dashboard-registros-sin-cerrar-panel");
+    const lista = document.getElementById("dashboard-registros-sin-cerrar-lista");
+    if (!rows.length) {
+      panel.hidden = true;
+      lista.innerHTML = "";
+      return;
+    }
+    panel.hidden = false;
+    lista.innerHTML = rows
+      .map((r) => {
+        const dias = Math.floor((Date.parse(hoy) - Date.parse(r.fecha)) / 86400000);
+        return (
+          '<div class="detalle-list-item"><span style="flex:1;">' +
+          escapeHtml(formatDate(r.fecha)) +
+          "</span><span>" +
+          dias +
+          t("registro_sin_cerrar_dias") +
+          '</span><button type="button" class="btn-ghost btn-ir-a-cerrar" data-fecha="' +
+          r.fecha +
+          '">' +
+          t("btn_ir_a_cerrar") +
+          "</button></div>"
+        );
+      })
+      .join("");
+    lista.querySelectorAll(".btn-ir-a-cerrar").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        showView("registro-diario");
+        document.querySelectorAll(".nav-item").forEach((b) => b.classList.toggle("is-active", b.dataset.view === "registro-diario"));
+        document.getElementById("registro-fecha").value = btn.dataset.fecha;
+        state.registroDiarioFechaActual = btn.dataset.fecha;
+        await cargarRegistroDiario(btn.dataset.fecha);
+      });
+    });
   }
 
   function renderFotoHojaRegistro(registro) {
@@ -7417,33 +7775,62 @@
     renderConfigGaleriaTrabajo();
   }
 
+  function youtubeIdDesdeUrl(url) {
+    const m = String(url || "").match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
+    return m ? m[1] : null;
+  }
+
   function renderConfigGaleriaTrabajo() {
     const grid = document.getElementById("config-galeria-trabajo-grid");
     if (!grid) return;
-    const fotos = state.galeriaTrabajo || [];
+    const items = state.galeriaTrabajo || [];
     grid.innerHTML =
-      fotos
-        .map(
-          (foto) =>
+      items
+        .map((item) => {
+          const etiqueta = [item.vehiculo_marca, item.vehiculo_modelo, item.vehiculo_anio].filter(Boolean).join(" ");
+          const preview =
+            item.tipo === "video"
+              ? '<img src="https://i.ytimg.com/vi/' + escapeHtml(item.youtube_id) + '/hqdefault.jpg" class="foto-web-preview" alt="" />'
+              : '<img src="' + escapeHtml(item.url) + '" class="foto-web-preview" alt="" />';
+          return (
             '<div class="foto-web-card">' +
-            '<img src="' + escapeHtml(foto.url) + '" class="foto-web-preview" alt="" />' +
+            preview +
+            (etiqueta ? '<div class="view-sub" style="margin:.3rem 0 0;">' + escapeHtml(etiqueta) + "</div>" : "") +
             '<div class="foto-web-acciones">' +
-            '<button type="button" class="btn-ghost" data-galeria-quitar="' + foto.id + '">' + t("web_foto_quitar_btn") + "</button>" +
+            '<button type="button" class="btn-ghost" data-galeria-quitar="' + item.id + '">' + t("web_foto_quitar_btn") + "</button>" +
             "</div></div>"
-        )
+          );
+        })
         .join("") +
       '<div class="foto-web-card">' +
-      '<div class="foto-web-vacia">' + (fotos.length ? "" : t("web_galeria_sin_fotos")) + "</div>" +
-      '<div class="foto-web-acciones">' +
+      '<div class="foto-web-vacia">' + (items.length ? "" : t("web_galeria_sin_fotos")) + "</div>" +
+      '<div class="foto-web-acciones" style="flex-direction:column;gap:.5rem;">' +
       '<label class="btn-ghost">' +
       t("web_galeria_agregar_btn") +
       '<input type="file" accept="image/*" id="input-galeria-agregar" hidden /></label>' +
+      '<input type="text" id="input-galeria-video-link" placeholder="' + t("galeria_video_link_placeholder") + '" style="width:100%;box-sizing:border-box;" />' +
+      '<button type="button" class="btn-ghost" id="btn-galeria-agregar-video">' + t("galeria_agregar_video_btn") + "</button>" +
       "</div></div>";
 
     document.getElementById("input-galeria-agregar").addEventListener("change", (e) => subirFotoGaleria(e.target.files[0]));
+    document.getElementById("btn-galeria-agregar-video").addEventListener("click", agregarVideoGaleria);
     grid.querySelectorAll("[data-galeria-quitar]").forEach((btn) => {
       btn.addEventListener("click", () => quitarFotoGaleria(btn.dataset.galeriaQuitar));
     });
+  }
+
+  function datosVehiculoGaleriaNuevo() {
+    return {
+      vehiculo_marca: document.getElementById("galeria-nuevo-marca").value.trim() || null,
+      vehiculo_modelo: document.getElementById("galeria-nuevo-modelo").value.trim() || null,
+      vehiculo_anio: document.getElementById("galeria-nuevo-anio").value.trim() || null,
+    };
+  }
+
+  function limpiarCamposVehiculoGaleria() {
+    document.getElementById("galeria-nuevo-marca").value = "";
+    document.getElementById("galeria-nuevo-modelo").value = "";
+    document.getElementById("galeria-nuevo-anio").value = "";
   }
 
   async function subirFotoGaleria(file) {
@@ -7462,9 +7849,11 @@
     const { data: urlData } = sb.storage.from("fotos-web-publica").getPublicUrl(storagePath);
     const siguienteOrden = (state.galeriaTrabajo || []).length;
     const { error } = await sb.from("galeria_trabajo_fotos").insert({
+      tipo: "foto",
       url: urlData.publicUrl,
       storage_path: storagePath,
       orden: siguienteOrden,
+      ...datosVehiculoGaleriaNuevo(),
     });
     if (error) {
       console.error(error);
@@ -7473,6 +7862,33 @@
     }
 
     showToast(t("web_foto_subida"));
+    limpiarCamposVehiculoGaleria();
+    await refreshGaleriaTrabajo();
+  }
+
+  async function agregarVideoGaleria() {
+    const input = document.getElementById("input-galeria-video-link");
+    const youtubeId = youtubeIdDesdeUrl(input.value);
+    if (!youtubeId) {
+      showToast(t("galeria_video_link_invalido"), true);
+      return;
+    }
+    const siguienteOrden = (state.galeriaTrabajo || []).length;
+    const { error } = await sb.from("galeria_trabajo_fotos").insert({
+      tipo: "video",
+      youtube_id: youtubeId,
+      url: "https://www.youtube.com/watch?v=" + youtubeId,
+      orden: siguienteOrden,
+      ...datosVehiculoGaleriaNuevo(),
+    });
+    if (error) {
+      console.error(error);
+      showToast(t("web_foto_error_guardar"), true);
+      return;
+    }
+    input.value = "";
+    showToast(t("galeria_video_agregado_msg"));
+    limpiarCamposVehiculoGaleria();
     await refreshGaleriaTrabajo();
   }
 
@@ -7755,12 +8171,27 @@
     const ordenesActivas = state.ordenes.filter((o) => o.etapa !== "facturado" && o.etapa !== "cancelado");
 
     const stockBajo = state.piezas.filter((p) => Number(p.stock) <= Number(p.stock_minimo));
+    const valorInventario = state.piezas.reduce((sum, p) => sum + (Number(p.costo) || 0) * (Number(p.stock) || 0), 0);
+
+    const hoyDate = new Date(hoy + "T00:00:00");
+    const offsetLunes = hoyDate.getDay() === 0 ? 6 : hoyDate.getDay() - 1;
+    const inicioSemana = new Date(hoyDate);
+    inicioSemana.setDate(inicioSemana.getDate() - offsetLunes);
+    const inicioSemanaISO = inicioSemana.toISOString().slice(0, 10);
+    const carrosSemana = state.ordenes.filter((o) => o.etapa !== "cancelado" && (o.fecha_recepcion || "") >= inicioSemanaISO).length;
+    const facturadoSemana = state.facturas
+      .filter((f) => f.estado === "pagada" && (f.fecha || "") >= inicioSemanaISO)
+      .reduce((sum, f) => sum + Number(f.total), 0);
 
     document.getElementById("kpi-ingresos").textContent = money(ingresosMes);
     document.getElementById("kpi-facturas-pendientes").textContent = String(pendientes.length);
     document.getElementById("kpi-facturas-pendientes-monto").textContent = money(pendientesMonto);
     document.getElementById("kpi-ordenes-activas").textContent = String(ordenesActivas.length);
     document.getElementById("kpi-stock-bajo").textContent = String(stockBajo.length);
+    document.getElementById("kpi-valor-inventario").textContent = money(valorInventario);
+    document.getElementById("dashboard-resumen-semanal-panel").hidden = false;
+    document.getElementById("kpi-carros-semana").textContent = String(carrosSemana);
+    document.getElementById("kpi-facturado-semana").textContent = money(facturadoSemana);
     document.querySelectorAll(".kpi-value").forEach((el) => {
       el.classList.remove("is-updated");
       requestAnimationFrame(() => el.classList.add("is-updated"));
@@ -7812,8 +8243,52 @@
     }
 
     renderRecordatoriosPendientes();
+    renderGarantiasPorVencer();
     renderDashboardChart();
     updateQuickAccessBadges();
+  }
+
+  function renderGarantiasPorVencer() {
+    const hoy = todayISO();
+    const enDiasLimite = sumarDias(hoy, 14);
+    const cfg = state.configNegocio || {};
+    const garantiaDias = Math.max(Number(cfg.garantia_dias) || 0, Number(cfg.garantia_labor_dias) || 0);
+    const panel = document.getElementById("dashboard-garantias-panel");
+    const lista = document.getElementById("dashboard-garantias-lista");
+
+    const proximas = garantiaDias
+      ? state.facturas
+          .filter((f) => f.estado !== "cancelada")
+          .map((f) => ({ factura: f, vence: sumarDias(f.fecha, garantiaDias) }))
+          .filter((x) => x.vence && x.vence >= hoy && x.vence <= enDiasLimite)
+          .sort((a, b) => a.vence.localeCompare(b.vence))
+      : [];
+
+    if (!proximas.length) {
+      panel.hidden = true;
+      lista.innerHTML = "";
+      return;
+    }
+
+    panel.hidden = false;
+    lista.innerHTML = proximas
+      .map(({ factura, vence }) => {
+        const cliente = state.clientes.find((c) => c.id === factura.cliente_id);
+        return (
+          '<div class="detalle-list-item"><span style="flex:1;">' +
+          escapeHtml(cliente ? cliente.nombre : "—") +
+          " — " +
+          t("factura_hash") +
+          String(factura.numero || "").padStart(4, "0") +
+          "</span><span>" +
+          escapeHtml((cliente && cliente.telefono) || "—") +
+          "</span><span>" +
+          t("garantia_vence_prefijo") +
+          escapeHtml(formatDate(vence)) +
+          "</span></div>"
+        );
+      })
+      .join("");
   }
 
   function renderRecordatoriosPendientes() {
@@ -8072,8 +8547,10 @@
     document.getElementById("clientes-filter-inactivos").addEventListener("change", () => renderClientes(filterClientes()));
     document.getElementById("clientes-filter-dealers").addEventListener("change", () => renderClientes(filterClientes()));
     wireSortHeaders(document.querySelector("#view-clientes thead tr"), clientesSortState, CLIENTES_SORT_LABELS, () => renderClientes(filterClientes()));
+    document.getElementById("btn-exportar-clientes-csv").addEventListener("click", exportarClientesCsv);
 
     document.getElementById("btn-nueva-factura").addEventListener("click", () => openFacturaModal(null));
+    document.getElementById("btn-agregar-abono").addEventListener("click", agregarAbonoFactura);
     document.getElementById("form-factura").addEventListener("submit", conSpinnerAlGuardar(saveFactura));
     document.getElementById("btn-eliminar-factura").addEventListener("click", deleteFactura);
     document.getElementById("btn-add-item").addEventListener("click", () => addItemRow(null));
@@ -8081,6 +8558,7 @@
     document.getElementById("factura-impuesto-pct").addEventListener("input", recalcTotals);
     document.getElementById("factura-descuento").addEventListener("input", recalcTotals);
     document.getElementById("facturas-search").addEventListener("input", () => renderFacturas(filterFacturas()));
+    document.getElementById("btn-exportar-facturas-csv").addEventListener("click", exportarFacturasCsv);
     document.getElementById("facturas-filter-estado").addEventListener("change", () => renderFacturas(filterFacturas()));
     document.getElementById("facturas-filter-metodo-pago").addEventListener("change", () => renderFacturas(filterFacturas()));
     document.getElementById("facturas-filter-desde").addEventListener("change", () => renderFacturas(filterFacturas()));
@@ -8141,6 +8619,7 @@
     document.getElementById("btn-ver-ganancias-servicio").addEventListener("click", mostrarGananciasPorServicio);
     document.getElementById("btn-ver-no-shows").addEventListener("click", mostrarNoShows);
     document.getElementById("btn-ver-reordenar").addEventListener("click", mostrarParaReordenar);
+    document.getElementById("btn-imprimir-lista-pedido").addEventListener("click", imprimirListaPedido);
     document.getElementById("form-pieza").addEventListener("submit", conSpinnerAlGuardar(savePieza));
     document.getElementById("btn-eliminar-pieza").addEventListener("click", deletePieza);
     document.getElementById("btn-escanear-pieza").addEventListener("click", abrirEscanerPieza);
@@ -8463,6 +8942,7 @@
     await refreshOrdenes();
     await refreshTareas();
     await refreshEncuestas();
+    await refreshFacturaPagos();
     await refreshFacturas();
     await refreshEstimados();
     await refreshCitas();
@@ -8479,6 +8959,7 @@
     await refreshLlamadas();
     await refreshTurnos();
     setInterval(refreshTurnos, 15000);
+    await cargarRegistrosSinCerrar();
     renderDashboard();
     verificarConexionReal();
 

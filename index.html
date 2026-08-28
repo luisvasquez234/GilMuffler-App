@@ -298,6 +298,30 @@
           <span class="kpi-label" data-i18n="kpi_stock_bajo">Piezas con stock bajo</span>
           <strong class="kpi-value" id="kpi-stock-bajo">0</strong>
         </div>
+        <div class="kpi-card is-clickable" id="kpi-card-valor-inventario" data-goto="inventario" role="button" tabindex="0">
+          <svg class="icon kpi-icon" aria-hidden="true"><use href="#icon-box"></use></svg>
+          <span class="kpi-label" data-i18n="kpi_valor_inventario">Valor de inventario</span>
+          <strong class="kpi-value" id="kpi-valor-inventario">$0.00</strong>
+        </div>
+      </div>
+
+      <div class="table-wrap" id="dashboard-resumen-semanal-panel" style="padding:1.5rem;" hidden>
+        <h2 style="font-size:1.05rem;margin-bottom:1rem;" data-i18n="resumen_semanal_titulo">📊 Esta semana</h2>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-label" data-i18n="kpi_carros_semana">Carros atendidos</span>
+            <strong class="kpi-value" id="kpi-carros-semana">0</strong>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label" data-i18n="kpi_facturado_semana">Facturado</span>
+            <strong class="kpi-value" id="kpi-facturado-semana">$0.00</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap" id="dashboard-registros-sin-cerrar-panel" style="padding:1.5rem;" hidden>
+        <h2 style="font-size:1.05rem;margin-bottom:1rem;" data-i18n="registros_sin_cerrar_titulo">📋 Registro diario sin cerrar</h2>
+        <div id="dashboard-registros-sin-cerrar-lista"></div>
       </div>
       <div class="table-wrap chart-wrap">
         <h2 class="chart-title" data-i18n="chart_ingresos_titulo">Ingresos de los últimos 6 meses</h2>
@@ -326,6 +350,11 @@
         <div id="dashboard-recordatorios-lista"></div>
       </div>
 
+      <div class="table-wrap" id="dashboard-garantias-panel" style="padding:1.5rem;" hidden>
+        <h2 style="font-size:1.05rem;margin-bottom:1rem;" data-i18n="garantias_por_vencer_titulo">🛡️ Garantías por vencer pronto</h2>
+        <div id="dashboard-garantias-lista"></div>
+      </div>
+
       <div class="table-wrap" style="padding:1.5rem;">
         <h2 style="font-size:1.05rem;margin-bottom:1rem;" data-i18n="ordenes_por_etapa_titulo">Órdenes por etapa</h2>
         <div class="etapa-counts" id="dashboard-etapa-counts"></div>
@@ -338,6 +367,7 @@
           <h1 data-i18n="nav_clientes">Clientes</h1>
           <p class="view-sub" data-i18n="clientes_subtitulo">Directorio de clientes del taller</p>
         </div>
+        <button class="btn-ghost" id="btn-exportar-clientes-csv" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-download"></use></svg><span data-i18n="btn_exportar_csv">Exportar CSV</span></button>
         <button class="btn-primary" id="btn-nuevo-cliente" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-user"></use></svg><span data-i18n="btn_nuevo_cliente">+ Nuevo cliente</span></button>
       </header>
       <div class="toolbar">
@@ -373,6 +403,7 @@
           <h1><span class="view-title-mark"><img src="logo-muffler.png" alt="" /></span><span data-i18n="nav_facturas">Facturas</span></h1>
           <p class="view-sub" data-i18n="facturas_subtitulo">Historial de facturación</p>
         </div>
+        <button class="btn-ghost" id="btn-exportar-facturas-csv" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-download"></use></svg><span data-i18n="btn_exportar_csv">Exportar CSV</span></button>
         <button class="btn-primary" id="btn-nueva-factura" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-file-text"></use></svg><span data-i18n="btn_nueva_factura">+ Nueva factura</span></button>
       </header>
       <div class="bulk-bar" id="facturas-bulk-bar" hidden>
@@ -391,6 +422,7 @@
         <select id="facturas-filter-estado">
           <option value="" data-i18n="facturas_todos_estados">Todos los estados</option>
           <option value="pendiente" data-i18n="estado_pendiente">Sin pagar</option>
+          <option value="parcial" data-i18n="estado_parcial">Pago parcial</option>
           <option value="pagada" data-i18n="estado_pagada">Pagada</option>
           <option value="cancelada" data-i18n="estado_cancelada">Cancelada</option>
         </select>
@@ -404,6 +436,7 @@
         <input type="date" id="facturas-filter-hasta" title="Hasta" data-i18n-title="label_hasta" />
       </div>
       <div class="filter-chips" id="facturas-filter-chips"></div>
+      <div class="filter-chips" id="facturas-resumen-metodo-pago" hidden style="margin-bottom:1rem;"></div>
       <div class="table-wrap">
         <table class="data-table">
           <thead><tr>
@@ -866,7 +899,12 @@
         <div id="config-web-fotos-grid" class="galeria-fotos-web"></div>
 
         <h3 style="font-size:.95rem;margin:0 0 .25rem;" data-i18n="web_galeria_titulo">Galería de "Nuestro trabajo"</h3>
-        <p class="view-sub" style="margin:0 0 1rem;" data-i18n="web_galeria_subtitulo">Subí las fotos que quieras, sin límite — el cliente las va a ver todas en la página.</p>
+        <p class="view-sub" style="margin:0 0 1rem;" data-i18n="web_galeria_subtitulo">Subí las fotos y videos que quieras, sin límite. Marca cada uno con el carro (marca, modelo, año) para que el cliente los pueda buscar.</p>
+        <div class="field-row" style="margin-bottom:.75rem;">
+          <div class="field"><label for="galeria-nuevo-marca" data-i18n="galeria_marca_label">Marca</label><input type="text" id="galeria-nuevo-marca" placeholder="Ej. Honda" /></div>
+          <div class="field"><label for="galeria-nuevo-modelo" data-i18n="galeria_modelo_label">Modelo</label><input type="text" id="galeria-nuevo-modelo" placeholder="Ej. Civic" /></div>
+          <div class="field"><label for="galeria-nuevo-anio" data-i18n="galeria_anio_label">Año</label><input type="text" id="galeria-nuevo-anio" placeholder="Ej. 2015" /></div>
+        </div>
         <div id="config-galeria-trabajo-grid" class="galeria-fotos-web"></div>
 
         <h3 style="font-size:.95rem;margin:0 0 .75rem;" data-i18n="web_textos_titulo">Textos de la página</h3>
@@ -1583,6 +1621,7 @@
           <label for="factura-estado" data-i18n="col_estado">Estado</label>
           <select id="factura-estado">
             <option value="pendiente" data-i18n="estado_pendiente">Sin pagar</option>
+            <option value="parcial" data-i18n="estado_parcial">Pago parcial</option>
             <option value="pagada" data-i18n="estado_pagada">Pagada</option>
             <option value="cancelada" data-i18n="estado_cancelada">Cancelada</option>
           </select>
@@ -1648,6 +1687,25 @@
             <div><span data-i18n="descuento_label">Descuento</span><strong id="factura-descuento-monto">$0.00</strong></div>
             <div class="total-final"><span data-i18n="col_total">Total</span><strong id="factura-total">$0.00</strong></div>
           </div>
+        </div>
+      </div>
+
+      <div class="field" id="factura-abonos-wrap" hidden>
+        <label data-i18n="abonos_label">Abonos registrados</label>
+        <div id="factura-abonos-lista" class="detalle-list"></div>
+        <p id="factura-saldo-pendiente-nota" class="orden-nota" hidden></p>
+        <div class="field-row" style="align-items:flex-end;">
+          <div class="field"><label for="factura-abono-monto" data-i18n="monto_label">Monto</label><input type="number" id="factura-abono-monto" min="0.01" step="0.01" /></div>
+          <div class="field"><label for="factura-abono-fecha" data-i18n="col_fecha">Fecha</label><input type="date" id="factura-abono-fecha" /></div>
+          <div class="field">
+            <label for="factura-abono-metodo" data-i18n="metodo_pago_label">Método de pago</label>
+            <select id="factura-abono-metodo">
+              <option value="efectivo" data-i18n="metodo_efectivo">Efectivo</option>
+              <option value="tarjeta" data-i18n="metodo_tarjeta">Tarjeta</option>
+              <option value="cheque" data-i18n="metodo_cheque">Cheque</option>
+            </select>
+          </div>
+          <button type="button" class="btn-ghost" id="btn-agregar-abono" data-i18n="btn_agregar_abono">+ Agregar abono</button>
         </div>
       </div>
 
@@ -1750,10 +1808,11 @@
       <button class="icon-btn" data-close-modal="modal-reordenar" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
     </header>
     <div class="modal-body">
-      <p class="view-sub" style="margin-top:0;" data-i18n="reordenar_desc">Piezas con stock igual o por debajo del mínimo, con una sugerencia de cuánto pedir.</p>
+      <p class="view-sub" style="margin-top:0;" data-i18n="reordenar_desc">Piezas con stock igual o por debajo del mínimo, con una sugerencia de cuánto pedir, agrupadas por proveedor.</p>
+      <button class="btn-ghost" id="btn-imprimir-lista-pedido" type="button" style="margin-bottom:1rem;"><svg class="icon" aria-hidden="true"><use href="#icon-printer"></use></svg><span data-i18n="btn_imprimir_lista_pedido">Imprimir lista de pedido</span></button>
       <div class="table-wrap">
         <table class="data-table">
-          <thead><tr><th data-i18n="col_pieza">Pieza</th><th data-i18n="col_proveedor">Proveedor</th><th data-i18n="col_stock_actual">Stock actual</th><th data-i18n="col_minimo">Mínimo</th><th data-i18n="col_sugerido_pedir">Sugerido a pedir</th></tr></thead>
+          <thead><tr><th data-i18n="col_pieza">Pieza</th><th data-i18n="col_stock_actual">Stock actual</th><th data-i18n="col_minimo">Mínimo</th><th data-i18n="col_sugerido_pedir">Sugerido a pedir</th></tr></thead>
           <tbody id="reordenar-tbody"></tbody>
         </table>
       </div>

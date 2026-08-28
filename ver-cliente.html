@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="es">
+<head>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<meta charset="utf-8" />
+<link rel="icon" type="image/png" href="logo-muffler.png" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title data-i18n="ver_cliente_titulo">Tu cuenta</title>
+<style>
+  body{font-family:"Inter",Arial,Helvetica,sans-serif;color:#1f2430;padding:1.5rem;max-width:36rem;margin:0 auto;background:#f6f7f9;}
+  .card{background:#fff;border-radius:12px;padding:1.75rem;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+  .header{border-bottom:3px solid #d5601a;padding-bottom:1rem;margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;flex-wrap:wrap;}
+  .header-brand{display:flex;align-items:center;gap:.8rem;}
+  .header-brand img{height:3rem;width:3rem;object-fit:cover;object-position:68% 55%;border-radius:8px;flex:none;}
+  .header h1{font-size:1.4rem;margin:0;color:#d5601a;}
+  .cliente-nombre{font-size:1.1rem;font-weight:700;margin:0 0 1.5rem;}
+  .seccion{margin-bottom:1.5rem;}
+  .seccion h2{font-size:.95rem;text-transform:uppercase;letter-spacing:.04em;color:#68707e;margin:0 0 .75rem;}
+  .lista-item{display:flex;justify-content:space-between;align-items:center;gap:.75rem;padding:.7rem 0;border-bottom:1px solid #eef0f2;font-size:.92rem;}
+  .lista-item:last-child{border-bottom:none;}
+  .lista-item-titulo{font-weight:600;}
+  .lista-item-sub{color:#68707e;font-size:.82rem;}
+  .etiqueta-etapa{display:inline-block;padding:.2rem .6rem;border-radius:999px;font-size:.75rem;font-weight:600;background:#eef0f2;color:#68707e;flex:none;}
+  .etiqueta-etapa.is-completado{background:#e3f4ea;color:#1a7f5a;}
+  .etiqueta-etapa.is-cancelado{background:#fbe7e9;color:#d6293b;}
+  .lista-item a{color:#d5601a;font-size:.85rem;font-weight:600;text-decoration:none;white-space:nowrap;}
+  .lista-item a:hover{text-decoration:underline;}
+  .vacio{color:#68707e;font-size:.88rem;padding:.5rem 0;}
+  .cita-card{background:#fff8f0;border:1px solid #f3ddc0;border-radius:8px;padding:.9rem 1rem;font-size:.9rem;}
+  .btn-agendar{display:inline-flex;align-items:center;gap:.5rem;background:#d5601a;color:#fff;padding:.65rem 1.2rem;border-radius:8px;font-weight:600;text-decoration:none;font-size:.88rem;margin-bottom:1.5rem;}
+  .btn-agendar:hover{background:#b5500f;}
+  .estado-msg{text-align:center;color:#68707e;padding:3rem 1rem;}
+  .estado-msg-icon{width:2.25rem;height:2.25rem;color:#d5601a;display:block;margin:0 auto .6rem;}
+  .idioma-toggle{position:absolute;top:.9rem;right:.9rem;width:auto;margin:0;padding:.3rem .7rem;font-size:.75rem;font-weight:600;border-radius:999px;background:#f0f1f3;color:#68707e;border:1px solid #d7dade;cursor:pointer;}
+</style>
+</head>
+<body style="position:relative;">
+  <button type="button" class="idioma-toggle" id="idioma-toggle" data-i18n-toggle-label>English</button>
+  <div class="card" id="contenido" aria-live="polite">
+    <p class="estado-msg" data-i18n="cargando_generico">Cargando…</p>
+  </div>
+
+  <script src="i18n.js"></script>
+  <script src="config.local.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    function escapeHtml(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+    function formatDate(iso) {
+      if (!iso || iso.length < 10) return iso || "";
+      const [anio, mes, dia] = iso.slice(0, 10).split("-");
+      return mes + "/" + dia + "/" + anio;
+    }
+    function etapaLabel(etapa) {
+      const claves = {
+        diagnostico: "paso_diagnostico",
+        presupuesto: "paso_presupuesto_enviado",
+        aprobado: "paso_aprobado",
+        en_reparacion: "paso_en_reparacion",
+        completado: "paso_completado",
+        facturado: "etapa_facturado",
+        cancelado: "orden_cancelada_msg",
+      };
+      return t(claves[etapa] || etapa);
+    }
+    function vehiculoLabelOrden(o) {
+      return [o.vehiculo_marca, o.vehiculo_modelo, o.vehiculo_anio].filter(Boolean).join(" ");
+    }
+
+    async function cargar() {
+      const contenido = document.getElementById("contenido");
+      const id = new URLSearchParams(location.search).get("id");
+      if (!id) {
+        contenido.innerHTML = '<div class="estado-msg"><svg class="estado-msg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><p>' + t("falta_id_cliente") + "</p></div>";
+        return;
+      }
+
+      const sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+      const hoy = new Date().toISOString().slice(0, 10);
+
+      const [{ data: cliente, error: errC }, { data: vehiculos }, { data: ordenes }, { data: citas }, { data: cfg }] = await Promise.all([
+        sb.from("clientes").select("nombre, apellido").eq("id", id).maybeSingle(),
+        sb.from("vehiculos").select("marca, modelo, anio, placa").eq("cliente_id", id),
+        sb.from("ordenes_servicio").select("id, numero, etapa, fecha_recepcion, vehiculo_marca, vehiculo_modelo, vehiculo_anio").eq("cliente_id", id).order("fecha_recepcion", { ascending: false }),
+        sb.from("citas").select("fecha, hora_preferida").eq("cliente_id", id).eq("estado", "agendada").gte("fecha", hoy).order("fecha", { ascending: true }).limit(1),
+        sb.from("configuracion_negocio").select("*").eq("id", 1).maybeSingle(),
+      ]);
+
+      if (errC || !cliente) {
+        contenido.innerHTML = '<div class="estado-msg"><svg class="estado-msg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><p>' + t("cliente_no_encontrado") + "</p></div>";
+        return;
+      }
+
+      const c = cfg || {};
+      const nombreNegocio = c.nombre_negocio || "Gil Muffler";
+      const logoSrc = c.logo_url || "logo-muffler.png";
+      const nombreCliente = [cliente.nombre, cliente.apellido].filter(Boolean).join(" ");
+
+      const vehiculosHtml = (vehiculos || []).length
+        ? (vehiculos || [])
+            .map((v) => {
+              const label = [v.marca, v.modelo, v.anio].filter(Boolean).join(" ") || "—";
+              return (
+                "<div class='lista-item'><span><span class='lista-item-titulo'>" +
+                escapeHtml(label) +
+                "</span><br><span class='lista-item-sub'>" +
+                escapeHtml(v.placa || t("sin_placa")) +
+                "</span></span></div>"
+              );
+            })
+            .join("")
+        : "<p class='vacio'>" + t("cliente_sin_vehiculos_registrados") + "</p>";
+
+      const ordenesHtml = (ordenes || []).length
+        ? (ordenes || [])
+            .map((o) => {
+              const claseEtapa = o.etapa === "completado" || o.etapa === "facturado" ? "is-completado" : o.etapa === "cancelado" ? "is-cancelado" : "";
+              return (
+                "<div class='lista-item'><span><span class='lista-item-titulo'>" +
+                t("orden_hash") +
+                String(o.numero).padStart(4, "0") +
+                "</span><br><span class='lista-item-sub'>" +
+                escapeHtml(vehiculoLabelOrden(o) || "—") +
+                " · " +
+                escapeHtml(formatDate(o.fecha_recepcion)) +
+                "</span></span><span class='etiqueta-etapa " +
+                claseEtapa +
+                "'>" +
+                etapaLabel(o.etapa) +
+                "</span><a href='ver-orden.html?id=" +
+                encodeURIComponent(o.id) +
+                "'>" +
+                t("ver_detalle_link") +
+                "</a></div>"
+              );
+            })
+            .join("")
+        : "<p class='vacio'>" + t("sin_historial_servicio") + "</p>";
+
+      const proximaCita = (citas || [])[0];
+      const citaHtml = proximaCita
+        ? "<div class='seccion'><h2>" +
+          t("proxima_cita_titulo") +
+          "</h2><div class='cita-card'>" +
+          escapeHtml(formatDate(proximaCita.fecha)) +
+          (proximaCita.hora_preferida ? " · " + escapeHtml(proximaCita.hora_preferida) : "") +
+          "</div></div>"
+        : "";
+
+      contenido.innerHTML =
+        "<div class='header'><div class='header-brand'><img src='" +
+        escapeHtml(logoSrc) +
+        "' alt='' /><h1>" +
+        escapeHtml(nombreNegocio) +
+        "</h1></div></div>" +
+        "<p class='cliente-nombre'>" +
+        escapeHtml(nombreCliente) +
+        "</p>" +
+        "<a class='btn-agendar' href='bienvenida.html#reservar-cita'>" +
+        t("agendar_otra_cita_btn") +
+        "</a>" +
+        citaHtml +
+        "<div class='seccion'><h2>" + t("tus_vehiculos_titulo") + "</h2>" + vehiculosHtml + "</div>" +
+        "<div class='seccion'><h2>" + t("historial_servicio_titulo") + "</h2>" + ordenesHtml + "</div>";
+    }
+
+    document.getElementById("idioma-toggle").addEventListener("click", () => {
+      setIdioma(getIdioma() === "es" ? "en" : "es");
+      cargar();
+    });
+    aplicarIdioma();
+    cargar();
+  </script>
+</body>
+</html>

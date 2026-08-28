@@ -865,6 +865,7 @@ body.tiene-banner-offline .app{padding-top:2.7rem;}
 }
 .dealer-total-badge strong{font-size:.95rem;}
 .pill-pendiente{background:var(--warning-soft);color:var(--warning);}
+.pill-parcial{background:var(--series-2-soft, #ddeeff);color:var(--series-2, #1a6fb0);}
 .pill-pagada{background:var(--success-soft);color:var(--success);}
 .pill-cancelada{background:var(--danger-soft);color:var(--danger);}
 .pill-aprobado{background:var(--success-soft);color:var(--success);}

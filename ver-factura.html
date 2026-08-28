@@ -8,20 +8,35 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   body{font-family:"Inter",Arial,Helvetica,sans-serif;color:#1f2430;padding:1.5rem;max-width:40rem;margin:0 auto;background:#f6f7f9;}
-  .card{background:#fff;border-radius:12px;padding:1.75rem;box-shadow:0 1px 4px rgba(0,0,0,.08);}
-  .header{border-bottom:3px solid #d5601a;padding-bottom:1rem;margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;flex-wrap:wrap;}
+  .card{background:#fff;border-radius:12px;padding:1.75rem;box-shadow:0 1px 4px rgba(0,0,0,.08);position:relative;}
+  .header{border-bottom:3px solid #d5601a;padding-bottom:1rem;margin-bottom:1.25rem;display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;}
   .header-brand{display:flex;align-items:center;gap:.8rem;}
   .header-brand img{height:3rem;width:3rem;object-fit:cover;object-position:68% 55%;border-radius:8px;flex:none;}
   .header h1{font-size:1.4rem;margin:0;color:#d5601a;}
-  .header .contacto{font-size:.8rem;color:#68707e;text-align:right;}
-  .meta{display:flex;justify-content:space-between;margin-bottom:1.5rem;font-size:.9rem;flex-wrap:wrap;gap:.5rem;}
-  .meta .estado{display:inline-block;padding:.2rem .6rem;border-radius:999px;background:#fdefe3;color:#a84a14;font-weight:600;font-size:.78rem;}
-  .meta .metodo-pago{display:block;margin-top:.35rem;font-size:.78rem;color:#68707e;}
-  table{width:100%;border-collapse:collapse;margin-top:.5rem;}
-  th,td{text-align:left;padding:.5rem .6rem;border-bottom:1px solid #e1e4e9;font-size:.9rem;}
-  th{color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}
-  .totals{margin-top:1rem;text-align:right;font-size:.95rem;}
-  .totals strong{font-size:1.15rem;color:#d5601a;}
+  .header .contacto{font-size:.8rem;color:#68707e;text-align:right;line-height:1.5;}
+  .franja{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem;}
+  .franja .numero{font-size:1.15rem;font-weight:700;color:#1f2430;}
+  .franja .numero small{display:block;font-weight:400;font-size:.8rem;color:#68707e;margin-top:.15rem;}
+  .estado{display:inline-block;padding:.3rem .8rem;border-radius:6px;font-weight:700;font-size:.85rem;letter-spacing:.06em;text-transform:uppercase;}
+  .estado-pagada{color:#c0392b;border:2.5px solid #c0392b;transform:rotate(-6deg);background:transparent;}
+  .estado-pendiente{background:#fdefe3;color:#d5601a;border-radius:999px;font-size:.78rem;letter-spacing:.02em;text-transform:none;}
+  .estado-parcial{background:#eaf2fb;color:#1a6fb0;border-radius:999px;font-size:.78rem;letter-spacing:.02em;text-transform:none;}
+  .estado-cancelada{background:#f1f2f4;color:#68707e;border-radius:999px;font-size:.78rem;letter-spacing:.02em;text-transform:none;}
+  .metodo-pago{display:block;margin-top:.35rem;font-size:.78rem;color:#68707e;text-align:right;}
+  .datos{display:flex;justify-content:space-between;gap:1.5rem;margin-bottom:1.5rem;font-size:.85rem;flex-wrap:wrap;}
+  .datos > div{flex:1 1 12rem;}
+  .datos dt{color:#68707e;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;margin-top:.5rem;}
+  .datos dt:first-child{margin-top:0;}
+  .datos dd{margin:0 0 .15rem;}
+  table{width:100%;border-collapse:collapse;margin-top:.5rem;border:1px solid #d8dce2;}
+  th,td{text-align:left;padding:.5rem .6rem;border:1px solid #e1e4e9;font-size:.9rem;}
+  th{color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;background:#f5f6f8;}
+  .totales-wrap{display:flex;justify-content:flex-end;margin-top:1rem;}
+  .totales{border-collapse:collapse;width:auto;min-width:14rem;border:1px solid #d8dce2;}
+  .totales td{border:1px solid #e1e4e9;padding:.4rem .8rem;font-size:.9rem;}
+  .totales td:first-child{color:#68707e;}
+  .totales td:last-child{text-align:right;}
+  .totales tr.total td{font-weight:700;color:#d5601a;font-size:1.05rem;}
   .notas{margin-top:1.5rem;padding:.9rem 1rem;background:#fafbfc;border-radius:8px;font-size:.85rem;}
   .notas strong{display:block;margin-bottom:.3rem;color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}
   .pie{margin-top:2rem;text-align:center;font-style:italic;color:#68707e;font-size:.9rem;}
@@ -51,13 +66,29 @@
     function money(n) {
       return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(n) || 0);
     }
+    function sinDosPuntos(s) {
+      return String(s || "").replace(/:\s*$/, "");
+    }
     function formatDate(iso, formato) {
       if (!iso || iso.length < 10) return iso || "";
       const [anio, mes, dia] = iso.slice(0, 10).split("-");
       return formato === "DD/MM/YYYY" ? dia + "/" + mes + "/" + anio : mes + "/" + dia + "/" + anio;
     }
-    const ESTADO_KEYS = { pendiente: "estado_pendiente", pagada: "estado_pagada", cancelada: "estado_cancelada" };
+    const ESTADO_KEYS = { pendiente: "estado_pendiente", parcial: "estado_parcial", pagada: "estado_pagada", cancelada: "estado_cancelada" };
+    const ESTADO_CLASES = { pendiente: "estado-pendiente", parcial: "estado-parcial", pagada: "estado-pagada", cancelada: "estado-cancelada" };
     const METODO_PAGO_KEYS = { efectivo: "metodo_efectivo", tarjeta: "metodo_tarjeta", cheque: "metodo_cheque" };
+
+    async function buscarVehiculoFactura(sb, factura) {
+      if (factura.orden_id) {
+        const { data: orden } = await sb.from("ordenes_servicio").select("vehiculo_id").eq("id", factura.orden_id).maybeSingle();
+        if (orden && orden.vehiculo_id) {
+          const { data: v } = await sb.from("vehiculos").select("marca, modelo, anio, placa, kilometraje").eq("id", orden.vehiculo_id).maybeSingle();
+          if (v) return v;
+        }
+      }
+      const { data: v } = await sb.from("vehiculos").select("marca, modelo, anio, placa, kilometraje").eq("cliente_id", factura.cliente_id).limit(1).maybeSingle();
+      return v || null;
+    }
 
     async function cargar() {
       const contenido = document.getElementById("contenido");
@@ -70,7 +101,7 @@
       const sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 
       const [{ data: factura, error: errF }, { data: cfg }] = await Promise.all([
-        sb.from("facturas").select("*, clientes(nombre)").eq("id", id).maybeSingle(),
+        sb.from("facturas").select("*, clientes(nombre, apellido, direccion)").eq("id", id).maybeSingle(),
         sb.from("configuracion_negocio").select("*").eq("id", 1).maybeSingle(),
       ]);
 
@@ -79,13 +110,19 @@
         return;
       }
 
-      const { data: items } = await sb.from("factura_items").select("*").eq("factura_id", id).order("orden", { ascending: true });
+      const [{ data: items }, vehiculo, { data: abonos }] = await Promise.all([
+        sb.from("factura_items").select("*").eq("factura_id", id).order("orden", { ascending: true }),
+        buscarVehiculoFactura(sb, factura),
+        factura.estado === "parcial" ? sb.from("factura_pagos").select("monto").eq("factura_id", id) : Promise.resolve({ data: null }),
+      ]);
 
       const c = cfg || {};
+      const cliente = factura.clientes || {};
       const nombreNegocio = c.nombre_negocio || "Gil Muffler";
-      const contacto = [c.direccion, c.telefono, c.email].filter(Boolean).join(" · ");
+      const contacto = [c.direccion, c.telefono, c.email].filter(Boolean).map(escapeHtml).join("<br>");
       const logoSrc = c.logo_url || "logo-muffler.png";
-      const clienteNombre = factura.clientes ? factura.clientes.nombre : "—";
+      const clienteNombre = [cliente.nombre, cliente.apellido].filter(Boolean).join(" ") || "—";
+      const vehiculoTexto = vehiculo ? [vehiculo.marca, vehiculo.modelo, vehiculo.anio].filter(Boolean).join(" ") : "";
 
       const filas = (items || [])
         .map(
@@ -94,9 +131,25 @@
         )
         .join("");
 
-      const notasHtml = factura.notas ? "<div class='notas'><strong>Notas</strong><p>" + escapeHtml(factura.notas).replace(/\n/g, "<br>") + "</p></div>" : "";
+      const notasHtml = factura.notas ? "<div class='notas'><strong>" + t("notas_label") + "</strong><p>" + escapeHtml(factura.notas).replace(/\n/g, "<br>") + "</p></div>" : "";
       const pieHtml = c.mensaje_pie ? "<p class='pie'>" + escapeHtml(c.mensaje_pie) + "</p>" : "";
       const extraHtml = c.texto_adicional ? "<p class='extra'>" + escapeHtml(c.texto_adicional).replace(/\n/g, "<br>") + "</p>" : "";
+
+      const estadoClase = ESTADO_CLASES[factura.estado] || "estado-pendiente";
+      const estadoTexto = factura.estado === "pagada" ? t("estado_pagada").toUpperCase() : escapeHtml(t(ESTADO_KEYS[factura.estado]) || factura.estado);
+      const metodoPagoHtml =
+        factura.estado === "pagada" && factura.metodo_pago
+          ? "<div class='metodo-pago'>" + escapeHtml(t("pagado_con", { metodo: t(METODO_PAGO_KEYS[factura.metodo_pago]) || factura.metodo_pago })) + "</div>"
+          : "";
+
+      const datosVehiculoHtml =
+        vehiculoTexto || vehiculo
+          ? "<div>" +
+            (vehiculoTexto ? "<dt>" + t("vehiculo_label") + "</dt><dd>" + escapeHtml(vehiculoTexto) + "</dd>" : "") +
+            (vehiculo && vehiculo.placa ? "<dt>" + t("col_placa") + "</dt><dd>" + escapeHtml(vehiculo.placa) + "</dd>" : "") +
+            (vehiculo && vehiculo.kilometraje ? "<dt>" + t("kilometraje_label") + "</dt><dd>" + escapeHtml(vehiculo.kilometraje) + "</dd>" : "") +
+            "</div>"
+          : "";
 
       contenido.innerHTML =
         "<div class='header'><div class='header-brand'><img src='" +
@@ -104,33 +157,36 @@
         "' alt='' /><h1>" +
         escapeHtml(nombreNegocio) +
         "</h1></div><div class='contacto'>" +
-        escapeHtml(contacto) +
+        contacto +
         "</div></div>" +
-        "<div class='meta'><div><strong>" +
+        "<div class='franja'><div class='numero'>" +
         t("factura_hash") +
         String(factura.numero).padStart(4, "0") +
-        "</strong><br>" +
+        "<small>" +
         escapeHtml(formatDate(factura.fecha, c.formato_fecha)) +
-        "<br>" +
-        t("cliente_prefijo") +
-        escapeHtml(clienteNombre) +
-        "</div><div><span class='estado'>" +
-        escapeHtml(t(ESTADO_KEYS[factura.estado]) || factura.estado) +
+        "</small></div><div><span class='estado " +
+        estadoClase +
+        "'>" +
+        estadoTexto +
         "</span>" +
-        (factura.estado === "pagada" && factura.metodo_pago
-          ? "<span class='metodo-pago'>" + escapeHtml(t("pagado_con", { metodo: t(METODO_PAGO_KEYS[factura.metodo_pago]) || factura.metodo_pago })) + "</span>"
-          : "") +
+        metodoPagoHtml +
         "</div></div>" +
+        "<div class='datos'><div><dt>" + t("cliente_label") + "</dt><dd>" + escapeHtml(clienteNombre) + "</dd>" +
+        (cliente.direccion ? "<dt>" + t("direccion_label") + "</dt><dd>" + escapeHtml(cliente.direccion) + "</dd>" : "") +
+        "</div>" +
+        datosVehiculoHtml +
+        "</div>" +
         "<table><thead><tr><th>" + t("col_descripcion") + "</th><th>" + t("col_cantidad") + "</th><th>" + t("col_precio") + "</th><th>" + t("col_subtotal") + "</th></tr></thead><tbody>" +
         filas +
         "</tbody></table>" +
-        "<div class='totals'><div>" + t("subtotal_label") +
-        money(factura.subtotal) +
-        "</div><div>" + t("impuesto_label") +
-        money(factura.impuesto) +
-        "</div><div><strong>" + t("total_label") +
-        money(factura.total) +
-        "</strong></div></div>" +
+        "<div class='totales-wrap'><table class='totales'>" +
+        "<tr><td>" + sinDosPuntos(t("subtotal_label")) + "</td><td>" + money(factura.subtotal) + "</td></tr>" +
+        "<tr><td>" + sinDosPuntos(t("impuesto_label")) + "</td><td>" + money(factura.impuesto) + "</td></tr>" +
+        "<tr class='total'><td>" + sinDosPuntos(t("total_label")) + "</td><td>" + money(factura.total) + "</td></tr>" +
+        (abonos
+          ? "<tr><td>" + sinDosPuntos(t("saldo_pendiente_prefijo")) + "</td><td>" + money(Math.max(factura.total - abonos.reduce((sum, a) => sum + Number(a.monto), 0), 0)) + "</td></tr>"
+          : "") +
+        "</table></div>" +
         notasHtml +
         pieHtml +
         extraHtml;

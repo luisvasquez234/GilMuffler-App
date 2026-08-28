@@ -452,6 +452,7 @@
           <a class="btn btn-outline" id="hero-btn-reservar" href="#reservar-cita" hidden style="border-color:#fff;color:#fff;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> <span data-en="Book an appointment">Reservar cita</span></a>
         </div>
         <div class="insignias-fila">
+          <span class="insignia" id="insignia-calificacion" hidden><svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="color:#f0ad4e;"><path d="M12 2l2.9 6.4 7 .7-5.3 4.7 1.6 6.9L12 17l-6.2 3.7 1.6-6.9L2.1 9.1l7-.7z"/></svg> <span id="insignia-calificacion-texto"></span></span>
           <span class="insignia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5z"/><path d="M9 12l2 2 4-4"/></svg> <span data-en="Written warranty">Garantía por escrito</span></span>
           <span class="insignia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> <span data-en="No-surprise estimate">Presupuesto sin sorpresas</span></span>
           <span class="insignia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> <span data-en="Experienced mechanics">Mecánicos con experiencia</span></span>
@@ -697,7 +698,9 @@
   <section>
     <div class="wrap reveal">
       <h2 data-en="Our work">Nuestro trabajo</h2>
-      <p class="section-sub" data-en="Real photos of the shop and finished jobs.">Fotos reales del taller y trabajos terminados.</p>
+      <p class="section-sub" data-en="Real photos and videos of the shop and finished jobs.">Fotos y videos reales del taller y trabajos terminados.</p>
+      <input type="search" id="galeria-buscador" hidden placeholder="Busca por marca, modelo o año de tu carro..." data-en-placeholder="Search by your car's make, model, or year..." style="width:100%;max-width:26rem;margin:0 auto 1.5rem;display:block;padding:.65rem .9rem;border-radius:8px;border:1px solid var(--border);font-size:.95rem;font-family:inherit;" />
+      <p class="section-sub" id="galeria-sin-resultados" hidden data-en="We couldn't find any photos or videos of that car yet.">No encontramos fotos o videos de ese carro todavía.</p>
       <div class="galeria-grid" id="galeria-trabajo-contenedor">
         <div class="foto-placeholder" id="galeria-trabajo-vacia"><span class="emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span data-en="Photos coming soon">Fotos próximamente</span></div>
       </div>
@@ -879,25 +882,63 @@
       contenedor.appendChild(img);
     }
 
-    async function cargarGaleriaTrabajo() {
-      const { data, error } = await sb.from("galeria_trabajo_fotos").select("url").order("orden").order("created_at");
-      if (error || !data || !data.length) return;
+    let galeriaTrabajoItems = [];
+
+    function coincideBusquedaGaleria(item, q) {
+      if (!q) return true;
+      const texto = [item.vehiculo_marca, item.vehiculo_modelo, item.vehiculo_anio].filter(Boolean).join(" ").toLowerCase();
+      return texto.includes(q.toLowerCase());
+    }
+
+    function renderGaleriaTrabajo() {
       const contenedor = document.getElementById("galeria-trabajo-contenedor");
+      const sinResultados = document.getElementById("galeria-sin-resultados");
       if (!contenedor) return;
+      const q = (document.getElementById("galeria-buscador").value || "").trim();
+      const items = galeriaTrabajoItems.filter((item) => coincideBusquedaGaleria(item, q));
+
       contenedor.innerHTML = "";
-      data.forEach((foto) => {
-        const img = document.createElement("img");
-        img.src = foto.url;
-        img.loading = "lazy";
-        img.alt = "";
-        img.className = "foto-lightbox-trigger";
-        img.style.width = "100%";
-        img.style.aspectRatio = "4/3";
-        img.style.objectFit = "cover";
-        img.style.borderRadius = "10px";
-        img.style.cursor = "zoom-in";
-        contenedor.appendChild(img);
+      sinResultados.hidden = !(q && !items.length);
+
+      items.forEach((item) => {
+        if (item.tipo === "video" && item.youtube_id) {
+          const iframe = document.createElement("iframe");
+          iframe.src = "https://www.youtube.com/embed/" + encodeURIComponent(item.youtube_id);
+          iframe.loading = "lazy";
+          iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+          iframe.allowFullscreen = true;
+          iframe.style.width = "100%";
+          iframe.style.aspectRatio = "16/9";
+          iframe.style.borderRadius = "10px";
+          iframe.style.border = "none";
+          contenedor.appendChild(iframe);
+        } else {
+          const img = document.createElement("img");
+          img.src = item.url;
+          img.loading = "lazy";
+          img.alt = "";
+          img.className = "foto-lightbox-trigger";
+          img.style.width = "100%";
+          img.style.aspectRatio = "4/3";
+          img.style.objectFit = "cover";
+          img.style.borderRadius = "10px";
+          img.style.cursor = "zoom-in";
+          contenedor.appendChild(img);
+        }
       });
+    }
+
+    async function cargarGaleriaTrabajo() {
+      const { data, error } = await sb
+        .from("galeria_trabajo_fotos")
+        .select("url, tipo, youtube_id, vehiculo_marca, vehiculo_modelo, vehiculo_anio")
+        .order("orden")
+        .order("created_at");
+      if (error || !data || !data.length) return;
+      galeriaTrabajoItems = data;
+      document.getElementById("galeria-buscador").hidden = false;
+      renderGaleriaTrabajo();
+      document.getElementById("galeria-buscador").addEventListener("input", renderGaleriaTrabajo);
     }
 
     function initReveal() {
@@ -1038,6 +1079,29 @@
       }
     }
 
+    let calificacionData = null;
+    function renderCalificacionBadge() {
+      if (!calificacionData) return;
+      const el = document.getElementById("insignia-calificacion");
+      const texto = document.getElementById("insignia-calificacion-texto");
+      el.hidden = false;
+      texto.textContent =
+        idiomaActual === "en"
+          ? calificacionData.promedio.toFixed(1) + " stars (" + calificacionData.total + " reviews)"
+          : calificacionData.promedio.toFixed(1) + " estrellas (" + calificacionData.total + " reseñas)";
+    }
+    async function mostrarCalificacionPromedio() {
+      try {
+        const { data, error } = await sb.rpc("calificacion_publica_resumen");
+        if (error || !data || !data.length) return;
+        const fila = data[0];
+        const total = Number(fila.total) || 0;
+        if (total < 3) return;
+        calificacionData = { promedio: Number(fila.promedio) || 0, total };
+        renderCalificacionBadge();
+      } catch (e) {}
+    }
+
     initReveal();
     initParallaxHero();
     initRipple();
@@ -1099,6 +1163,7 @@
       idiomaActual = idiomaActual === "en" ? "es" : "en";
       try { localStorage.setItem("gm_bienvenida_idioma", idiomaActual); } catch (e) {}
       aplicarIdioma();
+      renderCalificacionBadge();
     });
 
     try { idiomaActual = localStorage.getItem("gm_bienvenida_idioma") || "es"; } catch (e) {}
@@ -1151,6 +1216,7 @@
       mostrarFotoWeb("foto-pintura-contenedor", cfg && cfg.web_foto_pintura_url);
       mostrarComparadorAntesDespues(cfg);
       mostrarResenasCarrusel(cfg);
+      mostrarCalificacionPromedio();
       mostrarFormularioReservas(cfg);
       mostrarStats(cfg);
       cargarGaleriaTrabajo();
