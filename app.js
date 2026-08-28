@@ -1297,6 +1297,22 @@
     }
   }
 
+  function actualizarBotonCarfax() {
+    const vin = document.getElementById("vehiculo-vin").value.trim();
+    document.getElementById("btn-ver-carfax").hidden = !vin;
+  }
+
+  async function copiarVinParaCarfax() {
+    const vin = document.getElementById("vehiculo-vin").value.trim();
+    if (!vin) return;
+    try {
+      await navigator.clipboard.writeText(vin);
+      showToast(t("carfax_vin_copiado_msg", { vin }));
+    } catch (e) {
+      // portapapeles no disponible; el VIN sigue visible en el campo para copiarlo a mano
+    }
+  }
+
   async function openVehiculoModal(vehiculo, clienteId) {
     document.getElementById("modal-vehiculo-title").textContent = vehiculo ? t("editar_vehiculo_titulo") : t("nuevo_vehiculo_titulo");
     document.getElementById("vehiculo-id").value = vehiculo ? vehiculo.id : "";
@@ -1306,6 +1322,7 @@
     document.getElementById("vehiculo-anio").value = vehiculo ? vehiculo.anio || "" : "";
     document.getElementById("vehiculo-placa").value = vehiculo ? vehiculo.placa || "" : "";
     document.getElementById("vehiculo-vin").value = vehiculo ? vehiculo.vin || "" : "";
+    actualizarBotonCarfax();
     document.getElementById("vehiculo-kilometraje").value = vehiculo ? vehiculo.kilometraje || "" : "";
     document.getElementById("vehiculo-notas").value = vehiculo ? vehiculo.notas || "" : "";
     document.getElementById("vehiculo-recordatorio-activo").checked = vehiculo ? !!vehiculo.recordatorio_activo : false;
@@ -8659,6 +8676,8 @@
     document.getElementById("btn-eliminar-vehiculo").addEventListener("click", deleteVehiculo);
     document.getElementById("btn-guardar-y-agregar-otro-vehiculo").addEventListener("click", guardarYAgregarOtroVehiculo);
     document.getElementById("btn-escanear-vin").addEventListener("click", abrirEscanerVin);
+    document.getElementById("vehiculo-vin").addEventListener("input", actualizarBotonCarfax);
+    document.getElementById("btn-ver-carfax").addEventListener("click", copiarVinParaCarfax);
     document.getElementById("btn-escanear-licencia").addEventListener("click", abrirEscanerLicencia);
     document.getElementById("btn-escanear-placa").addEventListener("click", abrirEscanerPlaca);
     document.getElementById("btn-capturar-placa").addEventListener("click", capturarPlaca);

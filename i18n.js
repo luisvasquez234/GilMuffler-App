@@ -461,6 +461,8 @@ const I18N = {
     stock_minimo_label: "Stock mínimo",
 
     escanear_vin_title: "Escanear VIN con la cámara",
+    ver_carfax_btn: "Ver historial en Carfax",
+    carfax_vin_copiado_msg: "VIN copiado ({{vin}}) — pégalo en la página de Carfax que se abrió.",
     kilometraje_actual_label: "Kilometraje actual",
     kilometraje_placeholder: "ej. 85,000 millas",
     historial_km_titulo: "Historial de kilometraje",
@@ -1348,6 +1350,8 @@ const I18N = {
     stock_minimo_label: "Minimum stock",
 
     escanear_vin_title: "Scan VIN with the camera",
+    ver_carfax_btn: "View history on Carfax",
+    carfax_vin_copiado_msg: "VIN copied ({{vin}}) — paste it on the Carfax page that just opened.",
     kilometraje_actual_label: "Current mileage",
     kilometraje_placeholder: "e.g. 85,000 miles",
     historial_km_titulo: "Mileage history",
