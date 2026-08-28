@@ -1302,15 +1302,18 @@
     document.getElementById("btn-ver-carfax").hidden = !vin;
   }
 
-  async function copiarVinParaCarfax() {
-    const vin = document.getElementById("vehiculo-vin").value.trim();
+  async function copiarVinYAvisar(vin) {
     if (!vin) return;
     try {
       await navigator.clipboard.writeText(vin);
       showToast(t("carfax_vin_copiado_msg", { vin }));
     } catch (e) {
-      // portapapeles no disponible; el VIN sigue visible en el campo para copiarlo a mano
+      // portapapeles no disponible; el VIN sigue visible para copiarlo a mano
     }
+  }
+
+  function copiarVinParaCarfax() {
+    return copiarVinYAvisar(document.getElementById("vehiculo-vin").value.trim());
   }
 
   async function openVehiculoModal(vehiculo, clienteId) {
@@ -2040,7 +2043,16 @@
               t("ultimo_servicio_label") +
               ": " +
               (ultimoServicio ? escapeHtml(formatDate(ultimoServicio)) : t("sin_ultimo_servicio")) +
-              "</span></div>"
+              "</span>" +
+              (v.vin
+                ? '<a href="https://www.carfax.com/vehicle-history-reports/" target="_blank" rel="noopener" class="btn-ghost" data-carfax-vin="' +
+                  escapeHtml(v.vin) +
+                  '" style="display:inline-flex;align-items:center;gap:.3rem;text-decoration:none;">' +
+                  '<svg class="icon" aria-hidden="true"><use href="#icon-globe"></use></svg>' +
+                  t("ver_carfax_btn") +
+                  "</a>"
+                : "") +
+              "</div>"
             );
           })
           .join("")
@@ -2048,6 +2060,12 @@
     vehiculosEl.querySelectorAll("[data-vehiculo-id]").forEach((row) => {
       makeRowActivatable(row, () => {
         openVehiculoModal(state.vehiculos.find((v) => v.id === row.dataset.vehiculoId), cliente.id);
+      });
+    });
+    vehiculosEl.querySelectorAll("[data-carfax-vin]").forEach((link) => {
+      link.addEventListener("click", (e) => {
+        e.stopPropagation();
+        copiarVinYAvisar(link.dataset.carfaxVin);
       });
     });
     document.getElementById("btn-detalle-agregar-vehiculo").onclick = () => openVehiculoModal(null, cliente.id);
