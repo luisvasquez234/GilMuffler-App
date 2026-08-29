@@ -769,15 +769,33 @@
       const email = document.getElementById("login-email").value.trim();
       const password = document.getElementById("login-password").value;
       const error = document.getElementById("login-error");
-      const { error: authError } = await sb.auth.signInWithPassword({ email, password });
-      if (!authError) {
-        error.hidden = true;
-        gate.hidden = true;
-        app.hidden = false;
-        mostrarVistaInicial();
-        boot();
-      } else {
+      const submitBtn = document.querySelector("#login-form button[type='submit']");
+      const textoOriginalBtn = submitBtn.textContent;
+
+      error.hidden = true;
+      submitBtn.disabled = true;
+      submitBtn.textContent = t("entrando_label");
+
+      const conTiempoLimite = (promesa, ms) =>
+        Promise.race([promesa, new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms))]);
+
+      try {
+        const { error: authError } = await conTiempoLimite(sb.auth.signInWithPassword({ email, password }), 15000);
+        if (!authError) {
+          gate.hidden = true;
+          app.hidden = false;
+          mostrarVistaInicial();
+          boot();
+          return;
+        }
+        error.textContent = t("login_error");
         error.hidden = false;
+      } catch (err) {
+        error.textContent = t("login_timeout_error");
+        error.hidden = false;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = textoOriginalBtn;
       }
     });
 
