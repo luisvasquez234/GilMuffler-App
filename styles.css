@@ -195,6 +195,11 @@ button{font-family:inherit;}
 }
 .login-card .idioma-toggle-btn:hover{background:var(--bg);color:var(--text);}
 .login-error{color:var(--danger);font-size:.85rem;margin-top:.6rem;}
+.login-card .login-forgot-link{background:none;color:var(--text-dim);border:none;padding:0;font-size:.82rem;font-weight:500;text-decoration:underline;cursor:pointer;align-self:flex-start;margin:-.2rem 0 .8rem;width:auto;}
+.login-card .login-forgot-link:hover{color:var(--accent);}
+/* Este modal se abre desde la pantalla de login, que ya usa z-index:100 y
+   sigue visible detrás — necesita quedar por encima de esa capa. */
+#modal-recuperar-password{z-index:150;}
 
 /* ---------- app shell ---------- */
 .app[hidden]{display:none;}

@@ -803,6 +803,46 @@
       await sb.auth.signOut();
       location.reload();
     });
+
+    document.getElementById("btn-olvide-password").addEventListener("click", () => {
+      document.getElementById("recuperar-password-email").value = document.getElementById("login-email").value.trim();
+      document.getElementById("recuperar-password-mensaje").hidden = true;
+      openModal("modal-recuperar-password");
+    });
+    document.querySelectorAll('#modal-recuperar-password [data-close-modal]').forEach((btn) => {
+      btn.addEventListener("click", () => closeModal("modal-recuperar-password"));
+    });
+
+    document.getElementById("form-recuperar-password").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("recuperar-password-email").value.trim();
+      const mensaje = document.getElementById("recuperar-password-mensaje");
+      const btnEnviar = document.getElementById("btn-enviar-recuperar-password");
+      const textoOriginalBtn = btnEnviar.textContent;
+
+      mensaje.hidden = true;
+      btnEnviar.disabled = true;
+      btnEnviar.textContent = t("enviando_label");
+
+      const conTiempoLimite = (promesa, ms) =>
+        Promise.race([promesa, new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms))]);
+
+      try {
+        const { error } = await conTiempoLimite(
+          sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + "/reset-password.html" }),
+          15000
+        );
+        mensaje.style.color = error ? "var(--danger)" : "";
+        mensaje.textContent = error ? t("recuperar_password_error_msg") : t("recuperar_password_enviado_msg");
+      } catch (err) {
+        mensaje.style.color = "var(--danger)";
+        mensaje.textContent = t("login_timeout_error");
+      } finally {
+        mensaje.hidden = false;
+        btnEnviar.disabled = false;
+        btnEnviar.textContent = textoOriginalBtn;
+      }
+    });
   }
 
   // ---------------- navigation ----------------

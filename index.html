@@ -145,9 +145,31 @@
     <p class="login-sub" data-i18n="login_sub">Panel interno — acceso de empleados</p>
     <input type="email" id="login-email" placeholder="Email" aria-label="Email" data-i18n-placeholder="campo_email" data-i18n-aria-label="campo_email" autocomplete="username" required aria-describedby="login-error" />
     <input type="password" id="login-password" placeholder="Contraseña" aria-label="Contraseña" data-i18n-placeholder="campo_contrasena" data-i18n-aria-label="campo_contrasena" autocomplete="current-password" required aria-describedby="login-error" />
+    <button type="button" class="login-forgot-link" id="btn-olvide-password" data-i18n="olvide_password_link">¿Olvidaste tu contraseña?</button>
     <button type="submit" data-i18n="btn_entrar">Entrar</button>
     <p id="login-error" class="login-error" role="alert" hidden data-i18n="login_error">Email o contraseña incorrectos.</p>
   </form>
+</div>
+
+<div id="modal-recuperar-password" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2 data-i18n="recuperar_password_titulo">Recuperar contraseña</h2>
+      <button class="icon-btn" data-close-modal="modal-recuperar-password" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
+    </header>
+    <form id="form-recuperar-password" class="modal-body">
+      <p class="view-sub" style="margin-top:0;" data-i18n="recuperar_password_desc">Escribe el email de tu cuenta y te mandamos un link para poner una contraseña nueva.</p>
+      <div class="field">
+        <label for="recuperar-password-email" data-i18n="campo_email">Email</label>
+        <input type="email" id="recuperar-password-email" required autocomplete="username" aria-describedby="recuperar-password-mensaje" />
+      </div>
+      <p id="recuperar-password-mensaje" class="orden-nota" role="alert" hidden></p>
+      <footer class="modal-footer">
+        <button type="button" class="btn-ghost" data-close-modal="modal-recuperar-password" data-i18n="btn_cancelar">Cancelar</button>
+        <button type="submit" class="btn-primary" id="btn-enviar-recuperar-password" data-i18n="btn_enviar_link">Enviar link</button>
+      </footer>
+    </form>
+  </div>
 </div>
 
 <div id="offline-banner" class="offline-banner" hidden>
