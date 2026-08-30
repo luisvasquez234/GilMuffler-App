@@ -1144,6 +1144,7 @@ tr.is-vencida td:first-child{box-shadow:inset 3px 0 0 var(--danger);}
   font-size:.88rem;font-weight:700;cursor:pointer;
   transition:transform .1s ease;
 }
+.banner-vencidas[hidden]{display:none;}
 .banner-vencidas:hover{transform:translateY(-1px);}
 #kpi-card-ingresos{--kpi-color:var(--series-1);}
 #kpi-card-facturas-pendientes{--kpi-color:var(--series-6);}
