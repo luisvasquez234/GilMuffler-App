@@ -104,9 +104,14 @@
   }
 
   function todayISO() {
-    const d = new Date();
-    const tz = d.getTimezoneOffset();
-    return new Date(d.getTime() - tz * 60000).toISOString().slice(0, 10);
+    const zonaHoraria = (state.configNegocio && state.configNegocio.zona_horaria) || "America/New_York";
+    try {
+      return new Intl.DateTimeFormat("en-CA", { timeZone: zonaHoraria, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+    } catch (e) {
+      const d = new Date();
+      const tz = d.getTimezoneOffset();
+      return new Date(d.getTime() - tz * 60000).toISOString().slice(0, 10);
+    }
   }
 
   function formatDate(iso) {
@@ -3156,6 +3161,9 @@
     const colorAcento = cfg.color_acento || "#d5601a";
     const facturaTitulo = cfg.factura_titulo || "Factura";
     const mostrarQr = cfg.mostrar_qr !== false;
+    const mostrarHorasManoObra = !!cfg.mostrar_horas_mano_obra;
+    const mostrarNumeroFiscal = cfg.mostrar_numero_fiscal !== false;
+    const mostrarNumeroFactura = cfg.mostrar_numero_factura !== false;
     const mecanico = factura.mecanico_id ? state.mecanicos.find((m) => m.id === factura.mecanico_id) : null;
 
     const ESTADO_ESTILO = {
@@ -3171,13 +3179,13 @@
     const subtotalNum = Number(factura.subtotal) || 0;
     const tasaImpuesto = subtotalNum > 0 ? Number(factura.impuesto) / subtotalNum : 0;
 
-    function filaItem(it, incluirCantidad) {
+    function filaItem(it, columnaExtra) {
       const itemTax = it.subtotal * tasaImpuesto;
       return (
         "<tr><td>" +
         escapeHtml(it.descripcion) +
         "</td>" +
-        (incluirCantidad ? "<td class='num'>" + it.cantidad + "</td>" : "") +
+        (columnaExtra ? "<td class='num'>" + escapeHtml(String(columnaExtra.valor(it))) + "</td>" : "") +
         "<td class='num'>" +
         money(it.precio_unitario) +
         "</td><td class='num'>" +
@@ -3188,7 +3196,7 @@
       );
     }
 
-    function tablaSeccion(titulo, filasItems, incluirCantidad) {
+    function tablaSeccion(titulo, filasItems, columnaExtra) {
       if (!filasItems.length) return "";
       const totalCosto = filasItems.reduce((sum, it) => sum + Number(it.subtotal), 0);
       const totalTax = totalCosto * tasaImpuesto;
@@ -3198,7 +3206,7 @@
         "</h2><table><thead><tr><th>" +
         t("col_descripcion") +
         "</th>" +
-        (incluirCantidad ? "<th class='num'>" + t("col_cantidad") + "</th>" : "") +
+        (columnaExtra ? "<th class='num'>" + columnaExtra.label + "</th>" : "") +
         "<th class='num'>" +
         t("col_costo") +
         "</th><th class='num'>" +
@@ -3206,9 +3214,9 @@
         "</th><th class='num'>" +
         t("col_total") +
         "</th></tr></thead><tbody>" +
-        filasItems.map((it) => filaItem(it, incluirCantidad)).join("") +
+        filasItems.map((it) => filaItem(it, columnaExtra)).join("") +
         "<tr class='fila-total'><td" +
-        (incluirCantidad ? " colspan='2'" : "") +
+        (columnaExtra ? " colspan='2'" : "") +
         ">" +
         t("col_total") +
         "</td><td class='num'>" +
@@ -3222,8 +3230,10 @@
       );
     }
 
-    const laborHtml = tablaSeccion(t("mano_obra_seccion_titulo"), laborItems, false);
-    const partsHtml = tablaSeccion(t("parts_seccion_titulo"), otrosItems, true);
+    const columnaHoras = mostrarHorasManoObra ? { label: t("col_horas"), valor: (it) => Number(it.horas || 0) } : null;
+    const columnaCantidad = { label: t("col_cantidad"), valor: (it) => it.cantidad };
+    const laborHtml = tablaSeccion(t("mano_obra_seccion_titulo"), laborItems, columnaHoras);
+    const partsHtml = tablaSeccion(t("parts_seccion_titulo"), otrosItems, columnaCantidad);
 
     const notasHtml = factura.notas
       ? "<div class='notas'><strong>" + t("notas_label") + "</strong><p>" + escapeHtml(factura.notas).replace(/\n/g, "<br>") + "</p></div>"
@@ -3329,12 +3339,11 @@
       escapeHtml(nombreNegocio) +
       "</h1></div><div class='contacto'>" +
       [cfg.direccion, cfg.telefono, cfg.email].filter(Boolean).map(escapeHtml).join("<br>") +
-      (cfg.numero_fiscal ? "<br>" + t("numero_fiscal_label") + ": " + escapeHtml(cfg.numero_fiscal) : "") +
+      (cfg.numero_fiscal && mostrarNumeroFiscal ? "<br>" + t("numero_fiscal_label") + ": " + escapeHtml(cfg.numero_fiscal) : "") +
       "</div></div>" +
       "<div class='titulo'><div class='num-factura'>" +
       escapeHtml(facturaTitulo) +
-      " #" +
-      String(factura.numero).padStart(4, "0") +
+      (mostrarNumeroFactura ? " #" + String(factura.numero).padStart(4, "0") : "") +
       "</div><span class='estado' style='color:" +
       estadoInfo.color +
       "'>" +
@@ -3397,6 +3406,17 @@
     const logoSrc = cfg.logo_url || LOGO_DATA_URI;
     const numeroOrden = "#" + String(orden.numero).padStart(4, "0");
     const vehiculo = [orden.vehiculo_marca, orden.vehiculo_modelo, orden.vehiculo_anio].filter(Boolean).join(" ");
+    const mostrarQrOrden = !!cfg.mostrar_qr_orden;
+    let qrOrdenBlockHtml = "";
+    if (mostrarQrOrden) {
+      const origenOrden = typeof LAN_ORIGIN !== "undefined" && LAN_ORIGIN ? LAN_ORIGIN : location.origin;
+      const ordenUrl = origenOrden + location.pathname.replace(/index\.html$/, "") + "ver-orden.html?id=" + orden.id;
+      const qr = qrcode(0, "M");
+      qr.addData(ordenUrl);
+      qr.make();
+      const qrDataUrl = qr.createDataURL(4, 4);
+      qrOrdenBlockHtml = "<div class='qr'><img src='" + qrDataUrl + "' alt='QR' /><p>" + t("ver_orden_completa") + "</p></div>";
+    }
 
     const filasPiezas = piezasOrden
       .map((op) => {
@@ -3417,7 +3437,7 @@
       "<!doctype html><html><head><meta charset='utf-8'><title>Orden " +
       numeroOrden +
       "</title><style>" +
-      "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:2.5rem;max-width:40rem;margin:0 auto;}" +
+      "body{position:relative;font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:2.5rem 2.5rem 7rem;max-width:40rem;margin:0 auto;}" +
       ".header{border-bottom:3px solid #d5601a;padding-bottom:1rem;margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;}" +
       ".header-brand{display:flex;align-items:center;gap:.8rem;}" +
       ".header-brand img{height:4.2rem;width:4.2rem;object-fit:cover;object-position:68% 55%;border-radius:8px;flex:none;}" +
@@ -3430,6 +3450,10 @@
       "th{color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}" +
       ".bloque{margin-top:1.25rem;font-size:.9rem;}" +
       ".bloque strong{display:block;margin-bottom:.3rem;color:#68707e;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}" +
+      ".footer-space{height:3.5rem;}" +
+      ".qr{position:fixed;bottom:1.2rem;right:1.2rem;text-align:center;margin:0;}" +
+      ".qr img{width:90px;height:90px;}" +
+      ".qr p{margin:.25rem 0 0;font-size:.62rem;color:#68707e;}" +
       "@media print{body{padding:0;}@page{margin:.5in;}tr{page-break-inside:avoid;}}" +
       "</style></head><body>" +
       "<div class='header'><div class='header-brand'><img src='" +
@@ -3462,6 +3486,8 @@
           "</tbody></table></div>"
         : "") +
       (orden.notas ? "<div class='bloque'><strong>" + t("notas_label") + "</strong>" + escapeHtml(orden.notas).replace(/\n/g, "<br>") + "</div>" : "") +
+      "<div class='footer-space'></div>" +
+      qrOrdenBlockHtml +
       "</body></html>";
 
     if (preview) { previewInNewTab(html); } else { openPrintWindow(html); }
@@ -7750,9 +7776,14 @@
     document.getElementById("config-garantia-labor-dias").value = c.garantia_labor_dias || 45;
     document.getElementById("config-numero-fiscal").value = c.numero_fiscal || "";
     document.getElementById("config-formato-fecha").value = c.formato_fecha || "MM/DD/YYYY";
+    document.getElementById("config-zona-horaria").value = c.zona_horaria || "America/New_York";
     document.getElementById("config-color-acento").value = c.color_acento || "#d5601a";
     document.getElementById("config-factura-titulo").value = c.factura_titulo || "Factura";
     document.getElementById("config-mostrar-qr").checked = c.mostrar_qr !== false;
+    document.getElementById("config-mostrar-horas-mano-obra").checked = !!c.mostrar_horas_mano_obra;
+    document.getElementById("config-mostrar-numero-fiscal").checked = c.mostrar_numero_fiscal !== false;
+    document.getElementById("config-mostrar-numero-factura").checked = c.mostrar_numero_factura !== false;
+    document.getElementById("config-mostrar-qr-orden").checked = !!c.mostrar_qr_orden;
     document.getElementById("config-panel-color-acento").value = c.panel_color_acento || "#5cb85c";
     document.getElementById("config-panel-color-menu").value = c.panel_color_menu || "#2b2e33";
     aplicarAparienciaPanel(c.panel_color_acento || "#5cb85c", c.panel_color_menu || "#2b2e33");
@@ -8080,9 +8111,14 @@
       garantia_labor_dias: parseInt(document.getElementById("config-garantia-labor-dias").value, 10) || 45,
       numero_fiscal: document.getElementById("config-numero-fiscal").value.trim() || null,
       formato_fecha: document.getElementById("config-formato-fecha").value,
+      zona_horaria: document.getElementById("config-zona-horaria").value || "America/New_York",
       color_acento: document.getElementById("config-color-acento").value || "#d5601a",
       factura_titulo: document.getElementById("config-factura-titulo").value.trim() || "Factura",
       mostrar_qr: document.getElementById("config-mostrar-qr").checked,
+      mostrar_horas_mano_obra: document.getElementById("config-mostrar-horas-mano-obra").checked,
+      mostrar_numero_fiscal: document.getElementById("config-mostrar-numero-fiscal").checked,
+      mostrar_numero_factura: document.getElementById("config-mostrar-numero-factura").checked,
+      mostrar_qr_orden: document.getElementById("config-mostrar-qr-orden").checked,
       panel_color_acento: document.getElementById("config-panel-color-acento").value || "#5cb85c",
       panel_color_menu: document.getElementById("config-panel-color-menu").value || "#2b2e33",
       updated_at: new Date().toISOString(),

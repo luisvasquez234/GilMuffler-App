@@ -806,6 +806,18 @@
                 </select>
               </div>
             </div>
+            <div class="field">
+              <label for="config-zona-horaria" data-i18n="config_zona_horaria">Zona horaria del negocio</label>
+              <select id="config-zona-horaria">
+                <option value="America/New_York" data-i18n="config_zona_eastern">Este (Nueva York, Boston, Lawrence MA)</option>
+                <option value="America/Chicago" data-i18n="config_zona_central">Central (Chicago)</option>
+                <option value="America/Denver" data-i18n="config_zona_mountain">Montaña (Denver)</option>
+                <option value="America/Phoenix" data-i18n="config_zona_arizona">Montaña sin horario de verano (Arizona)</option>
+                <option value="America/Los_Angeles" data-i18n="config_zona_pacific">Pacífico (Los Ángeles)</option>
+                <option value="America/Anchorage" data-i18n="config_zona_alaska">Alaska</option>
+                <option value="Pacific/Honolulu" data-i18n="config_zona_hawaii">Hawái</option>
+              </select>
+            </div>
             <div class="field"><label for="config-mensaje-pie" data-i18n="config_mensaje_pie">Mensaje de pie de página (sale en cada factura)</label><textarea id="config-mensaje-pie" rows="2" placeholder="¡Gracias por su preferencia!"></textarea></div>
             <div class="field-row">
               <div class="field" style="max-width:12rem;"><label for="config-garantia-labor-dias" data-i18n="config_garantia_labor_dias">Garantía de mano de obra (días)</label><input type="number" id="config-garantia-labor-dias" min="0" step="1" placeholder="45" /></div>
@@ -827,6 +839,23 @@
             <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;margin-top:.2rem;">
               <input type="checkbox" id="config-mostrar-qr" checked />
               <span data-i18n="config_mostrar_qr">Incluir código QR (enlace a la factura en línea) al pie de la factura impresa</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;margin-top:.4rem;">
+              <input type="checkbox" id="config-mostrar-horas-mano-obra" />
+              <span data-i18n="config_mostrar_horas_mano_obra">Mostrar las horas de mano de obra en la factura impresa</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;margin-top:.4rem;">
+              <input type="checkbox" id="config-mostrar-numero-fiscal" checked />
+              <span data-i18n="config_mostrar_numero_fiscal">Mostrar el número fiscal en la factura (si está lleno arriba)</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;margin-top:.4rem;">
+              <input type="checkbox" id="config-mostrar-numero-factura" checked />
+              <span data-i18n="config_mostrar_numero_factura">Mostrar el número de factura al imprimir</span>
+            </label>
+            <label class="field-label-standalone" data-i18n="config_orden_servicio_titulo">Impresión de la orden de servicio</label>
+            <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;margin-top:.2rem;">
+              <input type="checkbox" id="config-mostrar-qr-orden" />
+              <span data-i18n="config_mostrar_qr_orden">Incluir código QR (enlace a la orden en línea) al pie de la orden de servicio impresa</span>
             </label>
             <label class="field-label-standalone" data-i18n="config_apariencia_titulo">Apariencia del panel (este programa, no la factura)</label>
             <div class="field-row">
