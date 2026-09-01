@@ -139,16 +139,10 @@
   }
   .servicio-card{transition:transform .18s ease,box-shadow .18s ease;}
   .servicio-card:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(20,24,32,.1);}
-  .servicio-card .icon-badge{
-    position:relative;z-index:0;width:3.6rem;height:3.6rem;margin:0 auto .8rem;border-radius:16px;
-    background:linear-gradient(135deg,#e3f4e8,#c3e6cd);color:var(--accent-dark);
-    display:flex;align-items:center;justify-content:center;font-size:1.5rem;
-    box-shadow:0 6px 14px rgba(67,150,92,.18);
-  }
-  .servicio-card .icon-badge::before{
-    content:"";position:absolute;inset:0;border-radius:14px;
-    background:linear-gradient(135deg,var(--accent),var(--accent-dark));opacity:.9;
-    transform:rotate(12deg) scale(.86);z-index:-1;
+  .servicio-card .foto-placeholder{margin:0 auto .9rem;transition:transform .25s ease,box-shadow .25s ease;}
+  .servicio-card .foto-servicio{
+    width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;margin:0 auto .9rem;
+    transition:transform .25s ease,box-shadow .25s ease;display:block;
   }
   .icon-badge svg{width:1.7rem;height:1.7rem;display:block;}
   .servicio-card h3{font-size:1rem;margin:.2rem 0 .35rem;}
@@ -334,7 +328,7 @@
 
   /* ícono con más vida al pasar el mouse */
   .icon-badge{transition:transform .25s ease,box-shadow .25s ease;}
-  .servicio-card:hover .icon-badge{transform:scale(1.12) rotate(-4deg);box-shadow:0 0 0 6px rgba(67,150,92,.15);}
+  .servicio-card:hover .foto-placeholder,.servicio-card:hover .foto-servicio{transform:scale(1.03);box-shadow:0 0 0 4px rgba(67,150,92,.15);}
   .porque-item:hover .icon-badge{transform:scale(1.1);box-shadow:0 0 0 5px rgba(67,150,92,.15);}
 
   /* efecto de onda al hacer clic en un botón */
@@ -408,6 +402,16 @@
   }
   .comparador-etiqueta-antes{left:.6rem;}
   .comparador-etiqueta-despues{right:.6rem;}
+
+  /* capturas reales de reseñas de Google (temporal) */
+  .resenas-capturas{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:1.25rem;
+    max-width:56rem;margin:0 auto 1.5rem;
+  }
+  .resenas-capturas img{
+    width:100%;border-radius:10px;border:1px solid var(--border);
+    box-shadow:0 4px 14px rgba(20,24,32,.08);display:block;
+  }
 
   /* carrusel de reseñas reales */
   .resenas-carrusel{max-width:34rem;margin:0 auto;text-align:center;}
@@ -558,16 +562,24 @@
     <div class="wrap reveal">
       <h2 data-en="Our services">Nuestros servicios</h2>
       <p class="section-sub" data-en="We work on mufflers and exhaust systems, but also general car maintenance.">Trabajamos en mofles y escapes, pero también en el mantenimiento general de tu carro.</p>
+      <!-- Fotos temporales. Frenos y Chasis son fotos reales del taller (mismas que en la sección
+           "Chasis, frenos y pintura anticorrosiva", vía Configuración > Página web).
+           El resto son de bancos gratuitos (CC BY/BY-SA, requieren crédito si se quedan permanentes):
+           mofles-escapes: aresauburn (Flickr) | cambio-aceite: Santeri Viinamäki (Wikimedia)
+           diagnostico: drewgstephens (Flickr) | muffler-deportivo: dodge challenger1 (Flickr)
+           suspension: Pfadt Race / lw5315us (Flickr) | inspeccion-estatal: mroach (Flickr)
+           pintura-anticorrosiva: Bryn Pinzgauer (Flickr)
+           Reemplazar por fotos reales del taller cuando Luis las mande. -->
       <div class="servicios-grid">
-        <div class="servicio-card"><span class="badge-popular" data-en="Most requested">Más pedido</span><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 1 1-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.2 2.2-2-2z"/></svg></div><h3 data-en="Mufflers &amp; Exhaust">Mofles y escapes</h3><p data-en="Repair and installation of complete exhaust systems.">Reparación e instalación de sistemas de escape completos.</p></div>
-        <div class="servicio-card"><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></div><h3 data-en="Brakes">Frenos</h3><p data-en="Pads, rotors, and full brake system inspection.">Pastillas, discos y revisión completa del sistema de frenado.</p></div>
-        <div class="servicio-card"><span class="badge-popular" data-en="Popular">Popular</span><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s6 7.2 6 11.5a6 6 0 0 1-12 0C6 9.2 12 2 12 2z"/></svg></div><h3 data-en="Oil Change">Cambio de aceite</h3><p data-en="Preventive maintenance so your car lasts longer.">Mantenimiento preventivo para que tu carro dure más.</p></div>
-        <div class="servicio-card"><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg></div><h3 data-en="Diagnostics">Diagnóstico</h3><p data-en="We check the engine light and other warning lights.">Revisamos el check engine y otras luces de alerta.</p></div>
-        <div class="servicio-card"><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13l1.5-4.5A2 2 0 0 1 6.4 7h11.2a2 2 0 0 1 1.9 1.5L21 13"/><path d="M3 13h18v4a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H6v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/></svg></div><h3 data-en="Suspension">Suspensión</h3><p data-en="Shocks and suspension. If your car feels off while driving, bring it in for a check.">Amortiguadores y suspensión. Si notas que el carro maneja raro, lo más recomendable es traerlo para revisarlo.</p></div>
-        <div class="servicio-card"><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg></div><h3 data-en="State Inspection">Inspección estatal</h3><p data-en="We help your car pass Massachusetts state inspection.">Te ayudamos a que tu carro pase la inspección de Massachusetts.</p></div>
-        <div class="servicio-card"><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.6 3.2 4-1-1 4L21 11l-3.4 2.6 1 4-4-1L12 20l-2.6-3.4-4 1 1-4L3 11l3.4-2.8-1-4 4 1z"/><circle cx="12" cy="11" r="2.6"/></svg></div><h3 data-en="Chassis">Chasis</h3><p data-en="Repair of rusted or rotted chassis underneath the car.">Reparación de chasis oxidado o podrido por debajo del carro.</p></div>
-        <div class="servicio-card"><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h8"/><path d="M14 5h4a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-1v3a2 2 0 0 1-2 2h-1"/><path d="M11 13v6a2 2 0 0 1-4 0v-6"/></svg></div><h3 data-en="Rust-Proof Coating">Pintura anticorrosiva</h3><p data-en="We paint underneath your car to protect it from rust.">Pintamos por debajo del carro para protegerlo y que no se oxide.</p></div>
-        <div class="servicio-card"><div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 5V4L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19.5 6a9 9 0 0 1 0 12"/></svg></div><h3 data-en="Sport Mufflers">Muffler deportivo</h3><p data-en="We install sport mufflers to give your car a stronger sound.">Instalamos mufflers deportivos para darle a tu carro un sonido más fuerte.</p></div>
+        <div class="servicio-card"><span class="badge-popular" data-en="Most requested">Más pedido</span><img class="foto-servicio" src="fotos-bienvenida/servicio-mofles-escapes.jpg" alt="Vista de debajo de un carro en el elevador del taller, mostrando el sistema de escape" loading="lazy" /><h3 data-en="Mufflers &amp; Exhaust">Mofles y escapes</h3><p data-en="Repair and installation of complete exhaust systems.">Reparación e instalación de sistemas de escape completos.</p></div>
+        <div class="servicio-card"><img class="foto-servicio" src="fotos-bienvenida/servicio-frenos.jpg" alt="Disco y mordaza de freno de un carro en el taller de Gil Muffler" loading="lazy" /><h3 data-en="Brakes">Frenos</h3><p data-en="Pads, rotors, and full brake system inspection.">Pastillas, discos y revisión completa del sistema de frenado.</p></div>
+        <div class="servicio-card"><span class="badge-popular" data-en="Popular">Popular</span><img class="foto-servicio" src="fotos-bienvenida/servicio-cambio-aceite.jpg" alt="Vertiendo aceite nuevo en el motor de un carro" loading="lazy" /><h3 data-en="Oil Change">Cambio de aceite</h3><p data-en="Preventive maintenance so your car lasts longer.">Mantenimiento preventivo para que tu carro dure más.</p></div>
+        <div class="servicio-card"><img class="foto-servicio" src="fotos-bienvenida/servicio-diagnostico.jpg" alt="Tablero de un carro mostrando la luz de check engine encendida" loading="lazy" /><h3 data-en="Diagnostics">Diagnóstico</h3><p data-en="We check the engine light and other warning lights.">Revisamos el check engine y otras luces de alerta.</p></div>
+        <div class="servicio-card"><img class="foto-servicio" src="fotos-bienvenida/servicio-suspension.jpg" alt="Amortiguador y resorte de suspensión desmontados de un carro" loading="lazy" /><h3 data-en="Suspension">Suspensión</h3><p data-en="Shocks and suspension. If your car feels off while driving, bring it in for a check.">Amortiguadores y suspensión. Si notas que el carro maneja raro, lo más recomendable es traerlo para revisarlo.</p></div>
+        <div class="servicio-card"><img class="foto-servicio" src="fotos-bienvenida/servicio-inspeccion-estatal.jpg" alt="Calcomanía de inspección estatal de Massachusetts en el parabrisas de un carro" loading="lazy" /><h3 data-en="State Inspection">Inspección estatal</h3><p data-en="We help your car pass Massachusetts state inspection.">Te ayudamos a que tu carro pase la inspección de Massachusetts.</p></div>
+        <div class="servicio-card"><img class="foto-servicio" src="fotos-bienvenida/servicio-chasis.jpg" alt="Chasis de un carro en reparación en el taller de Gil Muffler" loading="lazy" /><h3 data-en="Chassis">Chasis</h3><p data-en="Repair of rusted or rotted chassis underneath the car.">Reparación de chasis oxidado o podrido por debajo del carro.</p></div>
+        <div class="servicio-card"><img class="foto-servicio" src="fotos-bienvenida/servicio-pintura-anticorrosiva.jpg" alt="Recubrimiento anticorrosivo negro aplicado en el chasis de un vehículo" loading="lazy" /><h3 data-en="Rust-Proof Coating">Pintura anticorrosiva</h3><p data-en="We paint underneath your car to protect it from rust.">Pintamos por debajo del carro para protegerlo y que no se oxide.</p></div>
+        <div class="servicio-card"><img class="foto-servicio" src="fotos-bienvenida/servicio-muffler-deportivo.jpg" alt="Punta de escape cromada estilo deportivo en un carro" loading="lazy" /><h3 data-en="Sport Mufflers">Muffler deportivo</h3><p data-en="We install sport mufflers to give your car a stronger sound.">Instalamos mufflers deportivos para darle a tu carro un sonido más fuerte.</p></div>
       </div>
     </div>
   </section>
@@ -715,6 +727,13 @@
            público en vez de reseñas. Si más adelante Luis decide pagarlo, se
            puede volver a poner aquí. Mientras tanto, usa el sistema manual de
            abajo (nota + botón "Déjanos tu reseña" con el link de Google Business). -->
+      <!-- Capturas reales de Google (mientras se llenan las 3 reseñas en
+           Configuración > Página web o se paga el widget) -->
+      <div class="resenas-capturas">
+        <img src="fotos-bienvenida/resena-1-joseph-martin.png" alt="Reseña de Google de Joseph Martin: 5 estrellas, dice que le arreglaron el escape dos veces con precio razonable y lo recomienda." loading="lazy" />
+        <img src="fotos-bienvenida/resena-2-james-casey.png" alt="Reseña de Google de James Casey: 5 estrellas, dice que lo trataron muy profesional y recomienda el negocio." loading="lazy" />
+        <img src="fotos-bienvenida/resena-3-christopher-feugill.png" alt="Reseña de Google de Christopher Feugill: 5 estrellas, dice que le reemplazaron el escape rápido y a muy buen precio." loading="lazy" />
+      </div>
       <div class="resenas-carrusel" id="resenas-carrusel" hidden>
         <p class="resena-texto" id="resena-texto"></p>
         <p class="resena-autor" id="resena-autor"></p>
@@ -1055,7 +1074,10 @@
         { texto: c.web_resena_2_texto, autor: c.web_resena_2_autor },
         { texto: c.web_resena_3_texto, autor: c.web_resena_3_autor },
       ].filter((r) => r.texto && r.texto.trim());
-      if (!resenas.length) return;
+      if (!resenas.length) {
+        document.getElementById("reseñas-nota").hidden = false;
+        return;
+      }
 
       document.getElementById("reseñas-nota").hidden = true;
       const carrusel = document.getElementById("resenas-carrusel");
