@@ -4776,6 +4776,49 @@
     renderReservas();
   }
 
+  function fechaHoraAGoogleCalendarDates(fechaIso, horaStr) {
+    const soloFecha = fechaIso.replace(/-/g, "");
+    if (!horaStr) {
+      const finIso = sumarDias(fechaIso, 1) || fechaIso;
+      return soloFecha + "/" + finIso.replace(/-/g, "");
+    }
+    const [h, m] = horaStr.slice(0, 5).split(":").map(Number);
+    const inicioTxt = String(h).padStart(2, "0") + String(m).padStart(2, "0") + "00";
+    let finH = h + 1;
+    let finFechaIso = fechaIso;
+    if (finH >= 24) {
+      finH -= 24;
+      finFechaIso = sumarDias(fechaIso, 1) || fechaIso;
+    }
+    const finTxt = String(finH).padStart(2, "0") + String(m).padStart(2, "0") + "00";
+    return soloFecha + "T" + inicioTxt + "/" + finFechaIso.replace(/-/g, "") + "T" + finTxt;
+  }
+
+  function agregarCitaAGoogleCalendar(id) {
+    const cita = state.citas.find((c) => c.id === id);
+    if (!cita) return;
+    const clienteNombre = cita.clientes ? [cita.clientes.nombre, cita.clientes.apellido].filter(Boolean).join(" ") : cita.nombre_contacto || "";
+    const vehiculo = cita.vehiculo_id ? state.vehiculos.find((v) => v.id === cita.vehiculo_id) : null;
+    const vehiculoTxt = vehiculo ? vehiculoLabel(vehiculo) : [cita.vehiculo_marca, cita.vehiculo_modelo, cita.vehiculo_anio].filter(Boolean).join(" ");
+    const titulo = [cita.servicio || t("cita_titulo"), clienteNombre].filter(Boolean).join(" — ");
+
+    const detalles = [];
+    if (vehiculoTxt) detalles.push(t("col_vehiculo") + ": " + vehiculoTxt);
+    if (cita.telefono_contacto) detalles.push(t("tel_abrev") + ": " + cita.telefono_contacto);
+    if (cita.notas) detalles.push(cita.notas);
+
+    const cfg = state.configNegocio || {};
+    const params = new URLSearchParams({
+      action: "TEMPLATE",
+      text: titulo,
+      dates: fechaHoraAGoogleCalendarDates(cita.fecha, cita.hora),
+      details: detalles.join("\n"),
+      location: cfg.direccion || "",
+      ctz: cfg.zona_horaria || "America/New_York",
+    });
+    window.open("https://calendar.google.com/calendar/render?" + params.toString(), "_blank");
+  }
+
   function renderReservas() {
     const container = document.getElementById("reservas-groups");
     container.innerHTML = "";
@@ -4808,6 +4851,7 @@
             const clienteNombre = c.clientes ? [c.clientes.nombre, c.clientes.apellido].filter(Boolean).join(" ") : c.nombre_contacto || "";
             const horaTxt = c.hora ? c.hora.slice(0, 5) : c.hora_preferida || "";
             const esWeb = !c.cliente_id && c.nombre_contacto;
+            const accionesCita = [{ key: "calendario", icon: "calendar", label: t("btn_agregar_calendario"), show: !["cancelada", "no_show"].includes(c.estado) }];
             return (
               '<div class="tarea-row" data-cita-id="' +
               c.id +
@@ -4827,6 +4871,7 @@
               ESTADO_RESERVA_LABELS[c.estado] +
               "</div>" +
               "</div>" +
+              rowActionsHtml(c.id, accionesCita) +
               "</div>"
             );
           })
@@ -4844,6 +4889,10 @@
         const cita = state.citas.find((c) => c.id === row.dataset.citaId);
         openReservaModal(cita);
       });
+    });
+
+    wireRowActions(container, {
+      calendario: (id) => agregarCitaAGoogleCalendar(id),
     });
   }
 
