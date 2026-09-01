@@ -1010,7 +1010,7 @@
   async function fetchClientes() {
     return fetchConCache(
       "clientes",
-      () => sb.from("clientes").select("*").order("nombre", { ascending: true }),
+      () => sb.from("clientes").select("*").order("nombre", { ascending: true }).limit(20000),
       [],
       t("error_cargar_clientes")
     );
@@ -1060,7 +1060,7 @@
   async function fetchVehiculos() {
     return fetchConCache(
       "vehiculos",
-      () => sb.from("vehiculos").select("*").order("created_at", { ascending: true }),
+      () => sb.from("vehiculos").select("*").order("created_at", { ascending: true }).limit(20000),
       [],
       t("error_cargar_vehiculos")
     );
@@ -1068,6 +1068,16 @@
 
   async function refreshVehiculos() {
     state.vehiculos = await fetchVehiculos();
+  }
+
+  async function fetchHistorialImportadoCliente(clienteId) {
+    const { data, error } = await sb
+      .from("historial_facturas_importado")
+      .select("*")
+      .eq("cliente_id", clienteId)
+      .order("fecha", { ascending: false });
+    if (error) return [];
+    return data;
   }
 
   async function fetchTelefonos() {
@@ -2004,7 +2014,7 @@
     }, () => renderClientes(filterClientes()));
   }
 
-  function openClienteDetalle(cliente) {
+  async function openClienteDetalle(cliente) {
     if (!cliente) return;
     state.clienteDetalleActualId = cliente.id;
     document.querySelectorAll(".nav-item").forEach((b) => b.classList.toggle("is-active", b.dataset.view === "clientes"));
@@ -2137,8 +2147,20 @@
     const facturasCliente = state.facturas.filter((f) => f.cliente_id === cliente.id);
     const estimadosCliente = state.estimados.filter((e) => e.cliente_id === cliente.id);
     const citasCliente = state.citas.filter((c) => c.cliente_id === cliente.id);
+    const historialImportadoCliente = await fetchHistorialImportadoCliente(cliente.id);
+    if (state.clienteDetalleActualId !== cliente.id) return;
 
     const historial = [];
+    historialImportadoCliente.forEach((h) => {
+      historial.push({
+        tipo: "importado",
+        id: h.id,
+        fecha: h.fecha,
+        estadoClass: "is-importado",
+        texto: t("historial_importado_texto", { tipo: h.tipo, monto: money(h.monto) }),
+        etiqueta: t("historial_importado_etiqueta"),
+      });
+    });
     ordenesCliente.forEach((o) => {
       const done = o.etapa === "completado" || o.etapa === "facturado";
       historial.push({
@@ -2191,7 +2213,9 @@
         ? filtrado
             .map(
               (h) =>
-                '<div class="detalle-list-item is-clickable ' +
+                '<div class="detalle-list-item' +
+                (h.tipo === "importado" ? "" : " is-clickable") +
+                " " +
                 h.estadoClass +
                 '" data-historial-tipo="' +
                 h.tipo +
@@ -2202,7 +2226,13 @@
                 "</span><span style=\"flex:1;\">" +
                 escapeHtml(h.texto) +
                 '</span><span class="pill pill-' +
-                (h.estadoClass === "is-pagada" ? "pagada" : h.estadoClass === "is-pendiente" ? "pendiente" : "cancelada") +
+                (h.estadoClass === "is-pagada"
+                  ? "pagada"
+                  : h.estadoClass === "is-pendiente"
+                  ? "pendiente"
+                  : h.estadoClass === "is-importado"
+                  ? "convertido"
+                  : "cancelada") +
                 '">' +
                 escapeHtml(h.etiqueta) +
                 "</span></div>"
@@ -2213,8 +2243,9 @@
         : '<p class="detalle-empty">Sin historial todavía — aún no tiene órdenes, facturas, presupuestos ni citas.</p>';
 
       historialEl.querySelectorAll("[data-historial-id]").forEach((row) => {
+        const tipo = row.dataset.historialTipo;
+        if (tipo === "importado") return;
         makeRowActivatable(row, () => {
-          const tipo = row.dataset.historialTipo;
           const itemId = row.dataset.historialId;
           if (tipo === "orden") {
             printOrden(itemId, true);
