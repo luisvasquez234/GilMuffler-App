@@ -3700,22 +3700,42 @@
     const qrDataUrl = qr.createDataURL(8, 8);
     const cfg = state.configNegocio || {};
     const nombreNegocio = cfg.nombre_negocio || "Gil Muffler";
+    const logoSrc = cfg.logo_url || LOGO_DATA_URI;
 
     const html =
-      "<!doctype html><html><head><meta charset='utf-8'><title>QR — " + t("llamame_titulo") + "</title><style>" +
-      "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:3rem;text-align:center;}" +
-      "h1{font-size:1.3rem;margin-bottom:.5rem;}" +
-      "p{color:#68707e;margin-top:0;}" +
-      "img{margin-top:1.5rem;}" +
-      "@media print{body{padding:0;}@page{margin:.5in;}tr{page-break-inside:avoid;}}" +
+      "<!doctype html><html><head><meta charset='utf-8'><title>QR — " + t("llamame_titulo") + "</title>" +
+      "<link rel='preconnect' href='https://fonts.googleapis.com'>" +
+      "<link href='https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;700;800&display=swap' rel='stylesheet'>" +
+      "<style>" +
+      "*{box-sizing:border-box;}" +
+      "body{margin:0;font-family:Inter,Arial,Helvetica,sans-serif;color:#1f2430;}" +
+      ".disp{font-family:Anton,'Arial Black',Impact,Inter,sans-serif;font-weight:800;}" +
+      "@media print{@page{size:letter portrait;margin:0;}}" +
       "</style></head><body>" +
-      "<h1>" +
-      escapeHtml(nombreNegocio) +
-      "</h1>" +
-      "<p>" + t("escanea_qr_llamame") + "</p>" +
-      "<img src='" +
-      qrDataUrl +
-      "' alt='QR' />" +
+      "<div style=\"position:relative;width:816px;height:1056px;background:#faf5ee;overflow:hidden;\">" +
+      "<svg viewBox='0 0 816 1056' width='816' height='1056' style='position:absolute;left:0;top:0;'>" +
+      "<g opacity='0.14'><path d='M -60 620 C 120 560, 220 720, 420 660 C 560 618, 600 500, 760 520 L 760 640 C 620 622, 590 700, 460 740 C 260 800, 160 660, -60 730 Z' fill='#d5601a'/></g>" +
+      "<g opacity='0.10'><circle cx='700' cy='180' r='230' fill='#d5601a'/></g>" +
+      "</svg>" +
+      "<div style='position:relative;padding:56px 64px 0;display:flex;align-items:center;gap:18px;'>" +
+      "<img src='" + logoSrc + "' alt='' style='width:56px;height:56px;border-radius:12px;object-fit:cover;flex:none;' />" +
+      "<div style='font-size:22px;font-weight:800;color:#1f2430;letter-spacing:.02em;'>" + escapeHtml(nombreNegocio.toUpperCase()) + "</div>" +
+      "</div>" +
+      "<div style='position:relative;padding:64px 64px 0;'>" +
+      "<div class='disp' style='font-size:88px;line-height:1.02;color:#1f2430;max-width:620px;'>" + escapeHtml(t("llamame_poster_titulo")) + "</div>" +
+      "<div style='margin-top:28px;font-size:22px;font-weight:600;color:#4a5160;max-width:520px;'>" + escapeHtml(t("llamame_poster_sub")) + "</div>" +
+      "</div>" +
+      "<svg viewBox='0 0 400 260' width='400' height='260' style='position:absolute;left:-40px;bottom:70px;'>" +
+      "<g fill='none' stroke='#1f2430' stroke-width='14' stroke-linecap='round' stroke-linejoin='round'><path d='M 20 40 L 160 40 C 220 40 220 120 280 120 L 340 120'/></g>" +
+      "<g fill='none' stroke='#d5601a' stroke-width='14' stroke-linecap='round' stroke-linejoin='round'><path d='M 340 120 L 380 120'/></g>" +
+      "<ellipse cx='20' cy='40' rx='14' ry='16' fill='#1f2430'/>" +
+      "<ellipse cx='380' cy='120' rx='18' ry='20' fill='none' stroke='#d5601a' stroke-width='10'/>" +
+      "</svg>" +
+      "<div style='position:absolute;right:64px;bottom:70px;background:#ffffff;border:6px solid #1f2430;border-radius:20px;padding:28px;display:flex;flex-direction:column;align-items:center;gap:14px;'>" +
+      "<img src='" + qrDataUrl + "' alt='QR' style='width:212px;height:212px;' />" +
+      "<div style='font-size:14px;font-weight:700;color:#d5601a;text-transform:uppercase;letter-spacing:.08em;'>" + escapeHtml(t("llamame_qr_label")) + "</div>" +
+      "</div>" +
+      "</div>" +
       "</body></html>";
 
     openPrintWindow(html);
