@@ -24,6 +24,9 @@
   .respuesta-msg{text-align:center;margin-top:1rem;font-weight:600;padding:.9rem;border-radius:8px;background:#e6f4ee;color:#1a7f5a;}
   .respuesta-msg p{font-weight:400;font-size:.85rem;margin:.5rem 0 0;color:#1a7f5a;}
   .error-msg{color:#d6293b;font-size:.85rem;margin-top:.5rem;}
+  .btn-secundario{background:#f0f1f3;color:#565e69;}
+  .resumen-confirmar{background:#f6f7f9;border:1px solid #e2e4e8;border-radius:8px;padding:.9rem 1rem;margin-top:.75rem;font-size:.9rem;}
+  .resumen-confirmar p{margin:.35rem 0;}
 </style>
 </head>
 <body>
@@ -46,9 +49,16 @@
         <div><input type="text" id="modelo" placeholder="Modelo" data-i18n-placeholder="campo_modelo" /></div>
         <div><input type="text" id="anio" placeholder="Año" data-i18n-placeholder="campo_anio" /></div>
       </div>
-      <p class="error-msg" id="error-msg" hidden></p>
       <button type="submit" id="btn-enviar" data-i18n="enviar">Enviar</button>
     </form>
+
+    <div id="confirmar-llamame-box" hidden>
+      <p class="sub" id="confirmar-llamame-titulo" tabindex="-1" data-i18n="llamame_confirmar_titulo">Revisa que todo esté correcto antes de enviar.</p>
+      <div class="resumen-confirmar" id="resumen-llamame"></div>
+      <p class="error-msg" id="error-msg" hidden role="alert"></p>
+      <button type="button" id="btn-confirmar-envio-llamame" data-i18n="btn_si_enviar">Sí, enviar</button>
+      <button type="button" class="btn-secundario" id="btn-revisar-llamame" data-i18n="btn_revisar_de_nuevo">Revisar de nuevo</button>
+    </div>
   </div>
 
   <script src="i18n.js"></script>
@@ -76,8 +86,33 @@
       if (cfg && cfg.logo_url) document.getElementById("logo-img").src = cfg.logo_url;
     }
 
-    document.getElementById("form-llamame").addEventListener("submit", async (e) => {
+    document.getElementById("form-llamame").addEventListener("submit", (e) => {
       e.preventDefault();
+      const nombre = document.getElementById("nombre").value.trim();
+      const telefono = document.getElementById("telefono").value.trim();
+      const marca = document.getElementById("marca").value.trim();
+      const modelo = document.getElementById("modelo").value.trim();
+      const anio = document.getElementById("anio").value.trim();
+      if (!nombre || !telefono) return;
+
+      const carroTexto = [marca, modelo, anio].filter(Boolean).join(" ");
+      document.getElementById("resumen-llamame").innerHTML =
+        "<p><strong>" + t("llamame_nombre_label") + ":</strong> " + escapeHtml(nombre) + "</p>" +
+        "<p><strong>" + t("llamame_telefono_label") + ":</strong> " + escapeHtml(telefono) + "</p>" +
+        (carroTexto ? "<p><strong>" + t("llamame_carro_label") + ":</strong> " + escapeHtml(carroTexto) + "</p>" : "");
+
+      document.getElementById("form-llamame").hidden = true;
+      document.getElementById("confirmar-llamame-box").hidden = false;
+      document.getElementById("confirmar-llamame-titulo").focus();
+    });
+
+    document.getElementById("btn-revisar-llamame").addEventListener("click", () => {
+      document.getElementById("confirmar-llamame-box").hidden = true;
+      document.getElementById("form-llamame").hidden = false;
+      document.getElementById("nombre").focus();
+    });
+
+    document.getElementById("btn-confirmar-envio-llamame").addEventListener("click", async () => {
       const nombre = document.getElementById("nombre").value.trim();
       const telefono = document.getElementById("telefono").value.trim();
       const marca = document.getElementById("marca").value.trim();
@@ -85,9 +120,8 @@
       const anio = document.getElementById("anio").value.trim();
       const errorMsg = document.getElementById("error-msg");
       errorMsg.hidden = true;
-      if (!nombre || !telefono) return;
 
-      const btn = document.getElementById("btn-enviar");
+      const btn = document.getElementById("btn-confirmar-envio-llamame");
       btn.disabled = true;
       btn.textContent = t("enviando");
 
@@ -101,11 +135,12 @@
         hecha: false,
       });
 
+      btn.disabled = false;
+      btn.textContent = t("btn_si_enviar");
+
       if (error) {
         errorMsg.textContent = t("llamame_error");
         errorMsg.hidden = false;
-        btn.disabled = false;
-        btn.textContent = t("enviar");
         return;
       }
 

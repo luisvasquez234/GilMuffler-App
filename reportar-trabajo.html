@@ -23,6 +23,11 @@
   .respuesta-msg{text-align:center;margin-top:1rem;font-weight:600;padding:.9rem;border-radius:8px;background:#e6f4ee;color:#1a7f5a;}
   .respuesta-msg p{font-weight:400;font-size:.85rem;margin:.5rem 0 0;color:#1a7f5a;}
   .error-msg{color:#d6293b;font-size:.85rem;margin-top:.5rem;}
+  .msg-ok{color:#1a7f5a;font-size:.85rem;margin-top:.5rem;}
+  .link-btn{width:auto;margin-top:.75rem;padding:0;background:none;border:none;color:#b5500f;font-size:.85rem;font-weight:600;text-decoration:underline;cursor:pointer;}
+  .btn-secundario{background:#f0f1f3;color:#565e69;}
+  .resumen-confirmar{background:#f6f7f9;border:1px solid #e2e4e8;border-radius:8px;padding:.9rem 1rem;margin-top:.75rem;font-size:.9rem;}
+  .resumen-confirmar p{margin:.35rem 0;}
 </style>
 </head>
 <body>
@@ -40,14 +45,14 @@
         <input type="email" id="login-email" autocomplete="username" required />
         <label for="login-password" data-i18n="campo_contrasena">Contraseña</label>
         <input type="password" id="login-password" autocomplete="current-password" required />
-        <p class="error-msg" id="login-error" hidden data-i18n="login_error">Email o contraseña incorrectos.</p>
+        <p class="error-msg" id="login-error" hidden role="alert" data-i18n="login_error">Email o contraseña incorrectos.</p>
         <button type="submit" data-i18n="btn_entrar">Entrar</button>
       </form>
     </div>
 
     <div id="reporte-box" hidden>
       <p class="sub" id="reporte-mecanico-sub"></p>
-      <p class="sub" data-i18n="reporte_trabajo_sub">Escribe el carro y el trabajo que hiciste.</p>
+      <p class="sub" id="reporte-instrucciones" data-i18n="reporte_trabajo_sub">Escribe el carro y el trabajo que hiciste.</p>
       <form id="form-reporte">
         <label for="carro" data-i18n="col_carro">Carro</label>
         <input type="text" id="carro" required />
@@ -67,8 +72,32 @@
             <input type="number" id="otro" step="0.01" min="0" value="0" />
           </div>
         </div>
-        <p class="error-msg" id="reporte-error" hidden data-i18n="reporte_trabajo_error">No se pudo enviar el reporte. Intenta otra vez.</p>
         <button type="submit" id="btn-enviar-reporte" data-i18n="enviar">Enviar</button>
+      </form>
+      <button type="button" class="link-btn" id="btn-mostrar-cambiar-contrasena" data-i18n="reporte_trabajo_cambiar_contrasena">Cambiar contraseña</button>
+    </div>
+
+    <div id="confirmar-reporte-box" hidden>
+      <p class="sub" id="confirmar-reporte-titulo" tabindex="-1" data-i18n="reporte_confirmar_titulo">¿Seguro que quieres mandar este reporte?</p>
+      <div class="resumen-confirmar" id="resumen-reporte"></div>
+      <p class="error-msg" id="reporte-error" hidden role="alert" data-i18n="reporte_trabajo_error">No se pudo enviar el reporte. Intenta otra vez.</p>
+      <button type="button" id="btn-confirmar-envio-reporte" data-i18n="btn_si_enviar">Sí, enviar</button>
+      <button type="button" class="btn-secundario" id="btn-revisar-reporte" data-i18n="btn_revisar_de_nuevo">Revisar de nuevo</button>
+    </div>
+
+    <div id="cambiar-contrasena-box" hidden>
+      <form id="form-cambiar-contrasena">
+        <p class="sub" id="cambiar-contrasena-titulo" tabindex="-1" data-i18n="reporte_trabajo_cambiar_contrasena">Cambiar contraseña</p>
+        <label for="contrasena-actual" data-i18n="reset_password_actual_label">Contraseña actual</label>
+        <input type="password" id="contrasena-actual" required autocomplete="current-password" />
+        <label for="nueva-contrasena" data-i18n="reset_password_nueva_label">Contraseña nueva</label>
+        <input type="password" id="nueva-contrasena" required autocomplete="new-password" minlength="6" />
+        <label for="nueva-contrasena-2" data-i18n="reset_password_confirmar_label">Confirma la contraseña</label>
+        <input type="password" id="nueva-contrasena-2" required autocomplete="new-password" minlength="6" />
+        <p class="error-msg" id="cambiar-contrasena-error" hidden role="alert"></p>
+        <p class="msg-ok" id="cambiar-contrasena-exito" hidden role="status" data-i18n="reset_password_exito">¡Listo! Tu contraseña ya cambió.</p>
+        <button type="submit" id="btn-guardar-contrasena" data-i18n="reset_password_btn">Guardar contraseña</button>
+        <button type="button" class="btn-secundario" id="btn-cancelar-cambiar-contrasena" data-i18n="btn_cancelar">Cancelar</button>
       </form>
     </div>
   </div>
@@ -85,6 +114,7 @@
     const params = new URLSearchParams(location.search);
     const mecanicoId = params.get("mecanico") || "";
     const fecha = params.get("fecha") || "";
+    let emailActual = "";
 
     async function cargarConfigNegocio() {
       const { data: cfg } = await sb.from("configuracion_negocio").select("*").eq("id", 1).maybeSingle();
@@ -99,6 +129,7 @@
       const { data: mecanico } = await sb.from("mecanicos").select("nombre").eq("id", mecanicoId).maybeSingle();
       document.getElementById("reporte-mecanico-sub").textContent =
         (mecanico ? mecanico.nombre : "?") + (fecha ? " — " + fecha : "");
+      document.getElementById("carro").focus();
     }
 
     document.getElementById("form-login").addEventListener("submit", async (e) => {
@@ -112,11 +143,41 @@
         return;
       }
       errorEl.hidden = true;
+      emailActual = email;
       await mostrarPantallaReporte();
     });
 
-    document.getElementById("form-reporte").addEventListener("submit", async (e) => {
+    document.getElementById("form-reporte").addEventListener("submit", (e) => {
       e.preventDefault();
+      const carro = document.getElementById("carro").value.trim();
+      const descripcion = document.getElementById("descripcion").value.trim();
+      const labor = document.getElementById("labor").value || "0";
+      const piezas = document.getElementById("piezas").value || "0";
+      const otro = document.getElementById("otro").value || "0";
+
+      document.getElementById("resumen-reporte").innerHTML =
+        "<p><strong>" + t("col_carro") + ":</strong> " + escapeHtml(carro) + "</p>" +
+        (descripcion ? "<p><strong>" + t("col_descripcion") + ":</strong> " + escapeHtml(descripcion) + "</p>" : "") +
+        "<p><strong>" + t("mano_obra_corta") + ":</strong> $" + escapeHtml(labor) + "</p>" +
+        "<p><strong>" + t("kpi_piezas_dia_corta") + ":</strong> $" + escapeHtml(piezas) + "</p>" +
+        "<p><strong>" + t("otro_label") + ":</strong> $" + escapeHtml(otro) + "</p>";
+
+      document.getElementById("reporte-instrucciones").hidden = true;
+      document.getElementById("form-reporte").hidden = true;
+      document.getElementById("btn-mostrar-cambiar-contrasena").hidden = true;
+      document.getElementById("confirmar-reporte-box").hidden = false;
+      document.getElementById("confirmar-reporte-titulo").focus();
+    });
+
+    document.getElementById("btn-revisar-reporte").addEventListener("click", () => {
+      document.getElementById("confirmar-reporte-box").hidden = true;
+      document.getElementById("reporte-instrucciones").hidden = false;
+      document.getElementById("form-reporte").hidden = false;
+      document.getElementById("btn-mostrar-cambiar-contrasena").hidden = false;
+      document.getElementById("carro").focus();
+    });
+
+    document.getElementById("btn-confirmar-envio-reporte").addEventListener("click", async () => {
       const carro = document.getElementById("carro").value.trim();
       const descripcion = document.getElementById("descripcion").value.trim();
       const labor = parseFloat(document.getElementById("labor").value) || 0;
@@ -125,7 +186,7 @@
       const errorEl = document.getElementById("reporte-error");
       errorEl.hidden = true;
 
-      const btn = document.getElementById("btn-enviar-reporte");
+      const btn = document.getElementById("btn-confirmar-envio-reporte");
       btn.disabled = true;
       btn.textContent = t("enviando");
 
@@ -140,10 +201,11 @@
         revisado: false,
       });
 
+      btn.disabled = false;
+      btn.textContent = t("btn_si_enviar");
+
       if (error) {
         errorEl.hidden = false;
-        btn.disabled = false;
-        btn.textContent = t("enviar");
         return;
       }
 
@@ -156,6 +218,79 @@
         "</div>";
     });
 
+    function mostrarFormularioReporte() {
+      document.getElementById("cambiar-contrasena-box").hidden = true;
+      document.getElementById("confirmar-reporte-box").hidden = true;
+      document.getElementById("reporte-instrucciones").hidden = false;
+      document.getElementById("form-reporte").hidden = false;
+      document.getElementById("btn-mostrar-cambiar-contrasena").hidden = false;
+      document.getElementById("carro").focus();
+    }
+
+    document.getElementById("btn-mostrar-cambiar-contrasena").addEventListener("click", () => {
+      document.getElementById("reporte-instrucciones").hidden = true;
+      document.getElementById("form-reporte").hidden = true;
+      document.getElementById("btn-mostrar-cambiar-contrasena").hidden = true;
+      document.getElementById("cambiar-contrasena-box").hidden = false;
+      document.getElementById("cambiar-contrasena-titulo").focus();
+    });
+
+    document.getElementById("btn-cancelar-cambiar-contrasena").addEventListener("click", () => {
+      document.getElementById("form-cambiar-contrasena").reset();
+      document.getElementById("cambiar-contrasena-error").hidden = true;
+      document.getElementById("cambiar-contrasena-exito").hidden = true;
+      mostrarFormularioReporte();
+    });
+
+    document.getElementById("form-cambiar-contrasena").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const actual = document.getElementById("contrasena-actual").value;
+      const p1 = document.getElementById("nueva-contrasena").value;
+      const p2 = document.getElementById("nueva-contrasena-2").value;
+      const errorEl = document.getElementById("cambiar-contrasena-error");
+      const exitoEl = document.getElementById("cambiar-contrasena-exito");
+      errorEl.hidden = true;
+      exitoEl.hidden = true;
+
+      if (p1 !== p2) {
+        errorEl.textContent = t("reset_password_no_coincide");
+        errorEl.hidden = false;
+        return;
+      }
+
+      const btn = document.getElementById("btn-guardar-contrasena");
+      btn.disabled = true;
+      btn.textContent = t("enviando_label");
+
+      const { error: errorActual } = await sb.auth.signInWithPassword({ email: emailActual, password: actual });
+
+      if (errorActual) {
+        btn.disabled = false;
+        btn.textContent = t("reset_password_btn");
+        errorEl.textContent = t("reset_password_actual_incorrecta");
+        errorEl.hidden = false;
+        return;
+      }
+
+      const { error } = await sb.auth.updateUser({ password: p1 });
+
+      btn.disabled = false;
+      btn.textContent = t("reset_password_btn");
+
+      if (error) {
+        errorEl.textContent = t("reset_password_error");
+        errorEl.hidden = false;
+        return;
+      }
+
+      document.getElementById("form-cambiar-contrasena").reset();
+      exitoEl.hidden = false;
+      setTimeout(() => {
+        exitoEl.hidden = true;
+        mostrarFormularioReporte();
+      }, 1800);
+    });
+
     document.getElementById("idioma-toggle").addEventListener("click", () => {
       setIdioma(getIdioma() === "es" ? "en" : "es");
     });
@@ -163,7 +298,10 @@
     cargarConfigNegocio();
 
     sb.auth.getSession().then(({ data }) => {
-      if (data.session) mostrarPantallaReporte();
+      if (data.session) {
+        emailActual = data.session.user.email || "";
+        mostrarPantallaReporte();
+      }
     });
   </script>
 </body>

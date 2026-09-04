@@ -6223,9 +6223,22 @@
     return data;
   }
 
+  let llamadasIdsConocidos = null;
+
   async function refreshLlamadas() {
     renderSkeletonRows("llamadas-tbody", 5, 3);
     state.llamadas = await fetchLlamadasPendientes();
+    llamadasIdsConocidos = state.llamadas.map((l) => l.id).join(",");
+    renderLlamadas();
+    renderDashboard();
+  }
+
+  async function pollLlamadasSilencioso() {
+    const nuevas = await fetchLlamadasPendientes();
+    const idsNuevos = nuevas.map((l) => l.id).join(",");
+    if (idsNuevos === llamadasIdsConocidos) return;
+    llamadasIdsConocidos = idsNuevos;
+    state.llamadas = nuevas;
     renderLlamadas();
     renderDashboard();
   }
@@ -6253,6 +6266,8 @@
           escapeHtml(carro) +
           "</td><td>" +
           escapeHtml(motivoTexto) +
+          "</td><td>" +
+          escapeHtml(l.created_at ? formatDate(l.created_at) : "—") +
           '</td><td><button type="button" class="btn-ghost" data-marcar-llamada="' +
           l.id +
           '">Ya llamé</button></td></tr>'
@@ -6864,6 +6879,7 @@
       piezas: reporte.piezas,
       otro: reporte.otro,
       dinero_salida: 0,
+      pago_mecanico: 0,
     });
     registroDiarioSucio = true;
     recalcularRegistroDiario();
@@ -6932,6 +6948,7 @@
     piezas: { label: t("kpi_piezas_dia_corta"), celda: (item) => '<input type="number" class="reg-piezas" step="0.01" min="0" value="' + (item ? item.piezas : 0) + '" />' },
     otro: { label: t("otro_label"), celda: (item) => '<input type="number" class="reg-otro" step="0.01" min="0" value="' + (item ? item.otro : 0) + '" />' },
     dinero_salida: { label: t("kpi_dinero_salida"), celda: (item) => '<input type="number" class="reg-dinero-salida" step="0.01" min="0" value="' + (item ? item.dinero_salida : 0) + '" />' },
+    pago_mecanico: { label: t("kpi_pago_mecanico"), celda: (item) => '<input type="number" class="reg-pago-mecanico" step="0.01" min="0" value="' + (item ? item.pago_mecanico : 0) + '" />' },
     factura: {
       label: t("nav_facturas"),
       celda: (item) =>
@@ -6945,7 +6962,7 @@
         "</button>",
     },
   };
-  const REGISTRO_COLUMNAS_ORDEN_DEFAULT = ["carro", "descripcion", "labor", "piezas", "otro", "dinero_salida", "factura"];
+  const REGISTRO_COLUMNAS_ORDEN_DEFAULT = ["carro", "descripcion", "labor", "piezas", "otro", "dinero_salida", "pago_mecanico", "factura"];
 
   function getRegistroColumnOrder() {
     try {
@@ -7135,7 +7152,7 @@
       "\">&times;</button></td>";
     tbody.appendChild(tr);
 
-    tr.querySelectorAll(".reg-carro, .reg-desc, .reg-labor, .reg-piezas, .reg-otro, .reg-dinero-salida").forEach((input) => {
+    tr.querySelectorAll(".reg-carro, .reg-desc, .reg-labor, .reg-piezas, .reg-otro, .reg-dinero-salida, .reg-pago-mecanico").forEach((input) => {
       input.addEventListener("input", () => {
         registroDiarioSucio = true;
         recalcularRegistroDiario();
@@ -7159,6 +7176,7 @@
     let piezasDia = 0;
     let otroDia = 0;
     let dineroSalidaDia = 0;
+    let pagoMecanicoDia = 0;
 
     document.querySelectorAll(".registro-mecanico-card").forEach((card) => {
       let laborM = 0;
@@ -7168,6 +7186,7 @@
         piezasM += parseFloat(tr.querySelector(".reg-piezas").value) || 0;
         otroDia += parseFloat(tr.querySelector(".reg-otro").value) || 0;
         dineroSalidaDia += parseFloat(tr.querySelector(".reg-dinero-salida").value) || 0;
+        pagoMecanicoDia += parseFloat(tr.querySelector(".reg-pago-mecanico").value) || 0;
       });
       reportesOcultosDelDia
         .filter((r) => r.mecanico_id === card.dataset.mecanicoId)
@@ -7186,6 +7205,7 @@
     document.getElementById("registro-resumen-piezas").textContent = money(piezasDia);
     document.getElementById("registro-resumen-otro").textContent = money(otroDia);
     document.getElementById("registro-resumen-dinero-salida").textContent = money(dineroSalidaDia);
+    document.getElementById("registro-resumen-pago-mecanico").textContent = money(pagoMecanicoDia);
 
     const maxBarra = Math.max(laborDia, piezasDia, otroDia, 1);
     document.getElementById("registro-dia-bar-labor").style.width = (laborDia / maxBarra) * 100 + "%";
@@ -7283,8 +7303,9 @@
         const piezas = parseFloat(tr.querySelector(".reg-piezas").value) || 0;
         const otro = parseFloat(tr.querySelector(".reg-otro").value) || 0;
         const dineroSalida = parseFloat(tr.querySelector(".reg-dinero-salida").value) || 0;
+        const pagoMecanico = parseFloat(tr.querySelector(".reg-pago-mecanico").value) || 0;
         const facturaId = tr.dataset.facturaId || null;
-        if (!carro && !descripcion && !labor && !piezas && !otro && !dineroSalida) return;
+        if (!carro && !descripcion && !labor && !piezas && !otro && !dineroSalida && !pagoMecanico) return;
         filas.push({
           registro_id: registroId,
           mecanico_id: mecanicoId,
@@ -7294,6 +7315,7 @@
           piezas,
           otro,
           dinero_salida: dineroSalida,
+          pago_mecanico: pagoMecanico,
           factura_id: facturaId,
           orden: orden++,
         });
@@ -7364,7 +7386,7 @@
       const card = document.querySelector('.registro-mecanico-card[data-mecanico-id="' + it.mecanico_id + '"]');
       if (!card) return;
       const tbody = card.querySelector(".registro-items-tbody");
-      addRegistroItemRow(tbody, { carro: it.carro, descripcion: it.descripcion, labor: 0, piezas: 0, otro: 0, dinero_salida: 0 });
+      addRegistroItemRow(tbody, { carro: it.carro, descripcion: it.descripcion, labor: 0, piezas: 0, otro: 0, dinero_salida: 0, pago_mecanico: 0 });
     });
 
     registroDiarioSucio = true;
@@ -7438,6 +7460,7 @@
           piezas: tr.querySelector(".reg-piezas").value,
           otro: tr.querySelector(".reg-otro").value,
           dinero_salida: tr.querySelector(".reg-dinero-salida").value,
+          pago_mecanico: tr.querySelector(".reg-pago-mecanico").value,
         });
       });
     });
@@ -7446,63 +7469,74 @@
 
   function imprimirRegistroDiario() {
     const fecha = document.getElementById("registro-fecha").value;
-    let filasHtml = "";
+    const cfg = state.configNegocio || {};
+    const nombreNegocio = cfg.nombre_negocio || "Gil Muffler";
+    const idioma = getIdioma();
+    const fechaObj = fecha ? new Date(fecha + "T00:00:00") : null;
+    const nombreDia = fechaObj ? fechaObj.toLocaleDateString(idioma === "en" ? "en-US" : "es-ES", { weekday: "long" }) : "";
+    const nombreDiaCap = nombreDia ? nombreDia.charAt(0).toUpperCase() + nombreDia.slice(1) : "";
+
+    let bloquesHtml = "";
     document.querySelectorAll(".registro-mecanico-card").forEach((card) => {
       const mecanicoId = card.dataset.mecanicoId;
       const mecanico = state.mecanicos.find((m) => m.id === mecanicoId);
       const filasMecanico = card.querySelectorAll(".registro-items-tbody tr");
       if (!filasMecanico.length) return;
-      filasHtml +=
+      bloquesHtml +=
         "<h3>" +
-        escapeHtml(mecanico ? mecanico.nombre : "") +
-        "</h3><table><thead><tr><th>" + t("col_carro") + "</th><th>" + t("col_descripcion") + "</th><th class='num'>" + t("mano_obra_corta") + "</th><th class='num'>" + t("kpi_piezas_dia_corta") + "</th><th class='num'>" + t("otro_label") + "</th><th class='num'>" + t("kpi_dinero_salida") + "</th></tr></thead><tbody>";
+        t("mano_obra_corta") + " — " + escapeHtml(mecanico ? mecanico.nombre : "") +
+        "</h3><table class='hoja-tabla'><thead><tr><th class='num'>" + t("mano_obra_corta") + "</th><th class='num'>" + t("kpi_piezas_dia_corta") + "</th><th>" + t("col_carro") + "</th><th class='col-desc'>" + t("col_descripcion") + "</th><th class='num'>" + t("otro_label") + "</th><th class='num'>" + t("kpi_dinero_salida") + "</th><th class='num'>" + t("kpi_pago_mecanico") + "</th></tr></thead><tbody>";
       filasMecanico.forEach((tr) => {
-        filasHtml +=
-          "<tr><td>" +
+        bloquesHtml +=
+          "<tr><td class='num'>" +
+          money(tr.querySelector(".reg-labor").value) +
+          "</td><td class='num'>" +
+          money(tr.querySelector(".reg-piezas").value) +
+          "</td><td>" +
           escapeHtml(tr.querySelector(".reg-carro").value) +
           "</td><td>" +
           escapeHtml(tr.querySelector(".reg-desc").value) +
           "</td><td class='num'>" +
-          money(tr.querySelector(".reg-labor").value) +
-          "</td><td class='num'>" +
-          money(tr.querySelector(".reg-piezas").value) +
-          "</td><td class='num'>" +
           money(tr.querySelector(".reg-otro").value) +
           "</td><td class='num'>" +
           money(tr.querySelector(".reg-dinero-salida").value) +
+          "</td><td class='num'>" +
+          money(tr.querySelector(".reg-pago-mecanico").value) +
           "</td></tr>";
       });
-      filasHtml += "</tbody></table>";
+      bloquesHtml += "</tbody></table>";
     });
 
     const cc = document.getElementById("registro-credit-card").value;
     const cash = document.getElementById("registro-cash").value;
     const check = document.getElementById("registro-check").value;
+    const total = (parseFloat(cc) || 0) + (parseFloat(cash) || 0) + (parseFloat(check) || 0);
 
     const html =
       "<!doctype html><html><head><meta charset='utf-8'><title>" + t("nav_registro_diario") + " " +
       escapeHtml(fecha) +
       "</title><style>" +
       "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:2rem;}" +
-      "h1{font-size:1.2rem;}h3{margin-top:1.5rem;font-size:.95rem;}" +
-      "table{width:100%;border-collapse:collapse;margin-top:.4rem;}" +
-      "th,td{border:1px solid #ccc;padding:.4rem .5rem;font-size:.8rem;text-align:left;}" +
-      "td.num,th.num{text-align:right;}" +
-      ".totales{margin-top:1.5rem;font-size:.9rem;}" +
-      "@media print{body{padding:0;}@page{margin:.5in;}tr{page-break-inside:avoid;}}" +
+      "h1{font-size:1.3rem;margin:0 0 .15rem;}" +
+      "h2{font-size:1rem;font-weight:normal;margin:0 0 1.5rem;color:#444;}" +
+      "h3{margin-top:1.5rem;margin-bottom:.15rem;font-size:.95rem;}" +
+      "table.hoja-tabla{width:100%;border-collapse:collapse;margin-top:.2rem;}" +
+      "table.hoja-tabla th,table.hoja-tabla td{border:1px solid #333;padding:.4rem .5rem;font-size:.8rem;text-align:left;}" +
+      "table.hoja-tabla td.num,table.hoja-tabla th.num{text-align:right;}" +
+      ".col-desc{min-width:10rem;}" +
+      ".hoja-totales{margin-top:2rem;max-width:16rem;margin-left:auto;font-size:.95rem;}" +
+      ".hoja-totales div{display:flex;justify-content:space-between;padding:.25rem 0;border-bottom:1px solid #ccc;}" +
+      ".hoja-totales div.total-final{font-weight:bold;border-bottom:none;border-top:2px solid #333;margin-top:.15rem;padding-top:.4rem;}" +
+      "@media print{body{padding:0;}@page{margin:.5in;}h3,table.hoja-tabla{page-break-inside:avoid;}}" +
       "</style></head><body>" +
-      "<h1>" + t("nav_registro_diario") + " — " +
-      escapeHtml(formatDate(fecha)) +
-      "</h1>" +
-      filasHtml +
-      "<div class='totales'><strong>" + t("cierre_caja_titulo") + ":</strong> " + t("metodo_tarjeta") + " " +
-      money(cc) +
-      " · " + t("metodo_efectivo") + " " +
-      money(cash) +
-      " · " + t("metodo_cheque") + " " +
-      money(check) +
-      " · " + t("col_total") + " " +
-      money((parseFloat(cc) || 0) + (parseFloat(cash) || 0) + (parseFloat(check) || 0)) +
+      "<h1>" + escapeHtml(nombreNegocio) + "</h1>" +
+      "<h2>" + t("col_fecha") + ": " + escapeHtml(nombreDiaCap ? nombreDiaCap + ", " : "") + escapeHtml(formatDate(fecha)) + "</h2>" +
+      bloquesHtml +
+      "<div class='hoja-totales'>" +
+      "<div><span>" + t("total_tarjeta_label") + "</span><strong>" + money(cc) + "</strong></div>" +
+      "<div><span>" + t("total_efectivo_label") + "</span><strong>" + money(cash) + "</strong></div>" +
+      "<div><span>" + t("total_cheque_label") + "</span><strong>" + money(check) + "</strong></div>" +
+      "<div class='total-final'><span>" + t("total_dia_label") + "</span><strong>" + money(total) + "</strong></div>" +
       "</div>" +
       "</body></html>";
 
@@ -7708,10 +7742,11 @@
     const items = await fetchRegistroDiarioRango(desde, hasta);
     const totales = {};
     items.forEach((it) => {
-      if (!totales[it.mecanico_id]) totales[it.mecanico_id] = { labor: 0, piezas: 0, otro: 0 };
+      if (!totales[it.mecanico_id]) totales[it.mecanico_id] = { labor: 0, piezas: 0, otro: 0, pago_mecanico: 0 };
       totales[it.mecanico_id].labor += Number(it.labor) || 0;
       totales[it.mecanico_id].piezas += Number(it.piezas) || 0;
       totales[it.mecanico_id].otro += Number(it.otro) || 0;
+      totales[it.mecanico_id].pago_mecanico += Number(it.pago_mecanico) || 0;
     });
     const contenedor = document.getElementById("registro-totales-mecanico-resultados");
     const filas = state.mecanicos
@@ -7728,6 +7763,8 @@
           money(totales[m.id].otro) +
           " · Total " +
           money(totales[m.id].labor + totales[m.id].piezas + totales[m.id].otro) +
+          " · " + t("kpi_pago_mecanico") + " " +
+          money(totales[m.id].pago_mecanico) +
           "</span></div>"
       );
     contenedor.innerHTML = filas.length ? filas.join("") : "<p class='empty-state'>Sin datos en ese rango de fechas.</p>";
@@ -9168,6 +9205,7 @@
     setInterval(() => cargarReportesTrabajoPendientes(true), 25000);
     await checkRegistroDiarioSinGuardar();
     await refreshLlamadas();
+    setInterval(pollLlamadasSilencioso, 15000);
     await refreshTurnos();
     setInterval(refreshTurnos, 15000);
     await cargarRegistrosSinCerrar();
