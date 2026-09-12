@@ -477,6 +477,155 @@
       </div>
     </section>
 
+    <section id="view-factura-detalle" class="view" hidden>
+      <header class="view-header">
+        <div>
+          <h1 id="factura-detalle-title" data-i18n="nueva_factura_titulo">Nueva factura</h1>
+          <p class="view-sub"><button type="button" class="breadcrumb-link" id="btn-factura-detalle-volver" data-i18n="volver_a_facturas">‹ Volver a Facturas</button></p>
+        </div>
+        <div class="factura-total-fijo" id="factura-total-fijo-wrap">
+          <span data-i18n="col_total">Total</span>
+          <strong id="factura-total-arriba">$0.00</strong>
+        </div>
+      </header>
+      <form id="form-factura">
+        <input type="hidden" id="factura-id" />
+        <input type="hidden" id="factura-orden-id" />
+
+        <p id="factura-vencida-nota" class="orden-nota" hidden style="color:var(--danger);"></p>
+        <p id="factura-orden-nota" class="orden-nota" hidden></p>
+        <p id="factura-creado-por-nota" class="orden-nota" hidden></p>
+        <p id="factura-garantia-nota" class="orden-nota" hidden></p>
+
+        <div class="factura-recibo-card">
+        <div class="factura-form-header" id="factura-form-header">
+          <img id="factura-form-logo" src="" alt="" />
+          <div class="factura-form-negocio">
+            <h3 id="factura-form-nombre-negocio">Gil's Muffler Inc</h3>
+            <p id="factura-form-datos-negocio"></p>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="factura-cliente" data-i18n="cliente_requerido_label">Cliente *</label>
+            <input type="text" id="factura-cliente" list="clientes-datalist" placeholder="Escribe el nombre del cliente..." required autocomplete="off" data-i18n-placeholder="escribe_nombre_cliente" />
+            <datalist id="clientes-datalist"></datalist>
+          </div>
+          <div class="field"><label for="factura-fecha" data-i18n="col_fecha">Fecha</label><input type="date" id="factura-fecha" required /></div>
+          <div class="field">
+            <label for="factura-estado" data-i18n="col_estado">Estado</label>
+            <select id="factura-estado">
+              <option value="pendiente" data-i18n="estado_pendiente">Sin pagar</option>
+              <option value="parcial" data-i18n="estado_parcial">Pago parcial</option>
+              <option value="pagada" data-i18n="estado_pagada">Pagada</option>
+              <option value="cancelada" data-i18n="estado_cancelada">Cancelada</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field" style="max-width:16rem;">
+            <label for="factura-mecanico" data-i18n="mecanico_label">Mecánico</label>
+            <select id="factura-mecanico">
+              <option value="" data-i18n="sin_asignar_opcion">— Sin asignar —</option>
+            </select>
+          </div>
+          <div class="field" style="max-width:16rem;">
+            <label for="factura-metodo-pago" data-i18n="metodo_pago_label">Método de pago</label>
+            <select id="factura-metodo-pago">
+              <option value="" data-i18n="sin_especificar_opcion">— Sin especificar —</option>
+              <option value="efectivo" data-i18n="metodo_efectivo">Efectivo</option>
+              <option value="tarjeta" data-i18n="metodo_tarjeta">Tarjeta</option>
+              <option value="cheque" data-i18n="metodo_cheque">Cheque</option>
+            </select>
+          </div>
+        </div>
+
+        <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;margin:.2rem 0 .6rem;">
+          <input type="checkbox" id="factura-tiene-garantia" checked />
+          <span data-i18n="factura_tiene_garantia_label">Este trabajo tiene garantía</span>
+        </label>
+
+        <datalist id="piezas-datalist"></datalist>
+
+        <label class="field-label-standalone" data-i18n="labor_seccion_label">Mano de obra (Labor)</label>
+        <table class="items-table">
+          <thead><tr>
+            <th data-i18n="col_descripcion">Item</th>
+            <th data-i18n="col_horas">Horas</th>
+            <th data-i18n="col_tarifa">Tarifa</th>
+            <th data-i18n="col_costo">Costo</th>
+            <th data-i18n="col_subtotal">Total</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="factura-labor-tbody"></tbody>
+        </table>
+        <button type="button" class="btn-ghost" id="btn-add-labor" data-i18n="btn_agregar_labor">+ Agregar mano de obra</button>
+
+        <label class="field-label-standalone" style="margin-top:1.25rem;" data-i18n="parts_seccion_label">Piezas (Parts)</label>
+        <table class="items-table">
+          <thead><tr>
+            <th data-i18n="col_descripcion">Item</th>
+            <th data-i18n="col_cantidad">Cant.</th>
+            <th data-i18n="col_costo">Costo</th>
+            <th data-i18n="col_markup">Markup %</th>
+            <th data-i18n="col_subtotal">Total</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="factura-items-tbody"></tbody>
+        </table>
+        <button type="button" class="btn-ghost" id="btn-add-item" data-i18n="btn_agregar_linea">+ Agregar pieza</button>
+
+        <div class="totals">
+          <div class="field-row">
+            <div class="field"><label for="factura-impuesto-pct" data-i18n="impuesto_pct_label">Impuesto (%)</label><input type="number" id="factura-impuesto-pct" value="0" min="0" step="0.01" /></div>
+            <div class="field"><label for="factura-descuento" data-i18n="descuento_label">Descuento ($)</label><input type="number" id="factura-descuento" value="0" min="0" step="0.01" /></div>
+            <div class="totals-numbers">
+              <div><span data-i18n="total_labor_label">Total labor</span><strong id="factura-total-labor">$0.00</strong></div>
+              <div><span data-i18n="total_parts_label">Total piezas</span><strong id="factura-total-parts">$0.00</strong></div>
+              <div><span data-i18n="col_impuesto_simple">Impuesto</span><strong id="factura-impuesto-monto">$0.00</strong></div>
+              <div><span data-i18n="descuento_label">Descuento</span><strong id="factura-descuento-monto">$0.00</strong></div>
+              <div class="total-final"><span data-i18n="col_total">Total</span><strong id="factura-total">$0.00</strong></div>
+            </div>
+          </div>
+        </div>
+        </div>
+
+        <div class="field" id="factura-abonos-wrap" hidden>
+          <label data-i18n="abonos_label">Abonos registrados</label>
+          <div id="factura-abonos-lista" class="detalle-list"></div>
+          <p id="factura-saldo-pendiente-nota" class="orden-nota" hidden></p>
+          <div class="field-row" style="align-items:flex-end;">
+            <div class="field"><label for="factura-abono-monto" data-i18n="monto_label">Monto</label><input type="number" id="factura-abono-monto" min="0.01" step="0.01" /></div>
+            <div class="field"><label for="factura-abono-fecha" data-i18n="col_fecha">Fecha</label><input type="date" id="factura-abono-fecha" /></div>
+            <div class="field">
+              <label for="factura-abono-metodo" data-i18n="metodo_pago_label">Método de pago</label>
+              <select id="factura-abono-metodo">
+                <option value="efectivo" data-i18n="metodo_efectivo">Efectivo</option>
+                <option value="tarjeta" data-i18n="metodo_tarjeta">Tarjeta</option>
+                <option value="cheque" data-i18n="metodo_cheque">Cheque</option>
+              </select>
+            </div>
+            <button type="button" class="btn-ghost" id="btn-agregar-abono" data-i18n="btn_agregar_abono">+ Agregar abono</button>
+          </div>
+        </div>
+
+        <div class="field"><label for="factura-notas" data-i18n="notas_label">Notas</label><textarea id="factura-notas" rows="2"></textarea></div>
+        <div class="field">
+          <label for="factura-etiquetas" data-i18n="etiquetas_rapidas_label">Etiquetas rápidas</label>
+          <input type="text" id="factura-etiquetas" placeholder="Ej. Garantía, Urgente" data-i18n-placeholder="etiquetas_factura_placeholder" />
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="btn-danger" id="btn-eliminar-factura" hidden data-i18n="btn_eliminar">Eliminar</button>
+          <span class="spacer"></span>
+          <button type="button" class="btn-ghost" id="btn-factura-cancelar" data-i18n="btn_cancelar">Cancelar</button>
+          <button type="submit" class="btn-primary" data-i18n="btn_guardar_factura">Guardar factura</button>
+        </footer>
+      </form>
+    </section>
+
     <section id="view-invoices-due" class="view" hidden>
       <header class="view-header">
         <div>
@@ -731,7 +880,7 @@
 
         <div class="table-wrap" style="margin-bottom:1.75rem;">
           <table class="data-table">
-            <thead><tr><th data-i18n="col_mes">Mes</th><th data-i18n="col_ingresos">Ingresos</th><th data-i18n="col_gastos">Gastos</th><th data-i18n="col_ganancia_neta">Ganancia neta</th></tr></thead>
+            <thead><tr><th data-i18n="col_mes">Mes</th><th data-i18n="col_ingresos">Ingresos</th><th data-i18n="col_gastos">Gastos</th><th data-i18n="col_impuesto_simple">Impuesto</th><th data-i18n="col_ganancia_neta">Ganancia neta</th></tr></thead>
             <tbody id="finanzas-meses-tbody"></tbody>
           </table>
         </div>
@@ -1635,147 +1784,6 @@
         <span class="spacer"></span>
         <button type="button" class="btn-ghost" data-close-modal="modal-estimado" data-i18n="btn_cancelar">Cancelar</button>
         <button type="submit" class="btn-primary" data-i18n="btn_guardar_presupuesto">Guardar presupuesto</button>
-      </footer>
-    </form>
-  </div>
-</div>
-
-<div id="modal-factura" class="modal-backdrop" hidden>
-  <div class="modal modal-wide">
-    <header class="modal-header">
-      <h2 id="modal-factura-title">Nueva factura</h2>
-      <div class="factura-total-fijo" id="factura-total-fijo-wrap">
-        <span data-i18n="col_total">Total</span>
-        <strong id="factura-total-arriba">$0.00</strong>
-      </div>
-      <button class="icon-btn" data-close-modal="modal-factura" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
-    </header>
-    <form id="form-factura" class="modal-body">
-      <input type="hidden" id="factura-id" />
-      <input type="hidden" id="factura-orden-id" />
-
-      <div class="factura-form-header" id="factura-form-header">
-        <img id="factura-form-logo" src="" alt="" />
-        <div class="factura-form-negocio">
-          <h3 id="factura-form-nombre-negocio">Gil's Muffler Inc</h3>
-          <p id="factura-form-datos-negocio"></p>
-        </div>
-      </div>
-
-      <p id="factura-vencida-nota" class="orden-nota" hidden style="color:var(--danger);"></p>
-      <p id="factura-orden-nota" class="orden-nota" hidden></p>
-      <p id="factura-creado-por-nota" class="orden-nota" hidden></p>
-      <p id="factura-garantia-nota" class="orden-nota" hidden></p>
-      <div class="field-row">
-        <div class="field">
-          <label for="factura-cliente" data-i18n="cliente_requerido_label">Cliente *</label>
-          <input type="text" id="factura-cliente" list="clientes-datalist" placeholder="Escribe el nombre del cliente..." required autocomplete="off" data-i18n-placeholder="escribe_nombre_cliente" />
-          <datalist id="clientes-datalist"></datalist>
-        </div>
-        <div class="field"><label for="factura-fecha" data-i18n="col_fecha">Fecha</label><input type="date" id="factura-fecha" required /></div>
-        <div class="field">
-          <label for="factura-estado" data-i18n="col_estado">Estado</label>
-          <select id="factura-estado">
-            <option value="pendiente" data-i18n="estado_pendiente">Sin pagar</option>
-            <option value="parcial" data-i18n="estado_parcial">Pago parcial</option>
-            <option value="pagada" data-i18n="estado_pagada">Pagada</option>
-            <option value="cancelada" data-i18n="estado_cancelada">Cancelada</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="field-row">
-        <div class="field" style="max-width:16rem;">
-          <label for="factura-mecanico" data-i18n="mecanico_label">Mecánico</label>
-          <select id="factura-mecanico">
-            <option value="" data-i18n="sin_asignar_opcion">— Sin asignar —</option>
-          </select>
-        </div>
-        <div class="field" style="max-width:16rem;">
-          <label for="factura-metodo-pago" data-i18n="metodo_pago_label">Método de pago</label>
-          <select id="factura-metodo-pago">
-            <option value="" data-i18n="sin_especificar_opcion">— Sin especificar —</option>
-            <option value="efectivo" data-i18n="metodo_efectivo">Efectivo</option>
-            <option value="tarjeta" data-i18n="metodo_tarjeta">Tarjeta</option>
-            <option value="cheque" data-i18n="metodo_cheque">Cheque</option>
-          </select>
-        </div>
-      </div>
-
-      <datalist id="piezas-datalist"></datalist>
-
-      <label class="field-label-standalone" data-i18n="labor_seccion_label">Mano de obra (Labor)</label>
-      <table class="items-table">
-        <thead><tr>
-          <th data-i18n="col_descripcion">Item</th>
-          <th data-i18n="col_horas">Horas</th>
-          <th data-i18n="col_tarifa">Tarifa</th>
-          <th data-i18n="col_costo">Costo</th>
-          <th data-i18n="col_subtotal">Total</th>
-          <th></th>
-        </tr></thead>
-        <tbody id="factura-labor-tbody"></tbody>
-      </table>
-      <button type="button" class="btn-ghost" id="btn-add-labor" data-i18n="btn_agregar_labor">+ Agregar mano de obra</button>
-
-      <label class="field-label-standalone" style="margin-top:1.25rem;" data-i18n="parts_seccion_label">Piezas (Parts)</label>
-      <table class="items-table">
-        <thead><tr>
-          <th data-i18n="col_descripcion">Item</th>
-          <th data-i18n="col_cantidad">Cant.</th>
-          <th data-i18n="col_costo">Costo</th>
-          <th data-i18n="col_markup">Markup %</th>
-          <th data-i18n="col_subtotal">Total</th>
-          <th></th>
-        </tr></thead>
-        <tbody id="factura-items-tbody"></tbody>
-      </table>
-      <button type="button" class="btn-ghost" id="btn-add-item" data-i18n="btn_agregar_linea">+ Agregar pieza</button>
-
-      <div class="totals">
-        <div class="field-row">
-          <div class="field"><label for="factura-impuesto-pct" data-i18n="impuesto_pct_label">Impuesto (%)</label><input type="number" id="factura-impuesto-pct" value="0" min="0" step="0.01" /></div>
-          <div class="field"><label for="factura-descuento" data-i18n="descuento_label">Descuento ($)</label><input type="number" id="factura-descuento" value="0" min="0" step="0.01" /></div>
-          <div class="totals-numbers">
-            <div><span data-i18n="total_labor_label">Total labor</span><strong id="factura-total-labor">$0.00</strong></div>
-            <div><span data-i18n="total_parts_label">Total piezas</span><strong id="factura-total-parts">$0.00</strong></div>
-            <div><span data-i18n="col_impuesto_simple">Impuesto</span><strong id="factura-impuesto-monto">$0.00</strong></div>
-            <div><span data-i18n="descuento_label">Descuento</span><strong id="factura-descuento-monto">$0.00</strong></div>
-            <div class="total-final"><span data-i18n="col_total">Total</span><strong id="factura-total">$0.00</strong></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="field" id="factura-abonos-wrap" hidden>
-        <label data-i18n="abonos_label">Abonos registrados</label>
-        <div id="factura-abonos-lista" class="detalle-list"></div>
-        <p id="factura-saldo-pendiente-nota" class="orden-nota" hidden></p>
-        <div class="field-row" style="align-items:flex-end;">
-          <div class="field"><label for="factura-abono-monto" data-i18n="monto_label">Monto</label><input type="number" id="factura-abono-monto" min="0.01" step="0.01" /></div>
-          <div class="field"><label for="factura-abono-fecha" data-i18n="col_fecha">Fecha</label><input type="date" id="factura-abono-fecha" /></div>
-          <div class="field">
-            <label for="factura-abono-metodo" data-i18n="metodo_pago_label">Método de pago</label>
-            <select id="factura-abono-metodo">
-              <option value="efectivo" data-i18n="metodo_efectivo">Efectivo</option>
-              <option value="tarjeta" data-i18n="metodo_tarjeta">Tarjeta</option>
-              <option value="cheque" data-i18n="metodo_cheque">Cheque</option>
-            </select>
-          </div>
-          <button type="button" class="btn-ghost" id="btn-agregar-abono" data-i18n="btn_agregar_abono">+ Agregar abono</button>
-        </div>
-      </div>
-
-      <div class="field"><label for="factura-notas" data-i18n="notas_label">Notas</label><textarea id="factura-notas" rows="2"></textarea></div>
-      <div class="field">
-        <label for="factura-etiquetas" data-i18n="etiquetas_rapidas_label">Etiquetas rápidas</label>
-        <input type="text" id="factura-etiquetas" placeholder="Ej. Garantía, Urgente" data-i18n-placeholder="etiquetas_factura_placeholder" />
-      </div>
-
-      <footer class="modal-footer">
-        <button type="button" class="btn-danger" id="btn-eliminar-factura" hidden data-i18n="btn_eliminar">Eliminar</button>
-        <span class="spacer"></span>
-        <button type="button" class="btn-ghost" data-close-modal="modal-factura" data-i18n="btn_cancelar">Cancelar</button>
-        <button type="submit" class="btn-primary" data-i18n="btn_guardar_factura">Guardar factura</button>
       </footer>
     </form>
   </div>

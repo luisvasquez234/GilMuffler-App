@@ -724,7 +724,7 @@ body.tiene-banner-offline .app{padding-top:2.7rem;}
 .data-table tbody tr{transition:background-color .1s ease;}
 .data-table tbody tr:hover{background:var(--surface-alt);}
 .cliente-nombre-btn{display:inline-flex;align-items:center;gap:.5rem;background:none;border:none;padding:0;cursor:pointer;font:inherit;color:inherit;text-align:left;}
-.cliente-nombre-btn:hover, .cliente-nombre-btn:focus-visible{color:var(--accent);text-decoration:underline;}
+.cliente-nombre-btn:hover, .cliente-nombre-btn:focus-visible, .cliente-telefono-btn:hover, .cliente-telefono-btn:focus-visible{color:var(--accent);text-decoration:underline;}
 .avatar{
   display:inline-flex;
   align-items:center;
@@ -997,6 +997,7 @@ tr.is-vencida td:first-child{box-shadow:inset 3px 0 0 var(--danger);}
 .spacer{flex:1;}
 
 .field{display:flex;flex-direction:column;gap:.3rem;flex:1;}
+.field[hidden]{display:none;}
 .field label{display:flex;align-items:center;gap:.4rem;font-size:.8rem;font-weight:600;color:var(--text-dim);}
 .field-icon{width:.9rem;height:.9rem;color:var(--text-faint);flex:none;}
 .field input,.field select,.field textarea{
@@ -1335,9 +1336,10 @@ tr.is-vencida td:first-child{box-shadow:inset 3px 0 0 var(--danger);}
 /* ---------- orden / factura extras ---------- */
 .orden-nota{font-size:.82rem;color:var(--text-dim);background:var(--accent-soft);border-radius:6px;padding:.5rem .7rem;}
 .field-label-standalone{font-size:.8rem;font-weight:600;color:var(--text-dim);margin-top:.2rem;}
+.factura-recibo-card{background:var(--accent-soft);border:1px solid var(--accent);border-radius:14px;padding:1.25rem 1.4rem;margin-bottom:1.1rem;}
 .factura-form-header{display:flex;align-items:center;gap:1.1rem;padding-bottom:1.1rem;margin-bottom:1.1rem;border-bottom:2px solid var(--accent);}
 .factura-form-header img{width:5rem;height:5rem;object-fit:cover;border-radius:10px;flex:none;}
-.factura-form-negocio h3{margin:0 0 .2rem;font-size:1.15rem;color:var(--accent);}
+.factura-form-negocio h3{margin:0 0 .2rem;font-size:1.15rem;color:var(--text);}
 .factura-form-negocio p{margin:0;font-size:.8rem;color:var(--text-dim);line-height:1.5;}
 .estimado-form-header{display:flex;align-items:center;gap:1.1rem;padding-bottom:1.1rem;margin-bottom:1.1rem;border-bottom:2px solid #d55181;}
 .estimado-form-header img{width:5rem;height:5rem;object-fit:cover;border-radius:10px;flex:none;}

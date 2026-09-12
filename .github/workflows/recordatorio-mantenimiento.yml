@@ -1,0 +1,25 @@
+name: Recordatorio de mantenimiento
+
+on:
+  schedule:
+    # 8am hora de Lawrence, MA (Eastern), todos los días. No ajusta solo por
+    # horario de verano/invierno — revisar si se nota desfasado.
+    - cron: '0 12 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  recordatorio:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Revisar vehículos vencidos y avisar por email
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          GILMUFFLER_CRON_EMAIL: ${{ secrets.GILMUFFLER_CRON_EMAIL }}
+          GILMUFFLER_CRON_PASSWORD: ${{ secrets.GILMUFFLER_CRON_PASSWORD }}
+        run: node scripts/recordatorio-mantenimiento.mjs

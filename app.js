@@ -948,6 +948,7 @@
       "llamadas",
       "turnos",
       "facturas",
+      "factura-detalle",
       "invoices-due",
       "invoices-paid",
       "estimados",
@@ -959,6 +960,11 @@
         el.hidden = false;
         el.classList.remove("is-visible");
         requestAnimationFrame(() => el.classList.add("is-visible"));
+        const heading = el.querySelector("h1");
+        if (heading) {
+          if (!heading.hasAttribute("tabindex")) heading.setAttribute("tabindex", "-1");
+          heading.focus();
+        }
       } else {
         el.classList.remove("is-visible");
         el.hidden = true;
@@ -1890,7 +1896,7 @@
         escapeHtml(c.nombre) +
         '" style="display:inline-flex;align-items:center;gap:.5rem;background:none;border:none;padding:0;cursor:pointer;font:inherit;color:inherit;text-align:left;">' +
         avatarHtml(c.nombre) +
-        escapeHtml(c.nombre) +
+        escapeHtml([c.nombre, c.apellido].filter(Boolean).join(" ")) +
         "</button> " +
         etiquetasPillsHtml(c.etiquetas) +
         (esClienteFrecuente(c.id) ? '<span class="pill pill-vip">' + t("pill_cliente_vip") + "</span>" : "") +
@@ -1898,7 +1904,16 @@
           ? '<span class="pill pill-inactivo" title="' + t("aviso_no_ha_vuelto_title") + '">' + t("aviso_no_ha_vuelto_meses", { meses }) + "</span>"
           : "") +
         "</td>" +
-        "<td>" + escapeHtml(c.telefono || "—") + "</td>" +
+        "<td>" +
+        (c.telefono
+          ? '<button type="button" class="cliente-telefono-btn" data-cliente-telefono-id="' +
+            c.id +
+            '" aria-label="' + t("btn_ver_detalle") + '" ' +
+            'style="background:none;border:none;padding:0;cursor:pointer;font:inherit;color:inherit;text-align:left;">' +
+            escapeHtml(c.telefono) +
+            "</button>"
+          : "—") +
+        "</td>" +
         "<td>" + escapeHtml(vehiculo || "—") + "</td>" +
         "<td>" + escapeHtml(placa) + "</td>" +
         "<td>" + (ultimaFecha ? escapeHtml(formatDate(ultimaFecha)) : "Nunca") + "</td>" +
@@ -1912,6 +1927,12 @@
       });
     });
 
+    tbody.querySelectorAll("[data-cliente-telefono-id]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        openClienteDetalle(state.clientes.find((c) => c.id === btn.dataset.clienteTelefonoId));
+      });
+    });
+
     wireRowActions(tbody, {
       detalle: (id) => openClienteDetalle(state.clientes.find((c) => c.id === id)),
       factura: (id) => crearFacturaParaCliente(state.clientes.find((c) => c.id === id)),
@@ -1922,7 +1943,6 @@
 
   async function crearFacturaParaCliente(cliente) {
     if (!cliente) return;
-    goToView("facturas");
     await openFacturaModal(null);
     document.getElementById("factura-cliente").value = cliente.nombre;
   }
@@ -3275,8 +3295,9 @@
       ? "<p class='extra'>" + escapeHtml(cfg.texto_adicional).replace(/\n/g, "<br>") + "</p>"
       : "";
 
-    const garantiaLaborDias = Number(cfg.garantia_labor_dias) || 0;
-    const garantiaPiezasDias = Number(cfg.garantia_dias) || 0;
+    const tieneGarantia = factura.garantia !== false;
+    const garantiaLaborDias = tieneGarantia ? Number(cfg.garantia_labor_dias) || 0 : 0;
+    const garantiaPiezasDias = tieneGarantia ? Number(cfg.garantia_dias) || 0 : 0;
     const garantiaHtml =
       garantiaLaborDias || garantiaPiezasDias
         ? "<p class='garantia'>Warranty:* Labor: " +
@@ -4107,8 +4128,19 @@
     document.getElementById("factura-total-arriba").textContent = money(total);
   }
 
+  function actualizarNotaGarantia() {
+    const notaGarantia = document.getElementById("factura-garantia-nota");
+    const tieneGarantia = document.getElementById("factura-tiene-garantia").checked;
+    const fecha = document.getElementById("factura-fecha").value;
+    const garantiaDias = state.configNegocio ? Number(state.configNegocio.garantia_dias) || 0 : 0;
+    const garantiaHasta = tieneGarantia && fecha && garantiaDias ? sumarDias(fecha, garantiaDias) : null;
+    notaGarantia.hidden = !garantiaHasta;
+    if (garantiaHasta) notaGarantia.textContent = t("garantia_valida_hasta") + formatDate(garantiaHasta);
+  }
+
   async function openFacturaModal(factura) {
-    document.getElementById("modal-factura-title").textContent = factura ? "Editar factura" : "Nueva factura";
+    document.querySelectorAll(".nav-item").forEach((b) => b.classList.toggle("is-active", b.dataset.view === "facturas"));
+    document.getElementById("factura-detalle-title").textContent = factura ? "Editar factura" : "Nueva factura";
     document.getElementById("factura-id").value = factura ? factura.id : "";
     const notaVencida = document.getElementById("factura-vencida-nota");
     notaVencida.hidden = !(factura && facturaVencida(factura));
@@ -4129,11 +4161,7 @@
     notaCreador.hidden = !nombreCreador;
     if (nombreCreador) notaCreador.textContent = "Creada por: " + nombreCreador;
 
-    const notaGarantia = document.getElementById("factura-garantia-nota");
-    const garantiaDias = state.configNegocio ? Number(state.configNegocio.garantia_dias) || 0 : 0;
-    const garantiaHasta = factura && garantiaDias ? sumarDias(factura.fecha, garantiaDias) : null;
-    notaGarantia.hidden = !garantiaHasta;
-    if (garantiaHasta) notaGarantia.textContent = t("garantia_valida_hasta") + formatDate(garantiaHasta);
+    document.getElementById("factura-tiene-garantia").checked = factura ? factura.garantia !== false : true;
 
     const selectMecanico = document.getElementById("factura-mecanico");
     selectMecanico.innerHTML =
@@ -4153,6 +4181,7 @@
     document.getElementById("factura-notas").value = factura ? factura.notas || "" : "";
     document.getElementById("factura-etiquetas").value = factura ? factura.etiquetas || "" : "";
     document.getElementById("factura-descuento").value = factura ? factura.descuento || 0 : 0;
+    actualizarNotaGarantia();
 
     const cfg = state.configNegocio || {};
     document.getElementById("factura-form-logo").src = cfg.logo_url || LOGO_DATA_URI;
@@ -4191,7 +4220,7 @@
       await cargarAbonosFactura(factura.id);
     }
 
-    openModal("modal-factura");
+    showView("factura-detalle");
   }
 
   async function fetchAbonosFactura(facturaId) {
@@ -4399,6 +4428,7 @@
       orden_id: ordenId,
       mecanico_id: document.getElementById("factura-mecanico").value || null,
       metodo_pago: document.getElementById("factura-metodo-pago").value || null,
+      garantia: document.getElementById("factura-tiene-garantia").checked,
     };
 
     if (!id) {
@@ -4445,7 +4475,7 @@
       await refreshClientes();
     }
 
-    closeModal("modal-factura");
+    goToView("facturas");
     await refreshFacturas();
   }
 
@@ -4460,7 +4490,7 @@
       return;
     }
 
-    closeModal("modal-factura");
+    goToView("facturas");
     showToast("Factura eliminada.");
     await refreshFacturas();
   }
@@ -6129,7 +6159,8 @@
 
     closeModal("modal-orden");
 
-    document.getElementById("modal-factura-title").textContent = "Nueva factura";
+    document.querySelectorAll(".nav-item").forEach((b) => b.classList.toggle("is-active", b.dataset.view === "facturas"));
+    document.getElementById("factura-detalle-title").textContent = "Nueva factura";
     document.getElementById("factura-id").value = "";
     document.getElementById("factura-orden-id").value = orden.id;
     populateClientesDatalist();
@@ -6144,6 +6175,8 @@
     document.getElementById("factura-notas").value = "";
     document.getElementById("factura-etiquetas").value = "";
     document.getElementById("btn-eliminar-factura").hidden = true;
+    document.getElementById("factura-tiene-garantia").checked = true;
+    actualizarNotaGarantia();
 
     const cfgOrden = state.configNegocio || {};
     document.getElementById("factura-form-logo").src = cfgOrden.logo_url || LOGO_DATA_URI;
@@ -6174,7 +6207,7 @@
     }
 
     recalcTotals();
-    openModal("modal-factura");
+    showView("factura-detalle");
   }
 
   async function refreshOrdenes() {
@@ -6486,12 +6519,14 @@
     const anio = finanzasAnio;
     const ingresosPorMes = new Array(12).fill(0);
     const gastosPorMes = new Array(12).fill(0);
+    const impuestoPorMes = new Array(12).fill(0);
 
     state.facturas
       .filter((f) => f.estado === "pagada" && f.fecha && Number(f.fecha.slice(0, 4)) === anio)
       .forEach((f) => {
         const mes = Number(f.fecha.slice(5, 7)) - 1;
         ingresosPorMes[mes] += Number(f.total);
+        impuestoPorMes[mes] += Number(f.impuesto) || 0;
       });
 
     state.gastos
@@ -6503,13 +6538,16 @@
 
     let totalIngresos = 0;
     let totalGastos = 0;
+    let totalImpuesto = 0;
 
     const filas = MESES.map((nombreMes, i) => {
       const ingreso = ingresosPorMes[i];
       const gasto = gastosPorMes[i];
+      const impuesto = impuestoPorMes[i];
       const ganancia = ingreso - gasto;
       totalIngresos += ingreso;
       totalGastos += gasto;
+      totalImpuesto += impuesto;
       return (
         "<tr><td>" +
         nombreMes +
@@ -6517,6 +6555,8 @@
         money(ingreso) +
         "</td><td>" +
         money(gasto) +
+        "</td><td>" +
+        money(impuesto) +
         '</td><td style="color:' +
         (ganancia >= 0 ? "var(--success)" : "var(--danger)") +
         ';font-weight:600;">' +
@@ -6533,6 +6573,8 @@
       money(totalIngresos) +
       "</td><td>" +
       money(totalGastos) +
+      "</td><td>" +
+      money(totalImpuesto) +
       '</td><td style="color:' +
       (totalGanancia >= 0 ? "var(--success)" : "var(--danger)") +
       '">' +
@@ -8524,7 +8566,7 @@
 
     const proximas = garantiaDias
       ? state.facturas
-          .filter((f) => f.estado !== "cancelada")
+          .filter((f) => f.estado !== "cancelada" && f.garantia !== false)
           .map((f) => ({ factura: f, vence: sumarDias(f.fecha, garantiaDias) }))
           .filter((x) => x.vence && x.vence >= hoy && x.vence <= enDiasLimite)
           .sort((a, b) => a.vence.localeCompare(b.vence))
@@ -8816,6 +8858,8 @@
     document.getElementById("btn-exportar-clientes-csv").addEventListener("click", exportarClientesCsv);
 
     document.getElementById("btn-nueva-factura").addEventListener("click", () => openFacturaModal(null));
+    document.getElementById("btn-factura-detalle-volver").addEventListener("click", () => goToView("facturas"));
+    document.getElementById("btn-factura-cancelar").addEventListener("click", () => goToView("facturas"));
     document.getElementById("btn-agregar-abono").addEventListener("click", agregarAbonoFactura);
     document.getElementById("form-factura").addEventListener("submit", conSpinnerAlGuardar(saveFactura));
     document.getElementById("btn-eliminar-factura").addEventListener("click", deleteFactura);
@@ -8823,6 +8867,8 @@
     document.getElementById("btn-add-labor").addEventListener("click", () => addLaborRow(null));
     document.getElementById("factura-impuesto-pct").addEventListener("input", recalcTotals);
     document.getElementById("factura-descuento").addEventListener("input", recalcTotals);
+    document.getElementById("factura-tiene-garantia").addEventListener("change", actualizarNotaGarantia);
+    document.getElementById("factura-fecha").addEventListener("change", actualizarNotaGarantia);
     document.getElementById("facturas-search").addEventListener("input", () => renderFacturas(filterFacturas()));
     document.getElementById("btn-exportar-facturas-csv").addEventListener("click", exportarFacturasCsv);
     document.getElementById("facturas-filter-estado").addEventListener("change", () => renderFacturas(filterFacturas()));
