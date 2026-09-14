@@ -35,6 +35,11 @@ Deno.serve(async (req: Request) => {
     return json({ error: "No autorizado" }, { status: 401 });
   }
 
+  const { data: esMecanico, error: rolError } = await callerClient.rpc("is_mecanico");
+  if (rolError || esMecanico) {
+    return json({ error: "No autorizado: se requiere una cuenta de encargado." }, { status: 403 });
+  }
+
   const { email, password, nombre } = await req.json();
   if (!email || !password || !nombre) {
     return json({ error: "Falta email, password o nombre" }, { status: 400 });
