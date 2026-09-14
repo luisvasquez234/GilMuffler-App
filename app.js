@@ -1863,9 +1863,11 @@
     return !!cliente && etiquetasList(cliente.etiquetas).some((tag) => tag.toLowerCase() === "dealer");
   }
 
-  function renderClientes(list) {
+  function renderClientes(list, vehiculosByCliente, facturasByCliente) {
     const tbody = document.getElementById("clientes-tbody");
     const empty = document.getElementById("clientes-empty");
+    vehiculosByCliente = vehiculosByCliente || indexByClienteId(state.vehiculos);
+    facturasByCliente = facturasByCliente || indexByClienteId(state.facturas);
     tbody.innerHTML = "";
     empty.hidden = list.length !== 0;
     if (!list.length) {
@@ -1875,12 +1877,13 @@
 
     list.forEach((c) => {
       const tr = document.createElement("tr");
-      const vehiculosCliente = state.vehiculos.filter((v) => v.cliente_id === c.id);
+      const vehiculosCliente = vehiculosByCliente.get(c.id) || [];
       const extra = vehiculosCliente.length > 1 ? " (+" + (vehiculosCliente.length - 1) + ")" : "";
       const vehiculo = vehiculosCliente.length ? vehiculoLabel(vehiculosCliente[0]) + extra : "";
       const placa = vehiculosCliente.length ? (vehiculosCliente[0].placa || "—") + extra : "—";
-      const ultimaFecha = ultimaFacturaFecha(c.id);
-      const meses = mesesSinVenir(c.id);
+      const facturasCliente = facturasByCliente.get(c.id) || [];
+      const ultimaFecha = ultimaFacturaFechaDe(facturasCliente);
+      const meses = mesesSinVenirDe(ultimaFecha);
       const actions = [
         { key: "detalle", icon: "eye", label: t("btn_ver_detalle") },
         { key: "factura", icon: "file-text", label: t("btn_crear_factura") },
@@ -1899,7 +1902,7 @@
         escapeHtml([c.nombre, c.apellido].filter(Boolean).join(" ")) +
         "</button> " +
         etiquetasPillsHtml(c.etiquetas) +
-        (esClienteFrecuente(c.id) ? '<span class="pill pill-vip">' + t("pill_cliente_vip") + "</span>" : "") +
+        (facturasCliente.length >= 3 ? '<span class="pill pill-vip">' + t("pill_cliente_vip") + "</span>" : "") +
         (meses
           ? '<span class="pill pill-inactivo" title="' + t("aviso_no_ha_vuelto_title") + '">' + t("aviso_no_ha_vuelto_meses", { meses }) + "</span>"
           : "") +
@@ -2031,7 +2034,7 @@
         return;
       }
       await refreshClientes();
-    }, () => renderClientes(filterClientes()));
+    }, () => refreshClientesView());
   }
 
   async function openClienteDetalle(cliente) {
@@ -2432,6 +2435,24 @@
     return div.innerHTML;
   }
 
+  function debounce(fn, wait) {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), wait);
+    };
+  }
+
+  function indexByClienteId(arr) {
+    const map = new Map();
+    arr.forEach((item) => {
+      const list = map.get(item.cliente_id);
+      if (list) list.push(item);
+      else map.set(item.cliente_id, [item]);
+    });
+    return map;
+  }
+
   function toCsv(filas) {
     if (!filas.length) return "";
     const columnas = Object.keys(filas[0]);
@@ -2503,32 +2524,41 @@
   const clientesSortState = { field: null, dir: 1 };
   const CLIENTES_SORT_LABELS = { nombre: t("col_nombre"), telefono: t("col_telefono"), vehiculo: t("col_vehiculo"), vehiculo_placa: t("col_placa") };
 
-  function clienteSortValue(c, field) {
-    const vehiculosCliente = state.vehiculos.filter((v) => v.cliente_id === c.id);
+  function clienteSortValue(c, field, vehiculosByCliente) {
+    const vehiculosCliente = (vehiculosByCliente || indexByClienteId(state.vehiculos)).get(c.id) || [];
     if (field === "vehiculo") return vehiculosCliente.length ? vehiculoLabel(vehiculosCliente[0]) : "";
     if (field === "vehiculo_placa") return vehiculosCliente.length ? vehiculosCliente[0].placa || "" : "";
     return c[field] || "";
   }
 
-  function ultimaFacturaFecha(clienteId) {
-    const facturasCliente = state.facturas.filter((f) => f.cliente_id === clienteId);
-    if (!facturasCliente.length) return null;
+  function ultimaFacturaFechaDe(facturasCliente) {
+    if (!facturasCliente || !facturasCliente.length) return null;
     return facturasCliente.reduce((max, f) => (f.fecha > max ? f.fecha : max), facturasCliente[0].fecha);
   }
 
-  function esClienteFrecuente(clienteId) {
-    return state.facturas.filter((f) => f.cliente_id === clienteId).length >= 3;
+  function ultimaFacturaFecha(clienteId, facturasByCliente) {
+    return ultimaFacturaFechaDe((facturasByCliente || indexByClienteId(state.facturas)).get(clienteId));
   }
 
-  function mesesSinVenir(clienteId) {
-    const ultima = ultimaFacturaFecha(clienteId);
+  function esClienteFrecuente(clienteId, facturasByCliente) {
+    return ((facturasByCliente || indexByClienteId(state.facturas)).get(clienteId) || []).length >= 3;
+  }
+
+  function mesesSinVenirDe(ultima) {
     if (!ultima) return null;
     const dias = Math.floor((Date.parse(todayISO()) - Date.parse(ultima)) / 86400000);
     if (dias < 90) return null;
     return Math.floor(dias / 30);
   }
 
-  function filterClientes() {
+  function mesesSinVenir(clienteId, facturasByCliente) {
+    return mesesSinVenirDe(ultimaFacturaFecha(clienteId, facturasByCliente));
+  }
+
+  function filterClientes(vehiculosByCliente, facturasByCliente, telefonosByCliente) {
+    vehiculosByCliente = vehiculosByCliente || indexByClienteId(state.vehiculos);
+    facturasByCliente = facturasByCliente || indexByClienteId(state.facturas);
+    telefonosByCliente = telefonosByCliente || indexByClienteId(state.telefonos);
     const q = document.getElementById("clientes-search").value.trim().toLowerCase();
     const soloInactivos = document.getElementById("clientes-filter-inactivos").checked;
     const soloDealers = document.getElementById("clientes-filter-dealers").checked;
@@ -2539,11 +2569,9 @@
             (c.nombre || "").toLowerCase().includes(q) ||
             (c.telefono || "").toLowerCase().includes(q) ||
             (c.etiquetas || "").toLowerCase().includes(q) ||
-            state.telefonos.some((tel) => tel.cliente_id === c.id && (tel.telefono || "").toLowerCase().includes(q)) ||
-            state.vehiculos.some(
-              (v) =>
-                v.cliente_id === c.id &&
-                ((v.placa || "").toLowerCase().includes(q) || vehiculoLabel(v).toLowerCase().includes(q))
+            (telefonosByCliente.get(c.id) || []).some((tel) => (tel.telefono || "").toLowerCase().includes(q)) ||
+            (vehiculosByCliente.get(c.id) || []).some(
+              (v) => (v.placa || "").toLowerCase().includes(q) || vehiculoLabel(v).toLowerCase().includes(q)
             )
           );
         });
@@ -2552,12 +2580,19 @@
       limite.setDate(limite.getDate() - 90);
       const limiteISO = limite.toISOString().slice(0, 10);
       list = list.filter((c) => {
-        const ultima = ultimaFacturaFecha(c.id);
+        const ultima = ultimaFacturaFechaDe(facturasByCliente.get(c.id));
         return !ultima || ultima < limiteISO;
       });
     }
     if (soloDealers) list = list.filter((c) => esClienteDealer(c));
-    return sortByField(list, clientesSortState, clienteSortValue);
+    return sortByField(list, clientesSortState, (c, field) => clienteSortValue(c, field, vehiculosByCliente));
+  }
+
+  function refreshClientesView() {
+    const vehiculosByCliente = indexByClienteId(state.vehiculos);
+    const facturasByCliente = indexByClienteId(state.facturas);
+    const telefonosByCliente = indexByClienteId(state.telefonos);
+    renderClientes(filterClientes(vehiculosByCliente, facturasByCliente, telefonosByCliente), vehiculosByCliente, facturasByCliente);
   }
 
   function exportarClientesCsv() {
@@ -2868,7 +2903,7 @@
   async function refreshClientes() {
     renderSkeletonRows("clientes-tbody", 5, 4);
     state.clientes = await fetchClientes();
-    renderClientes(filterClientes());
+    refreshClientesView();
     populateClientesDatalist();
   }
 
@@ -3943,6 +3978,7 @@
     const metodoPago = document.getElementById("facturas-filter-metodo-pago").value;
     const desde = document.getElementById("facturas-filter-desde").value;
     const hasta = document.getElementById("facturas-filter-hasta").value;
+    const vehiculosByCliente = q ? indexByClienteId(state.vehiculos) : null;
     const list = state.facturas.filter((f) => {
       const clienteNombre = (f.clientes ? f.clientes.nombre : "").toLowerCase();
       const numero = String(f.numero);
@@ -3952,7 +3988,7 @@
         clienteNombre.includes(q) ||
         numero.includes(q) ||
         etiquetas.includes(q) ||
-        state.vehiculos.some((v) => v.cliente_id === f.cliente_id && (v.placa || "").toLowerCase().includes(q));
+        (vehiculosByCliente.get(f.cliente_id) || []).some((v) => (v.placa || "").toLowerCase().includes(q));
       const matchesEstado = !estado || f.estado === estado;
       const matchesMetodoPago = !metodoPago || f.metodo_pago === metodoPago;
       const matchesDesde = !desde || f.fecha >= desde;
@@ -8851,10 +8887,10 @@
         closeModal("modal-cliente");
       }
     });
-    document.getElementById("clientes-search").addEventListener("input", () => renderClientes(filterClientes()));
-    document.getElementById("clientes-filter-inactivos").addEventListener("change", () => renderClientes(filterClientes()));
-    document.getElementById("clientes-filter-dealers").addEventListener("change", () => renderClientes(filterClientes()));
-    wireSortHeaders(document.querySelector("#view-clientes thead tr"), clientesSortState, CLIENTES_SORT_LABELS, () => renderClientes(filterClientes()));
+    document.getElementById("clientes-search").addEventListener("input", debounce(() => refreshClientesView(), 150));
+    document.getElementById("clientes-filter-inactivos").addEventListener("change", () => refreshClientesView());
+    document.getElementById("clientes-filter-dealers").addEventListener("change", () => refreshClientesView());
+    wireSortHeaders(document.querySelector("#view-clientes thead tr"), clientesSortState, CLIENTES_SORT_LABELS, () => refreshClientesView());
     document.getElementById("btn-exportar-clientes-csv").addEventListener("click", exportarClientesCsv);
 
     document.getElementById("btn-nueva-factura").addEventListener("click", () => openFacturaModal(null));
@@ -8869,7 +8905,7 @@
     document.getElementById("factura-descuento").addEventListener("input", recalcTotals);
     document.getElementById("factura-tiene-garantia").addEventListener("change", actualizarNotaGarantia);
     document.getElementById("factura-fecha").addEventListener("change", actualizarNotaGarantia);
-    document.getElementById("facturas-search").addEventListener("input", () => renderFacturas(filterFacturas()));
+    document.getElementById("facturas-search").addEventListener("input", debounce(() => renderFacturas(filterFacturas()), 150));
     document.getElementById("btn-exportar-facturas-csv").addEventListener("click", exportarFacturasCsv);
     document.getElementById("facturas-filter-estado").addEventListener("change", () => renderFacturas(filterFacturas()));
     document.getElementById("facturas-filter-metodo-pago").addEventListener("change", () => renderFacturas(filterFacturas()));
@@ -8883,7 +8919,7 @@
     document.getElementById("btn-add-estimado-item").addEventListener("click", () => addEstimadoItemRow(null));
     document.getElementById("estimado-impuesto-pct").addEventListener("input", recalcEstimadoTotals);
     document.getElementById("estimado-estado").addEventListener("change", actualizarEstimadoEstadoIcono);
-    document.getElementById("estimados-search").addEventListener("input", () => renderEstimados(filterEstimados()));
+    document.getElementById("estimados-search").addEventListener("input", debounce(() => renderEstimados(filterEstimados()), 150));
     document.getElementById("estimados-filter-estado").addEventListener("change", () => renderEstimados(filterEstimados()));
 
     document.getElementById("btn-nueva-reserva").addEventListener("click", () => openReservaModal(null));
@@ -8983,11 +9019,11 @@
       }
     });
     document.getElementById("cliente-escaner-usb-input").addEventListener("blur", procesarEscaneoUsbLicencia);
-    document.getElementById("piezas-search").addEventListener("input", () => renderPiezas(filterPiezas()));
+    document.getElementById("piezas-search").addEventListener("input", debounce(() => renderPiezas(filterPiezas()), 150));
     wireSortHeaders(document.querySelector("#view-inventario thead tr"), piezasSortState, PIEZAS_SORT_LABELS, () => renderPiezas(filterPiezas()));
 
     document.getElementById("btn-nueva-orden").addEventListener("click", () => openOrdenModal(null));
-    document.getElementById("ordenes-search").addEventListener("input", renderOrdenesKanban);
+    document.getElementById("ordenes-search").addEventListener("input", debounce(renderOrdenesKanban, 150));
     document.getElementById("form-orden").addEventListener("submit", conSpinnerAlGuardar(saveOrden));
     document.getElementById("btn-eliminar-orden").addEventListener("click", deleteOrden);
     document.getElementById("btn-imprimir-orden").addEventListener("click", () => printOrden(document.getElementById("btn-imprimir-orden").dataset.ordenId));
