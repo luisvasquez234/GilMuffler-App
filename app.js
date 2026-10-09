@@ -1558,7 +1558,7 @@
   async function fetchOrdenes() {
     return fetchConCache(
       "ordenes",
-      () => sb.from("ordenes_servicio").select("*, clientes(nombre)").order("numero", { ascending: false }),
+      () => sb.from("ordenes_servicio").select("*, clientes(nombre, apellido)").order("numero", { ascending: false }),
       [],
       t("error_cargar_ordenes")
     );
@@ -1947,14 +1947,14 @@
   async function crearFacturaParaCliente(cliente) {
     if (!cliente) return;
     await openFacturaModal(null);
-    document.getElementById("factura-cliente").value = cliente.nombre;
+    ponerClienteEnCampo("factura-cliente", cliente.id);
   }
 
   function crearReservaParaCliente(cliente) {
     if (!cliente) return;
     goToView("reservas");
     openReservaModal(null);
-    document.getElementById("reserva-cliente").value = cliente.nombre;
+    ponerClienteEnCampo("reserva-cliente", cliente.id);
     populateReservaVehiculoSelect(cliente.id, null);
   }
 
@@ -2928,7 +2928,7 @@
 
     list.forEach((f) => {
       const tr = document.createElement("tr");
-      const clienteNombre = f.clientes ? f.clientes.nombre : "—";
+      const clienteNombre = (f.clientes && nombreCompletoCliente(f.clientes)) || "—";
       const actions = [
         { key: "ver", icon: "eye", label: t("btn_ver_editar") },
         { key: "pagada", icon: "check-circle", label: t("btn_marcar_pagada"), show: f.estado !== "pagada" },
@@ -3485,7 +3485,7 @@
     if (!orden) return;
     const piezasOrden = await fetchOrdenPiezas(id);
     const cliente = state.clientes.find((c) => c.id === orden.cliente_id);
-    const clienteNombre = orden.clientes ? orden.clientes.nombre : cliente ? cliente.nombre : "—";
+    const clienteNombre = (orden.clientes ? nombreCompletoCliente(orden.clientes) : cliente ? nombreCompletoCliente(cliente) : "") || "—";
     const clienteTelefono = cliente ? cliente.telefono || "" : "";
     const cfg = state.configNegocio || {};
     const nombreNegocio = cfg.nombre_negocio || "Gil Muffler";
@@ -3679,7 +3679,7 @@
     const cita = state.citas.find((c) => c.id === id);
     if (!cita) return;
     const cliente = state.clientes.find((c) => c.id === cita.cliente_id);
-    const clienteNombre = cita.clientes ? cita.clientes.nombre : cliente ? cliente.nombre : "—";
+    const clienteNombre = (cita.clientes ? nombreCompletoCliente(cita.clientes) : cliente ? nombreCompletoCliente(cliente) : "") || "—";
     const vehiculo = cita.vehiculo_id ? state.vehiculos.find((v) => v.id === cita.vehiculo_id) : null;
     const cfg = state.configNegocio || {};
     const nombreNegocio = cfg.nombre_negocio || "Gil Muffler";
@@ -3737,7 +3737,7 @@
       "@media print{body{padding:0;}@page{margin:.5in;}}" +
       "</style></head><body>" +
       "<h1>" +
-      escapeHtml(cliente.nombre) +
+      escapeHtml(nombreCompletoCliente(cliente)) +
       "</h1>" +
       "<p>" + t("escanea_qr_cliente") + "</p>" +
       "<img src='" +
@@ -3905,7 +3905,7 @@
   const FACTURAS_SORT_LABELS = { numero: t("col_numero"), cliente: t("col_cliente"), fecha: t("col_fecha"), total: t("col_total"), estado: t("col_estado") };
 
   function facturaSortValue(f, field) {
-    if (field === "cliente") return f.clientes ? f.clientes.nombre : "";
+    if (field === "cliente") return f.clientes ? nombreCompletoCliente(f.clientes) : "";
     if (field === "numero" || field === "total") return Number(f[field]) || 0;
     return f[field] || "";
   }
@@ -3942,7 +3942,7 @@
           '<button type="button" class="cliente-nombre-btn" data-invoice-cliente-id="' +
           f.cliente_id +
           '">' +
-          escapeHtml(f.clientes ? f.clientes.nombre : "—") +
+          escapeHtml((f.clientes && nombreCompletoCliente(f.clientes)) || "—") +
           "</button></td><td>" +
           escapeHtml((vehiculo && vehiculo.placa) || "NONE") +
           "</td><td>" +
@@ -3980,7 +3980,7 @@
     const hasta = document.getElementById("facturas-filter-hasta").value;
     const vehiculosByCliente = q ? indexByClienteId(state.vehiculos) : null;
     const list = state.facturas.filter((f) => {
-      const clienteNombre = (f.clientes ? f.clientes.nombre : "").toLowerCase();
+      const clienteNombre = (f.clientes ? nombreCompletoCliente(f.clientes) : "").toLowerCase();
       const numero = String(f.numero);
       const etiquetas = (f.etiquetas || "").toLowerCase();
       const matchesQ =
@@ -4039,22 +4039,88 @@
 
   function populateClientesDatalist() {
     const datalist = document.getElementById("clientes-datalist");
-    datalist.innerHTML = state.clientes.map((c) => '<option value="' + escapeHtml(c.nombre) + '"></option>').join("");
+    const conteo = contarNombresCompletos();
+    datalist.innerHTML = state.clientes.map((c) => '<option value="' + escapeHtml(clienteLabel(c, conteo)) + '"></option>').join("");
   }
 
-  function findClienteByName(nombre) {
-    const q = (nombre || "").trim().toLowerCase();
-    return state.clientes.find((c) => (c.nombre || "").trim().toLowerCase() === q);
+  function normalizarNombre(texto) {
+    return (texto || "").trim().replace(/\s+/g, " ").toLowerCase();
   }
 
-  async function resolveClienteIdByName(nombre) {
-    const existing = findClienteByName(nombre);
-    if (existing) return existing.id;
+  function nombreCompletoCliente(c) {
+    return [c.nombre, c.apellido].filter(Boolean).join(" ");
+  }
 
-    const { data, error } = await sb.from("clientes").insert({ nombre: nombre.trim() }).select().single();
-    if (error) return null;
+  // Two clients can share the same name, so the text in the "Cliente" box has to carry
+  // something unique (the client #) — otherwise saving would pick whichever one comes first.
+  function clienteLabel(c, conteo = contarNombresCompletos()) {
+    const completo = nombreCompletoCliente(c);
+    return conteo.get(normalizarNombre(completo)) > 1 ? completo + " #" + c.numero : completo;
+  }
+
+  function contarNombresCompletos() {
+    const conteo = new Map();
+    state.clientes.forEach((c) => {
+      const clave = normalizarNombre(nombreCompletoCliente(c));
+      conteo.set(clave, (conteo.get(clave) || 0) + 1);
+    });
+    return conteo;
+  }
+
+  // The box remembers which client it was filled with, so saving never has to guess from the
+  // name. That remembered id only counts while the box still shows exactly that text.
+  function ponerClienteEnCampo(inputId, clienteId, textoSiNoEstaCargado) {
+    const input = document.getElementById(inputId);
+    const cliente = clienteId ? state.clientes.find((c) => c.id === clienteId) : null;
+    input.value = cliente ? clienteLabel(cliente) : textoSiNoEstaCargado || "";
+    input.dataset.clienteId = clienteId || "";
+    input.dataset.clienteTexto = input.value;
+  }
+
+  function buscarClienteDelCampo(inputId) {
+    const input = document.getElementById(inputId);
+    const texto = input.value.trim();
+    if (!texto) return {};
+    if (input.dataset.clienteId && input.value === input.dataset.clienteTexto) return { id: input.dataset.clienteId };
+
+    const q = normalizarNombre(texto);
+    const conteo = contarNombresCompletos();
+    const porLabel = state.clientes.find((c) => normalizarNombre(clienteLabel(c, conteo)) === q);
+    if (porLabel) return { id: porLabel.id };
+
+    const conNumero = texto.match(/^(.*)\s#(\d+)$/);
+    if (conNumero) {
+      const cliente = state.clientes.find(
+        (c) => String(c.numero) === conNumero[2] && normalizarNombre(nombreCompletoCliente(c)) === normalizarNombre(conNumero[1])
+      );
+      return cliente ? { id: cliente.id } : { error: t("error_cliente_no_encontrado") };
+    }
+
+    const hayParecidos = state.clientes.some((c) => normalizarNombre(c.nombre) === q || normalizarNombre(nombreCompletoCliente(c)) === q);
+    if (hayParecidos) return { error: t("error_cliente_nombre_ambiguo") };
+    return { nuevo: texto };
+  }
+
+  async function resolverClienteDelCampo(inputId, crearSiNoExiste) {
+    const encontrado = buscarClienteDelCampo(inputId);
+    if (encontrado.error) {
+      showToast(encontrado.error, true);
+      return null;
+    }
+    if (encontrado.id) return { id: encontrado.id, creado: false };
+    if (!encontrado.nuevo) return null;
+    if (!crearSiNoExiste) {
+      showToast(t("error_cliente_no_encontrado"), true);
+      return null;
+    }
+
+    const { data, error } = await sb.from("clientes").insert({ nombre: encontrado.nuevo }).select().single();
+    if (error) {
+      showToast(t("error_guardar_cliente"), true);
+      return null;
+    }
     state.clientes.push(data);
-    return data.id;
+    return { id: data.id, creado: true };
   }
 
   function addItemRow(item) {
@@ -4209,8 +4275,7 @@
     selectMecanico.value = factura && factura.mecanico_id ? factura.mecanico_id : "";
 
     populateClientesDatalist();
-    const clienteExistente = factura ? state.clientes.find((c) => c.id === factura.cliente_id) : null;
-    document.getElementById("factura-cliente").value = factura ? (factura.clientes ? factura.clientes.nombre : clienteExistente ? clienteExistente.nombre : "") : "";
+    ponerClienteEnCampo("factura-cliente", factura ? factura.cliente_id : null, factura && factura.clientes ? nombreCompletoCliente(factura.clientes) : "");
     document.getElementById("factura-fecha").value = factura ? factura.fecha : todayISO();
     document.getElementById("factura-estado").value = factura ? factura.estado : "pendiente";
     document.getElementById("factura-metodo-pago").value = factura ? factura.metodo_pago || "" : "";
@@ -4436,12 +4501,10 @@
       return;
     }
 
-    const clienteExistiaAntes = !!findClienteByName(clienteNombre);
-    const clienteId = await resolveClienteIdByName(clienteNombre);
-    if (!clienteId) {
-      showToast("No se pudo guardar el cliente.", true);
-      return;
-    }
+    const clienteResuelto = await resolverClienteDelCampo("factura-cliente", true);
+    if (!clienteResuelto) return;
+    const clienteId = clienteResuelto.id;
+    const clienteExistiaAntes = !clienteResuelto.creado;
 
     const subtotal = items.reduce((sum, it) => sum + it.subtotal, 0);
     const pct = parseFloat(document.getElementById("factura-impuesto-pct").value) || 0;
@@ -4711,14 +4774,7 @@
     document.getElementById("modal-estimado-title").textContent = estimado ? "Editar presupuesto" : "Nuevo presupuesto";
     document.getElementById("estimado-id").value = estimado ? estimado.id : "";
     populateClientesDatalist();
-    const clienteExistente = estimado ? state.clientes.find((c) => c.id === estimado.cliente_id) : null;
-    document.getElementById("estimado-cliente").value = estimado
-      ? estimado.clientes
-        ? [estimado.clientes.nombre, estimado.clientes.apellido].filter(Boolean).join(" ")
-        : clienteExistente
-        ? [clienteExistente.nombre, clienteExistente.apellido].filter(Boolean).join(" ")
-        : ""
-      : "";
+    ponerClienteEnCampo("estimado-cliente", estimado ? estimado.cliente_id : null, estimado && estimado.clientes ? nombreCompletoCliente(estimado.clientes) : "");
     document.getElementById("estimado-fecha").value = estimado ? estimado.fecha : todayISO();
     document.getElementById("estimado-estado").value = estimado ? estimado.estado : "pendiente";
     document.getElementById("estimado-notas").value = estimado ? estimado.notas || "" : "";
@@ -4779,11 +4835,9 @@
       return;
     }
 
-    const clienteId = await resolveClienteIdByName(clienteNombre);
-    if (!clienteId) {
-      showToast(t("error_cliente_no_encontrado"), true);
-      return;
-    }
+    const clienteResuelto = await resolverClienteDelCampo("estimado-cliente", true);
+    if (!clienteResuelto) return;
+    const clienteId = clienteResuelto.id;
 
     const subtotal = items.reduce((sum, it) => sum + it.subtotal, 0);
     const pct = parseFloat(document.getElementById("estimado-impuesto-pct").value) || 0;
@@ -5085,14 +5139,7 @@
         .join(" · ");
     }
     populateClientesDatalist();
-    const clienteExistente = cita ? state.clientes.find((c) => c.id === cita.cliente_id) : null;
-    document.getElementById("reserva-cliente").value = cita
-      ? cita.clientes
-        ? [cita.clientes.nombre, cita.clientes.apellido].filter(Boolean).join(" ")
-        : clienteExistente
-        ? [clienteExistente.nombre, clienteExistente.apellido].filter(Boolean).join(" ")
-        : ""
-      : "";
+    ponerClienteEnCampo("reserva-cliente", cita ? cita.cliente_id : null, cita && cita.clientes ? nombreCompletoCliente(cita.clientes) : "");
     populateReservaVehiculoSelect(cita ? cita.cliente_id : null, cita ? cita.vehiculo_id : null);
     document.getElementById("reserva-fecha").value = cita ? cita.fecha : todayISO();
     document.getElementById("reserva-hora").value = cita ? cita.hora || "" : "";
@@ -5107,10 +5154,11 @@
     e.preventDefault();
     const id = document.getElementById("reserva-id").value;
     const clienteNombre = document.getElementById("reserva-cliente").value.trim();
-    const clienteId = clienteNombre ? findClienteByName(clienteNombre)?.id || null : null;
-    if (clienteNombre && !clienteId) {
-      showToast(t("error_cliente_no_encontrado"), true);
-      return;
+    let clienteId = null;
+    if (clienteNombre) {
+      const clienteResuelto = await resolverClienteDelCampo("reserva-cliente", false);
+      if (!clienteResuelto) return;
+      clienteId = clienteResuelto.id;
     }
 
     const payload = {
@@ -5629,7 +5677,7 @@
     const q = document.getElementById("ordenes-search").value.trim().toLowerCase();
     if (!q) return state.ordenes;
     return state.ordenes.filter((o) => {
-      const clienteNombre = (o.clientes ? o.clientes.nombre : "").toLowerCase();
+      const clienteNombre = (o.clientes ? nombreCompletoCliente(o.clientes) : "").toLowerCase();
       const vehiculo = [o.vehiculo_marca, o.vehiculo_modelo, o.vehiculo_placa].filter(Boolean).join(" ").toLowerCase();
       const numero = String(o.numero);
       return clienteNombre.includes(q) || vehiculo.includes(q) || numero.includes(q);
@@ -5659,7 +5707,7 @@
       }
 
       ordenesEtapa.forEach((o) => {
-        const clienteNombre = o.clientes ? o.clientes.nombre : "—";
+        const clienteNombre = (o.clientes && nombreCompletoCliente(o.clientes)) || "—";
         const vehiculo = [o.vehiculo_marca, o.vehiculo_modelo].filter(Boolean).join(" ");
         const card = document.createElement("div");
         card.className = "kanban-card";
@@ -6200,8 +6248,7 @@
     document.getElementById("factura-id").value = "";
     document.getElementById("factura-orden-id").value = orden.id;
     populateClientesDatalist();
-    const clienteOrden = state.clientes.find((c) => c.id === orden.cliente_id);
-    document.getElementById("factura-cliente").value = orden.clientes ? orden.clientes.nombre : clienteOrden ? clienteOrden.nombre : "";
+    ponerClienteEnCampo("factura-cliente", orden.cliente_id, orden.clientes ? nombreCompletoCliente(orden.clientes) : "");
     document.getElementById("factura-fecha").value = todayISO();
     document.getElementById("factura-estado").value = "pendiente";
     document.getElementById("factura-metodo-pago").value = "";
@@ -6394,11 +6441,9 @@
       showToast("Escribe el nombre del cliente.", true);
       return;
     }
-    const clienteId = await resolveClienteIdByName(nombreCliente);
-    if (!clienteId) {
-      showToast("No se pudo guardar el cliente.", true);
-      return;
-    }
+    const clienteResuelto = await resolverClienteDelCampo("llamada-manual-cliente", true);
+    if (!clienteResuelto) return;
+    const clienteId = clienteResuelto.id;
 
     const telefonoAdicional = document.getElementById("llamada-manual-telefono").value.trim();
     if (telefonoAdicional) {
@@ -7500,7 +7545,7 @@
     vincularFacturaMapaLabels = {};
     datalist.innerHTML = state.facturas
       .map((f) => {
-        const clienteNombre = f.clientes ? f.clientes.nombre : "";
+        const clienteNombre = f.clientes ? nombreCompletoCliente(f.clientes) : "";
         const label = (clienteNombre ? clienteNombre + " — " : "") + "#" + String(f.numero).padStart(4, "0");
         vincularFacturaMapaLabels[label.toLowerCase()] = f.id;
         return '<option value="' + escapeHtml(label) + '"></option>';
@@ -8620,7 +8665,7 @@
         const cliente = state.clientes.find((c) => c.id === factura.cliente_id);
         return (
           '<div class="detalle-list-item"><span style="flex:1;">' +
-          escapeHtml(cliente ? cliente.nombre : "—") +
+          escapeHtml((cliente && nombreCompletoCliente(cliente)) || "—") +
           " — " +
           t("factura_hash") +
           String(factura.numero || "").padStart(4, "0") +
@@ -8656,7 +8701,7 @@
           '<div class="detalle-list-item" data-vehiculo-recordatorio-id="' +
           v.id +
           '"><span style="flex:1;">' +
-          escapeHtml(cliente ? cliente.nombre : "—") +
+          escapeHtml((cliente && nombreCompletoCliente(cliente)) || "—") +
           " — " +
           escapeHtml(vehiculoLabel(v)) +
           "</span><span>" +
@@ -8774,8 +8819,8 @@
           '<div class="pago-item" data-pago-factura="' +
           f.id +
           '"><span class="pago-item-cliente">' +
-          avatarHtml(f.clientes ? f.clientes.nombre : "—", "avatar-sm") +
-          escapeHtml(f.clientes ? f.clientes.nombre : "—") +
+          avatarHtml((f.clientes && nombreCompletoCliente(f.clientes)) || "—", "avatar-sm") +
+          escapeHtml((f.clientes && nombreCompletoCliente(f.clientes)) || "—") +
           "</span><span class=\"pago-item-meta\">" +
           money(f.total) +
           " · " +
@@ -8926,8 +8971,7 @@
     document.getElementById("form-reserva").addEventListener("submit", conSpinnerAlGuardar(saveReserva));
     document.getElementById("btn-eliminar-reserva").addEventListener("click", deleteReserva);
     document.getElementById("reserva-cliente").addEventListener("change", (e) => {
-      const cliente = findClienteByName(e.target.value);
-      populateReservaVehiculoSelect(cliente ? cliente.id : null, null);
+      populateReservaVehiculoSelect(buscarClienteDelCampo("reserva-cliente").id || null, null);
     });
 
     document.getElementById("btn-nuevo-empleado").addEventListener("click", () => openModal("modal-empleado"));
@@ -8940,7 +8984,7 @@
         const filas = state[tabla].map((fila) => {
           if (!fila.clientes) return fila;
           const { clientes, ...resto } = fila;
-          return { ...resto, cliente: clientes.nombre || "" };
+          return { ...resto, cliente: nombreCompletoCliente(clientes) };
         });
         descargarCsv(tabla + "-" + fecha + ".csv", filas);
       });

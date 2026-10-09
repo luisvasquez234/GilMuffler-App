@@ -26,6 +26,13 @@ de terceros AutoRepairBill. Cliente real: el propio taller donde Luis trabaja.
   implementar nada de ahí sin que Luis lo pida explícitamente.
 - Prioriza lo que destraba el uso diario del taller sobre mejoras "bonitas pero
   no urgentes" — el tiempo de Luis es limitado.
+- Nunca identificar un cliente solo por su nombre (hay muchos clientes con el
+  mismo nombre, y antes las facturas se guardaban a nombre del cliente
+  equivocado por esto). Si ya tienes el cliente, usa su `id`. Los campos de
+  texto "Cliente" se llenan siempre con `ponerClienteEnCampo(inputId, clienteId)`
+  (nunca asignando `.value` a mano) y se leen con
+  `resolverClienteDelCampo`/`buscarClienteDelCampo`, que usan el id recordado y
+  nunca adivinan entre clientes con el mismo nombre.
 
 ## Estilo de código
 - Sin framework, sin build step. El frontend se mantiene en HTML/CSS/JS plano
