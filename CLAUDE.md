@@ -121,3 +121,12 @@ de terceros AutoRepairBill. Cliente real: el propio taller donde Luis trabaja.
   adelante (ej. que el propio cron genere también el mensaje de contacto, o
   se integre con WhatsApp/email directamente) — no implementar sin que Luis
   lo pida explícitamente.
+
+## Talleres que compran la app (interruptor de pago)
+Cada taller tiene su propia página en Netlify. `suspension.js` bloquea `index.html` y
+`reportar-trabajo.html` con un aviso de "Cuenta suspendida" cuando `CONFIG.SUSPENDIDO` es
+"si" (los datos no se tocan). Variables de Netlify por taller: `SUSPENDIDO` (si/no),
+`CONTACTO_SUSPENSION` (teléfono del aviso), `PAGO_URL` (botón "Pagar ahora", https; si se deja vacío usa el plan mensual de PayPal de Luis).
+Build command para un taller nuevo (genera `config.local.js` desde esas variables):
+`printf 'const CONFIG = {\n  SUPABASE_URL: "%s",\n  SUPABASE_ANON_KEY: "%s",\n  APP_PASSWORD: "%s",\n  SUSPENDIDO: "%s",\n  CONTACTO_SUSPENSION: "%s",\n  PAGO_URL: "%s",\n};\n' "$SUPABASE_URL" "$SUPABASE_ANON_KEY" "$APP_PASSWORD" "$SUSPENDIDO" "$CONTACTO_SUSPENSION" "$PAGO_URL" > config.local.js`
+Agregar las 6 variables a `SECRETS_SCAN_OMIT_KEYS` o Netlify falla el build.

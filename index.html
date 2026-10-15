@@ -368,6 +368,12 @@
           <div class="pago-panel-body" id="pago-panel-pagadas"></div>
         </div>
       </div>
+      <div class="table-wrap" id="dashboard-stock-bajo-panel" style="padding:1.5rem;" hidden>
+        <h2 style="font-size:1.05rem;margin-bottom:1rem;" data-i18n="stock_bajo_panel_titulo">📦 Piezas que se están acabando</h2>
+        <div id="dashboard-stock-bajo-lista"></div>
+        <button type="button" class="btn-ghost" id="btn-dashboard-ir-inventario" style="margin-top:.75rem;" data-i18n="btn_ir_inventario">Ir a Inventario</button>
+      </div>
+
       <div class="table-wrap" id="dashboard-recordatorios-panel" style="padding:1.5rem;" hidden>
         <h2 style="font-size:1.05rem;margin-bottom:1rem;" data-i18n="recordatorios_pendientes_titulo">📅 Recordatorios de servicio pendientes</h2>
         <div id="dashboard-recordatorios-lista"></div>
@@ -2319,6 +2325,7 @@
 
 <script src="i18n.js"></script>
 <script src="config.local.js"></script>
+<script src="suspension.js"></script>
 <script src="runtime-info.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>

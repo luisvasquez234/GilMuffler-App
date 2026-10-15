@@ -11,4 +11,13 @@ const CONFIG = {
   // Clave compartida temporal para entrar al panel (paso 1, mientras no hay
   // usuarios individuales). Cámbiala por la que quieras usar en el taller.
   APP_PASSWORD: "cambia-esta-clave",
+
+  // "si" bloquea la app con un aviso de cuenta suspendida (falta de pago). Los
+  // datos no se borran; con "no" todo vuelve a funcionar.
+  SUSPENDIDO: "no",
+  // Teléfono o correo que aparece en el aviso de cuenta suspendida.
+  CONTACTO_SUSPENSION: "",
+  // Enlace de pago (ej. un "Payment Link" de Stripe). Si está, el aviso muestra
+  // un botón "Pagar ahora". Debe empezar con https://
+  PAGO_URL: "",
 };
