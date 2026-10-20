@@ -2585,6 +2585,31 @@
   }
 
   const clientesSortState = { field: null, dir: 1 };
+  let clientesLetra = "";
+
+  function letraInicialCliente(c) {
+    const inicial = (c.nombre || c.apellido || "").trim().charAt(0).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+    return /^[A-Z]$/.test(inicial) ? inicial : "#";
+  }
+
+  function renderClientesLetras() {
+    const bar = document.getElementById("clientes-letras");
+    const conClientes = new Set(state.clientes.map(letraInicialCliente));
+    const letras = ["", ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ", "#"];
+    bar.innerHTML = letras
+      .map((l) => {
+        const activa = l === clientesLetra;
+        const vacia = l && !conClientes.has(l);
+        return '<button type="button" data-letra="' + l + '"' + (activa ? ' class="is-active" aria-pressed="true"' : ' aria-pressed="false"') + (vacia ? " disabled" : "") + ">" + (l || t("letra_todos")) + "</button>";
+      })
+      .join("");
+    bar.querySelectorAll("[data-letra]").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        clientesLetra = btn.dataset.letra;
+        refreshClientesView();
+      })
+    );
+  }
   const CLIENTES_SORT_LABELS = { nombre: t("col_nombre"), telefono: t("col_telefono"), vehiculo: t("col_vehiculo"), vehiculo_placa: t("col_placa") };
 
   function clienteSortValue(c, field, vehiculosByCliente) {
@@ -2648,10 +2673,15 @@
       });
     }
     if (soloDealers) list = list.filter((c) => esClienteDealer(c));
+    if (clientesLetra) list = list.filter((c) => letraInicialCliente(c) === clientesLetra);
+    if (!clientesSortState.field) {
+      return list.slice().sort((a, b) => nombreCompletoCliente(a).localeCompare(nombreCompletoCliente(b), "es", { sensitivity: "base" }));
+    }
     return sortByField(list, clientesSortState, (c, field) => clienteSortValue(c, field, vehiculosByCliente));
   }
 
   function refreshClientesView() {
+    renderClientesLetras();
     const vehiculosByCliente = indexByClienteId(state.vehiculos);
     const facturasByCliente = indexByClienteId(state.facturas);
     const telefonosByCliente = indexByClienteId(state.telefonos);

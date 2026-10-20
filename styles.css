@@ -1560,3 +1560,9 @@ tr.is-vencida td:first-child{box-shadow:inset 3px 0 0 var(--danger);}
   .main{padding:1.5rem;}
   .field-row{flex-direction:column;}
 }
+
+.letras-bar{display:flex;flex-wrap:wrap;gap:.25rem;margin:0 0 1rem;}
+.letras-bar button{min-width:2rem;padding:.35rem .5rem;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:6px;font-weight:600;font-size:.85rem;cursor:pointer;}
+.letras-bar button:hover:not(:disabled){border-color:var(--accent);}
+.letras-bar button.is-active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.letras-bar button:disabled{opacity:.35;cursor:default;}
