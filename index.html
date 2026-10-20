@@ -1232,6 +1232,7 @@
           <p class="view-sub"><span data-i18n="inventario_subtitulo">Piezas y stock del taller</span> · <span id="inventario-total-invertido-label" data-i18n="inventario_total_invertido_label">Invertido:</span> <strong id="inventario-total-invertido"></strong></p>
         </div>
         <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+          <button class="btn-ghost" id="btn-imprimir-inventario" type="button" data-i18n="btn_imprimir_inventario">🖨️ Imprimir inventario</button>
           <button class="btn-ghost" id="btn-ver-rotacion" type="button" data-i18n="btn_ver_rotacion">Ver rotación de inventario</button>
           <button class="btn-ghost" id="btn-ver-historial-precios" type="button" data-i18n="btn_ver_historial_precios">Ver historial de precios</button>
           <button class="btn-ghost" id="btn-ver-reordenar" type="button" data-i18n="btn_ver_reordenar">Para reordenar</button>
@@ -1905,6 +1906,16 @@
           <label for="pieza-categoria" data-i18n="col_categoria">Categoría</label>
           <select id="pieza-categoria">
             <option value="Escape / Mofle" data-i18n="categoria_escape">Escape / Mofle</option>
+            <option value="Mofles / Mufflers" data-i18n="categoria_mofles">Mofles / Mufflers</option>
+            <option value="Resonadores" data-i18n="categoria_resonadores">Resonadores</option>
+            <option value="Convertidores catalíticos" data-i18n="categoria_catalizadores">Convertidores catalíticos</option>
+            <option value="Tubos y codos" data-i18n="categoria_tubos">Tubos y codos</option>
+            <option value="Flex pipes" data-i18n="categoria_flex">Flex pipes</option>
+            <option value="Puntas (tips)" data-i18n="categoria_puntas">Puntas (tips)</option>
+            <option value="Abrazaderas y colgadores" data-i18n="categoria_abrazaderas">Abrazaderas y colgadores</option>
+            <option value="Juntas / empaques" data-i18n="categoria_juntas">Juntas / empaques</option>
+            <option value="Headers / múltiples" data-i18n="categoria_headers">Headers / múltiples</option>
+            <option value="Sensores de oxígeno" data-i18n="categoria_sensores_o2">Sensores de oxígeno</option>
             <option value="Llantas" data-i18n="categoria_llantas">Llantas</option>
             <option value="Tornillería" data-i18n="categoria_tornilleria">Tornillería</option>
             <option value="Frenos" data-i18n="categoria_frenos">Frenos</option>
@@ -1916,6 +1927,7 @@
       <div class="field-row">
         <div class="field"><label for="pieza-costo" data-i18n="col_costo">Costo</label><input type="number" id="pieza-costo" min="0" step="0.01" value="0" /></div>
         <div class="field"><label for="pieza-precio" data-i18n="col_precio_venta">Precio de venta</label><input type="number" id="pieza-precio" min="0" step="0.01" value="0" /></div>
+        <div class="field"><label for="pieza-precio-dealer" data-i18n="precio_dealer_label">Precio dealer</label><input type="number" id="pieza-precio-dealer" min="0" step="0.01" placeholder="—" /></div>
       </div>
       <div class="field-row">
         <div class="field">
@@ -1933,6 +1945,15 @@
         <div class="field"><label for="pieza-ubicacion" data-i18n="ubicacion_label">Ubicación (ej. Estante A3)</label><input type="text" id="pieza-ubicacion" data-i18n-placeholder="ubicacion_placeholder" placeholder="Ej. Estante A3" /></div>
       </div>
       <div class="field"><label for="pieza-notas" data-i18n="notas_label">Notas</label><textarea id="pieza-notas" rows="2"></textarea></div>
+      <div class="field">
+        <label for="pieza-foto-input" data-i18n="pieza_foto_label">Foto de la pieza</label>
+        <input type="hidden" id="pieza-foto-url" />
+        <img id="pieza-foto-preview" alt="" hidden style="display:block;max-width:10rem;max-height:10rem;border-radius:8px;margin-bottom:.5rem;object-fit:cover;" />
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+          <input type="file" id="pieza-foto-input" accept="image/*" capture="environment" />
+          <button type="button" class="btn-ghost" id="btn-quitar-foto-pieza" hidden data-i18n="pieza_foto_quitar">Quitar foto</button>
+        </div>
+      </div>
 
       <div id="pieza-historial-wrap" hidden>
         <label class="field-label-standalone" data-i18n="historial_movimientos_titulo">Historial de movimientos</label>

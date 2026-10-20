@@ -1826,6 +1826,68 @@
     openPrintWindow(html);
   }
 
+  function imprimirInventario() {
+    const cfg = state.configNegocio || {};
+    const nombreNegocio = cfg.nombre_negocio || "Gil Muffler";
+    const porCategoria = {};
+    state.piezas.forEach((p) => {
+      const cat = p.categoria || t("categoria_otros");
+      (porCategoria[cat] = porCategoria[cat] || []).push(p);
+    });
+
+    let totalCosto = 0;
+    let totalVenta = 0;
+    const secciones = Object.keys(porCategoria)
+      .sort((a, b) => a.localeCompare(b))
+      .map((cat) => {
+        let subtotal = 0;
+        const filas = porCategoria[cat]
+          .slice()
+          .sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""))
+          .map((p) => {
+            const stock = Number(p.stock) || 0;
+            const valor = stock * (Number(p.costo) || 0);
+            subtotal += valor;
+            totalCosto += valor;
+            totalVenta += stock * (Number(p.precio_venta) || 0);
+            const bajo = stock <= Number(p.stock_minimo);
+            return (
+              "<tr" + (bajo ? " class='bajo'" : "") + "><td>" + escapeHtml(p.nombre) + "</td><td>" + escapeHtml(p.sku || "") +
+              "</td><td>" + escapeHtml(p.ubicacion || "") + "</td><td class='num'>" + stock + "</td><td class='num'>" + (Number(p.stock_minimo) || 0) +
+              "</td><td class='num'>" + money(p.costo) + "</td><td class='num'>" + money(p.precio_venta) + "</td><td class='num'>" + (p.precio_dealer != null ? money(p.precio_dealer) : "—") + "</td><td class='num'>" + money(valor) + "</td></tr>"
+            );
+          })
+          .join("");
+        return (
+          "<h2>" + escapeHtml(cat) + "</h2><table><thead><tr><th>" + t("col_pieza") + "</th><th>SKU</th><th>" + t("inv_col_ubicacion") +
+          "</th><th class='num'>" + t("col_stock") + "</th><th class='num'>" + t("col_minimo") + "</th><th class='num'>" + t("col_costo") +
+          "</th><th class='num'>" + t("col_precio") + "</th><th class='num'>" + t("precio_dealer_label") + "</th><th class='num'>" + t("inv_col_valor") + "</th></tr></thead><tbody>" + filas +
+          "<tr class='subtotal'><td colspan='8'>" + t("inv_subtotal") + "</td><td class='num'>" + money(subtotal) + "</td></tr></tbody></table>"
+        );
+      })
+      .join("");
+
+    const html =
+      "<!doctype html><html><head><meta charset='utf-8'><title>" + t("btn_imprimir_inventario") + "</title><style>" +
+      "body{font-family:Arial,Helvetica,sans-serif;color:#1f2430;padding:2rem;}" +
+      "h1{font-size:1.3rem;margin-bottom:.25rem;}" +
+      "h2{font-size:1rem;margin-top:1.5rem;margin-bottom:.5rem;border-bottom:2px solid #1f2430;padding-bottom:.25rem;}" +
+      "table{width:100%;border-collapse:collapse;margin-bottom:.5rem;}" +
+      "th,td{text-align:left;padding:.35rem .5rem;border-bottom:1px solid #d7dade;font-size:.85rem;}" +
+      ".num{text-align:right;}tr.bajo td{color:#b42318;font-weight:bold;}tr.subtotal td{font-weight:bold;background:#f4f5f7;}" +
+      ".totales{margin-top:1.5rem;font-size:1rem;}.totales div{margin:.2rem 0;}" +
+      "@media print{body{padding:0;}h2{break-after:avoid;}tr{break-inside:avoid;}}" +
+      "</style></head><body>" +
+      "<h1>" + escapeHtml(nombreNegocio) + " — " + t("btn_imprimir_inventario") + "</h1>" +
+      "<p>" + escapeHtml(formatDate(todayISO())) + " · " + t("inv_total_piezas", { n: state.piezas.length }) + " · " + t("inv_nota_rojo") + "</p>" +
+      secciones +
+      "<div class='totales'><div><strong>" + t("inv_total_costo") + "</strong> " + money(totalCosto) + "</div><div><strong>" +
+      t("inv_total_venta") + "</strong> " + money(totalVenta) + "</div></div>" +
+      "</body></html>";
+
+    openPrintWindow(html);
+  }
+
   async function fetchTareas() {
     return fetchConCache(
       "tareas",
@@ -3421,7 +3483,11 @@
       ".qr{position:fixed;bottom:1.2rem;right:1.2rem;text-align:center;margin:0;}" +
       ".qr img{width:90px;height:90px;}" +
       ".qr p{margin:.25rem 0 0;font-size:.62rem;color:#68707e;}" +
-      "@media print{body{padding:0;}@page{margin:.5in;}tr{page-break-inside:avoid;}}" +
+      // A fixed QR sits on top of whatever reaches the bottom of the sheet (and repeats on every
+      // page), so in print it flows after the content instead.
+      "@media print{body{padding:0;font-size:12px;zoom:.86;}@page{margin:.4in;}tr{page-break-inside:avoid;}.watermark{color:rgba(0,0,0,0.035);}" +
+      ".seccion-titulo{margin-top:.8rem;break-after:avoid;}th,td{padding-top:.25rem;padding-bottom:.25rem;}" +
+      ".footer-space{display:none;}.qr{position:static;float:right;margin-top:.75rem;}.qr img{width:72px;height:72px;}}" +
       "</style></head><body>" +
       "<div class='watermark'>" +
       escapeHtml(nombreNegocio) +
@@ -3547,7 +3613,11 @@
       ".qr{position:fixed;bottom:1.2rem;right:1.2rem;text-align:center;margin:0;}" +
       ".qr img{width:90px;height:90px;}" +
       ".qr p{margin:.25rem 0 0;font-size:.62rem;color:#68707e;}" +
-      "@media print{body{padding:0;}@page{margin:.5in;}tr{page-break-inside:avoid;}}" +
+      // A fixed QR sits on top of whatever reaches the bottom of the sheet (and repeats on every
+      // page), so in print it flows after the content instead.
+      "@media print{body{padding:0;font-size:12px;zoom:.86;}@page{margin:.4in;}tr{page-break-inside:avoid;}.watermark{color:rgba(0,0,0,0.035);}" +
+      ".seccion-titulo{margin-top:.8rem;break-after:avoid;}th,td{padding-top:.25rem;padding-bottom:.25rem;}" +
+      ".footer-space{display:none;}.qr{position:static;float:right;margin-top:.75rem;}.qr img{width:72px;height:72px;}}" +
       "</style></head><body>" +
       "<div class='header'><div class='header-brand'><img src='" +
       logoSrc +
@@ -4157,7 +4227,23 @@
     tr.querySelector(".item-desc").addEventListener("input", (e) => {
       const pieza = state.piezas.find((p) => p.nombre === e.target.value);
       if (pieza) {
-        tr.querySelector(".item-costo").value = pieza.costo != null ? pieza.costo : pieza.precio_venta;
+        const costo = pieza.costo != null ? Number(pieza.costo) : Number(pieza.precio_venta) || 0;
+        tr.querySelector(".item-costo").value = costo;
+        // Invoice lines are priced as cost + markup, so a dealer price is expressed as the
+        // markup that turns this part's cost into its dealer price.
+        const clienteId = buscarClienteDelCampo("factura-cliente").id;
+        const cliente = clienteId ? state.clientes.find((c) => c.id === clienteId) : null;
+        if (esClienteDealer(cliente) && pieza.precio_dealer != null) {
+          const precioDealer = Number(pieza.precio_dealer);
+          // The markup box doesn't accept negatives, so a dealer price below cost goes in as the cost.
+          if (costo > 0 && precioDealer >= costo) {
+            tr.querySelector(".item-markup").value = Math.round((precioDealer / costo - 1) * 10000) / 100;
+          } else {
+            tr.querySelector(".item-costo").value = precioDealer;
+            tr.querySelector(".item-markup").value = 0;
+          }
+          showToast(t("precio_dealer_aplicado", { nombre: pieza.nombre }));
+        }
         recalcTotals();
       }
     });
@@ -5217,6 +5303,16 @@
 
   const PIEZA_CATEGORIAS = {
     "Escape / Mofle": { icon: "icon-muffler", color: "var(--series-2)" },
+    "Mofles / Mufflers": { icon: "icon-muffler", color: "var(--series-2)" },
+    "Resonadores": { icon: "icon-muffler", color: "var(--series-2)" },
+    "Convertidores catalíticos": { icon: "icon-muffler", color: "var(--series-2)" },
+    "Tubos y codos": { icon: "icon-muffler", color: "var(--series-2)" },
+    "Flex pipes": { icon: "icon-muffler", color: "var(--series-2)" },
+    "Puntas (tips)": { icon: "icon-muffler", color: "var(--series-2)" },
+    "Abrazaderas y colgadores": { icon: "icon-muffler", color: "var(--series-2)" },
+    "Juntas / empaques": { icon: "icon-muffler", color: "var(--series-2)" },
+    "Headers / múltiples": { icon: "icon-muffler", color: "var(--series-2)" },
+    "Sensores de oxígeno": { icon: "icon-muffler", color: "var(--series-2)" },
     Llantas: { icon: "icon-tire", color: "var(--series-7)" },
     Tornillería: { icon: "icon-bolt", color: "var(--series-4)" },
     Frenos: { icon: "icon-gauge", color: "var(--series-1)" },
@@ -5359,6 +5455,10 @@
       const tr = document.createElement("tr");
       tr.innerHTML =
         "<td>" +
+        (p.foto_url
+          ? '<a href="' + escapeHtml(p.foto_url) + '" target="_blank" rel="noopener"><img src="' + escapeHtml(p.foto_url) +
+            '" alt="" loading="lazy" style="width:2.5rem;height:2.5rem;object-fit:cover;border-radius:6px;vertical-align:middle;margin-right:.5rem;" /></a>'
+          : "") +
         escapeHtml(p.nombre) +
         (piezaSinMovimiento(p.id) ? ' <span class="pieza-sin-movimiento-badge">' + t("pieza_sin_movimiento_badge") + "</span>" : "") +
         "</td>" +
@@ -5370,7 +5470,9 @@
         '<button type="button" class="pieza-stock-fila-btn" data-stock-mas="' + p.id + '" aria-label="' + escapeHtml(t("pieza_sumar_stock_label", { nombre: p.nombre })) + '">+</button>' +
         "</div></td>" +
         "<td>" + money(p.costo) + "</td>" +
-        "<td>" + money(p.precio_venta) + "</td>" +
+        "<td>" + money(p.precio_venta) +
+        (p.precio_dealer != null ? '<div class="view-sub" style="font-size:.8rem;">' + escapeHtml(t("precio_dealer_corto", { precio: money(p.precio_dealer) })) + "</div>" : "") +
+        "</td>" +
         '<td><button class="row-link" type="button" data-edit-pieza="' + p.id + '">Editar</button></td>';
       tbody.appendChild(tr);
     });
@@ -5472,11 +5574,14 @@
     document.getElementById("pieza-categoria").value = pieza && pieza.categoria ? pieza.categoria : "Otros";
     document.getElementById("pieza-costo").value = pieza ? pieza.costo : 0;
     document.getElementById("pieza-precio").value = pieza ? pieza.precio_venta : 0;
+    document.getElementById("pieza-precio-dealer").value = pieza && pieza.precio_dealer != null ? pieza.precio_dealer : "";
     document.getElementById("pieza-stock").value = pieza ? pieza.stock : 0;
     document.getElementById("pieza-stock-minimo").value = pieza ? pieza.stock_minimo : 0;
     document.getElementById("pieza-proveedor").value = pieza ? pieza.proveedor || "" : "";
     document.getElementById("pieza-ubicacion").value = pieza ? pieza.ubicacion || "" : "";
     document.getElementById("pieza-notas").value = pieza ? pieza.notas || "" : "";
+    mostrarFotoPieza(pieza ? pieza.foto_url || "" : "");
+    document.getElementById("pieza-foto-input").value = "";
     document.getElementById("btn-eliminar-pieza").hidden = !pieza;
     document.getElementById("btn-imprimir-etiqueta-pieza").hidden = !pieza;
 
@@ -5659,6 +5764,28 @@
     ventana.document.close();
   }
 
+  function mostrarFotoPieza(url) {
+    document.getElementById("pieza-foto-url").value = url;
+    const img = document.getElementById("pieza-foto-preview");
+    img.hidden = !url;
+    if (url) img.src = url;
+    else img.removeAttribute("src");
+    document.getElementById("btn-quitar-foto-pieza").hidden = !url;
+  }
+
+  async function subirFotoPieza(file) {
+    if (!file) return;
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const storagePath = "piezas/" + crypto.randomUUID() + "." + ext;
+    showToast(t("pieza_foto_subiendo"));
+    const { error } = await sb.storage.from("fotos-ordenes").upload(storagePath, file);
+    if (error) {
+      showToast(t("pieza_foto_error"), true);
+      return;
+    }
+    mostrarFotoPieza(sb.storage.from("fotos-ordenes").getPublicUrl(storagePath).data.publicUrl);
+  }
+
   async function savePieza(e) {
     e.preventDefault();
     const id = document.getElementById("pieza-id").value;
@@ -5673,6 +5800,8 @@
       proveedor: document.getElementById("pieza-proveedor").value.trim(),
       ubicacion: document.getElementById("pieza-ubicacion").value.trim(),
       notas: document.getElementById("pieza-notas").value.trim(),
+      foto_url: document.getElementById("pieza-foto-url").value || null,
+      precio_dealer: document.getElementById("pieza-precio-dealer").value === "" ? null : parseFloat(document.getElementById("pieza-precio-dealer").value) || 0,
     };
 
     const anterior = id ? state.piezas.find((p) => p.id === id) : null;
@@ -9036,6 +9165,12 @@
     document.getElementById("btn-exportar-clientes-csv").addEventListener("click", exportarClientesCsv);
 
     document.getElementById("btn-nueva-factura").addEventListener("click", () => openFacturaModal(null));
+    document.getElementById("btn-imprimir-inventario").addEventListener("click", imprimirInventario);
+    document.getElementById("pieza-foto-input").addEventListener("change", (e) => subirFotoPieza(e.target.files[0]));
+    document.getElementById("btn-quitar-foto-pieza").addEventListener("click", () => {
+      mostrarFotoPieza("");
+      document.getElementById("pieza-foto-input").value = "";
+    });
     document.getElementById("btn-dashboard-ir-inventario").addEventListener("click", () => goToView("inventario"));
     document.getElementById("btn-factura-detalle-volver").addEventListener("click", () => goToView("facturas"));
     document.getElementById("btn-factura-cancelar").addEventListener("click", () => goToView("facturas"));
