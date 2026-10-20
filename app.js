@@ -4227,23 +4227,22 @@
     tr.querySelector(".item-desc").addEventListener("input", (e) => {
       const pieza = state.piezas.find((p) => p.nombre === e.target.value);
       if (pieza) {
-        const costo = pieza.costo != null ? Number(pieza.costo) : Number(pieza.precio_venta) || 0;
-        tr.querySelector(".item-costo").value = costo;
-        // Invoice lines are priced as cost + markup, so a dealer price is expressed as the
-        // markup that turns this part's cost into its dealer price.
+        const costo = Number(pieza.costo) || 0;
         const clienteId = buscarClienteDelCampo("factura-cliente").id;
         const cliente = clienteId ? state.clientes.find((c) => c.id === clienteId) : null;
-        if (esClienteDealer(cliente) && pieza.precio_dealer != null) {
-          const precioDealer = Number(pieza.precio_dealer);
-          // The markup box doesn't accept negatives, so a dealer price below cost goes in as the cost.
-          if (costo > 0 && precioDealer >= costo) {
-            tr.querySelector(".item-markup").value = Math.round((precioDealer / costo - 1) * 10000) / 100;
-          } else {
-            tr.querySelector(".item-costo").value = precioDealer;
-            tr.querySelector(".item-markup").value = 0;
-          }
-          showToast(t("precio_dealer_aplicado", { nombre: pieza.nombre }));
+        const usaDealer = esClienteDealer(cliente) && pieza.precio_dealer != null;
+        const precio = usaDealer ? Number(pieza.precio_dealer) : Number(pieza.precio_venta) || 0;
+        // Invoice lines are priced as cost + markup, so the part's price is expressed as the markup
+        // that turns its cost into that price. The markup box doesn't accept negatives, so a price
+        // below cost (or a part with no cost) goes in as the cost itself.
+        if (precio > 0 && costo > 0 && precio >= costo) {
+          tr.querySelector(".item-costo").value = costo;
+          tr.querySelector(".item-markup").value = Math.round((precio / costo - 1) * 10000) / 100;
+        } else {
+          tr.querySelector(".item-costo").value = precio > 0 ? precio : costo;
+          tr.querySelector(".item-markup").value = 0;
         }
+        if (usaDealer) showToast(t("precio_dealer_aplicado", { nombre: pieza.nombre }));
         recalcTotals();
       }
     });
