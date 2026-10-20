@@ -4409,6 +4409,7 @@
     const tasaDefault = state.configNegocio ? Number(state.configNegocio.tasa_impuesto_default) || 0 : 0;
     const impuestoPct = factura && subtotalNum > 0 ? (Number(factura.impuesto) / subtotalNum) * 100 : factura ? 0 : tasaDefault;
     document.getElementById("factura-impuesto-pct").value = impuestoPct ? impuestoPct.toFixed(2) : 0;
+    actualizarSelectorImpuesto();
 
     document.getElementById("factura-items-tbody").innerHTML = "";
     document.getElementById("factura-labor-tbody").innerHTML = "";
@@ -5905,6 +5906,25 @@
     populatePiezasDatalist();
   }
 
+  // With two card machines that charge differently, the invoice offers both rates to pick from.
+  // The % box stays editable; the picker just follows whatever it holds.
+  function actualizarSelectorImpuesto() {
+    const wrap = document.getElementById("factura-impuesto-eleccion-wrap");
+    const select = document.getElementById("factura-impuesto-eleccion");
+    const cfg = state.configNegocio || {};
+    const tasa1 = Number(cfg.tasa_impuesto_default) || 0;
+    const tasa2 = cfg.tasa_impuesto_2;
+    wrap.hidden = tasa2 == null;
+    if (tasa2 == null) return;
+    select.innerHTML =
+      '<option value="' + tasa1 + '">' + escapeHtml(t("impuesto_opcion_1", { tasa: tasa1 })) + "</option>" +
+      '<option value="' + Number(tasa2) + '">' + escapeHtml(t("impuesto_opcion_2", { tasa: Number(tasa2) })) + "</option>" +
+      '<option value="">' + escapeHtml(t("impuesto_opcion_otro")) + "</option>";
+    const actual = parseFloat(document.getElementById("factura-impuesto-pct").value) || 0;
+    const coincide = [tasa1, Number(tasa2)].find((r) => Math.abs(r - actual) < 0.005);
+    select.value = coincide != null ? String(coincide) : "";
+  }
+
   const SUFIJO_PRECIO_2 = " (precio 2)";
 
   function populatePiezasDatalist() {
@@ -6505,6 +6525,7 @@
     document.getElementById("factura-metodo-pago").value = "";
     const tasaDefault = state.configNegocio ? Number(state.configNegocio.tasa_impuesto_default) || 0 : 0;
     document.getElementById("factura-impuesto-pct").value = tasaDefault;
+    actualizarSelectorImpuesto();
     document.getElementById("factura-descuento").value = 0;
     document.getElementById("factura-notas").value = "";
     document.getElementById("factura-etiquetas").value = "";
@@ -8283,6 +8304,7 @@
     document.getElementById("config-logo-url").value = c.logo_url || "";
     document.getElementById("config-texto-adicional").value = c.texto_adicional || "";
     document.getElementById("config-tasa-impuesto-default").value = c.tasa_impuesto_default || 0;
+    document.getElementById("config-tasa-impuesto-2").value = c.tasa_impuesto_2 != null ? c.tasa_impuesto_2 : "";
     document.getElementById("config-garantia-dias").value = c.garantia_dias || 90;
     document.getElementById("config-garantia-labor-dias").value = c.garantia_labor_dias || 45;
     document.getElementById("config-numero-fiscal").value = c.numero_fiscal || "";
@@ -8618,6 +8640,7 @@
       logo_url: document.getElementById("config-logo-url").value.trim(),
       texto_adicional: document.getElementById("config-texto-adicional").value.trim(),
       tasa_impuesto_default: parseFloat(document.getElementById("config-tasa-impuesto-default").value) || 0,
+      tasa_impuesto_2: document.getElementById("config-tasa-impuesto-2").value === "" ? null : parseFloat(document.getElementById("config-tasa-impuesto-2").value) || 0,
       garantia_dias: parseInt(document.getElementById("config-garantia-dias").value, 10) || 90,
       garantia_labor_dias: parseInt(document.getElementById("config-garantia-labor-dias").value, 10) || 45,
       numero_fiscal: document.getElementById("config-numero-fiscal").value.trim() || null,
@@ -9220,7 +9243,15 @@
     document.getElementById("btn-eliminar-factura").addEventListener("click", deleteFactura);
     document.getElementById("btn-add-item").addEventListener("click", () => addItemRow(null));
     document.getElementById("btn-add-labor").addEventListener("click", () => addLaborRow(null));
-    document.getElementById("factura-impuesto-pct").addEventListener("input", recalcTotals);
+    document.getElementById("factura-impuesto-pct").addEventListener("input", () => {
+      actualizarSelectorImpuesto();
+      recalcTotals();
+    });
+    document.getElementById("factura-impuesto-eleccion").addEventListener("change", (e) => {
+      if (e.target.value === "") return;
+      document.getElementById("factura-impuesto-pct").value = e.target.value;
+      recalcTotals();
+    });
     document.getElementById("factura-descuento").addEventListener("input", recalcTotals);
     document.getElementById("factura-tiene-garantia").addEventListener("change", actualizarNotaGarantia);
     document.getElementById("factura-fecha").addEventListener("change", actualizarNotaGarantia);
