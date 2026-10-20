@@ -4255,25 +4255,16 @@
       input.addEventListener("input", recalcTotals);
     });
     tr.querySelector(".item-desc").addEventListener("input", (e) => {
-      const pieza = state.piezas.find((p) => p.nombre === e.target.value);
+      // The autocomplete lists two entries per part when it has a second price; picking the
+      // second one is marked with a suffix that is dropped here so the invoice shows the plain name.
+      const eligio2 = e.target.value.endsWith(SUFIJO_PRECIO_2);
+      const nombre = eligio2 ? e.target.value.slice(0, -SUFIJO_PRECIO_2.length) : e.target.value;
+      const pieza = state.piezas.find((p) => p.nombre === nombre);
       if (pieza) {
-        const costo = pieza.costo != null ? Number(pieza.costo) : Number(pieza.precio_venta) || 0;
-        tr.querySelector(".item-costo").value = costo;
-        // Invoice lines are priced as cost + markup, so a dealer price is expressed as the
-        // markup that turns this part's cost into its dealer price.
-        const clienteId = buscarClienteDelCampo("factura-cliente").id;
-        const cliente = clienteId ? state.clientes.find((c) => c.id === clienteId) : null;
-        if (esClienteDealer(cliente) && pieza.precio_dealer != null) {
-          const precioDealer = Number(pieza.precio_dealer);
-          // The markup box doesn't accept negatives, so a dealer price below cost goes in as the cost.
-          if (costo > 0 && precioDealer >= costo) {
-            tr.querySelector(".item-markup").value = Math.round((precioDealer / costo - 1) * 10000) / 100;
-          } else {
-            tr.querySelector(".item-costo").value = precioDealer;
-            tr.querySelector(".item-markup").value = 0;
-          }
-          showToast(t("precio_dealer_aplicado", { nombre: pieza.nombre }));
-        }
+        if (eligio2) e.target.value = nombre;
+        const precio = eligio2 ? Number(pieza.precio_dealer) : pieza.costo != null ? Number(pieza.costo) : Number(pieza.precio_venta) || 0;
+        tr.querySelector(".item-costo").value = precio;
+        tr.querySelector(".item-markup").value = 0;
         recalcTotals();
       }
     });
@@ -4839,6 +4830,15 @@
 
     tr.querySelectorAll(".item-cant, .item-precio").forEach((input) => {
       input.addEventListener("input", recalcEstimadoTotals);
+    });
+    tr.querySelector(".item-desc").addEventListener("input", (e) => {
+      const eligio2 = e.target.value.endsWith(SUFIJO_PRECIO_2);
+      const nombre = eligio2 ? e.target.value.slice(0, -SUFIJO_PRECIO_2.length) : e.target.value;
+      const pieza = state.piezas.find((p) => p.nombre === nombre);
+      if (!pieza) return;
+      if (eligio2) e.target.value = nombre;
+      tr.querySelector(".item-precio").value = eligio2 ? Number(pieza.precio_dealer) : pieza.costo != null ? Number(pieza.costo) : Number(pieza.precio_venta) || 0;
+      recalcEstimadoTotals();
     });
     tr.querySelector(".item-remove").addEventListener("click", () => {
       tr.remove();
@@ -5905,10 +5905,21 @@
     populatePiezasDatalist();
   }
 
+  const SUFIJO_PRECIO_2 = " (precio 2)";
+
   function populatePiezasDatalist() {
     const datalist = document.getElementById("piezas-datalist");
     if (!datalist) return;
-    datalist.innerHTML = state.piezas.map((p) => '<option value="' + escapeHtml(p.nombre) + '">' + escapeHtml(p.nombre) + " — " + money(p.precio_venta) + "</option>").join("");
+    datalist.innerHTML = state.piezas
+      .map((p) => {
+        const precio1 = p.costo != null ? p.costo : p.precio_venta;
+        let html = '<option value="' + escapeHtml(p.nombre) + '">' + escapeHtml(p.nombre) + " — " + money(precio1) + "</option>";
+        if (p.precio_dealer != null) {
+          html += '<option value="' + escapeHtml(p.nombre + SUFIJO_PRECIO_2) + '">' + escapeHtml(p.nombre) + " — " + t("precio_2_opcion", { precio: money(p.precio_dealer) }) + "</option>";
+        }
+        return html;
+      })
+      .join("");
   }
 
   // ---------------- render: órdenes de servicio (kanban) ----------------
