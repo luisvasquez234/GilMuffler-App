@@ -5581,10 +5581,46 @@
         showToast(t("pieza_encontrada_stock_msg", { nombre: nombrePieza, stock: actualizada ? actualizada.stock : "" }));
       }
     } else {
-      showToast(t("pieza_no_encontrada_msg"), true);
-      openPiezaModal(null);
-      document.getElementById("pieza-sku").value = codigo;
-      document.getElementById("pieza-nombre").focus();
+      codigoDesconocidoActual = codigo;
+      document.getElementById("codigo-desconocido-texto").textContent = t("codigo_desconocido_texto", { codigo });
+      document.getElementById("codigo-desconocido-input").value = "";
+      document.getElementById("codigo-desconocido-datalist").innerHTML = state.piezas
+        .map((p) => '<option value="' + escapeHtml(p.nombre) + '">' + escapeHtml(p.nombre) + (p.sku ? " · " + escapeHtml(p.sku) : "") + "</option>")
+        .join("");
+      openModal("modal-codigo-desconocido");
+      document.getElementById("codigo-desconocido-input").focus();
+    }
+  }
+
+  let codigoDesconocidoActual = "";
+
+  function abrirPiezaNuevaConCodigo() {
+    closeModal("modal-codigo-desconocido");
+    openPiezaModal(null);
+    document.getElementById("pieza-sku").value = codigoDesconocidoActual;
+    document.getElementById("pieza-nombre").focus();
+  }
+
+  async function sumarCodigoAPiezaExistente() {
+    const q = normalizarNombre(document.getElementById("codigo-desconocido-input").value);
+    const coinciden = state.piezas.filter((p) => normalizarNombre(p.nombre) === q);
+    if (coinciden.length !== 1) {
+      showToast(t(coinciden.length ? "codigo_pieza_varias" : "codigo_pieza_no_elegida"), true);
+      return;
+    }
+    const pieza = coinciden[0];
+    const tieneOtroSku = (pieza.sku || "").trim() && pieza.sku.trim().toLowerCase() !== codigoDesconocidoActual.toLowerCase();
+    if (tieneOtroSku && !(await confirmDialog(t("codigo_cambiar_sku_confirm", { nombre: pieza.nombre, sku: pieza.sku, codigo: codigoDesconocidoActual })))) return;
+    // Saving the scanned code as this part's SKU means the next scan finds it directly.
+    const { error } = await sb.from("piezas").update({ sku: codigoDesconocidoActual }).eq("id", pieza.id);
+    if (error) {
+      showToast(t("pieza_foto_error"), true);
+      return;
+    }
+    closeModal("modal-codigo-desconocido");
+    if (await ajustarStockPieza(pieza.id, 1, "escaneo")) {
+      const actualizada = state.piezas.find((p) => p.id === pieza.id);
+      showToast(t("pieza_encontrada_stock_msg", { nombre: pieza.nombre, stock: actualizada ? actualizada.stock : "" }));
     }
   }
 
@@ -5865,6 +5901,25 @@
       foto_url: document.getElementById("pieza-foto-url").value || null,
       precio_dealer: document.getElementById("pieza-precio-dealer").value === "" ? null : parseFloat(document.getElementById("pieza-precio-dealer").value) || 0,
     };
+
+    if (!id) {
+      const nombreN = normalizarNombre(payload.nombre);
+      const repetida = state.piezas.find(
+        (p) => normalizarNombre(p.nombre) === nombreN || (payload.sku && (p.sku || "").trim().toLowerCase() === payload.sku.toLowerCase())
+      );
+      if (repetida) {
+        const cantidad = payload.stock || 1;
+        if (await confirmDialog(t("pieza_repetida_confirm", { nombre: repetida.nombre, cantidad }), { title: t("pieza_repetida_titulo"), okLabel: t("pieza_repetida_ok") })) {
+          if (payload.sku && !(repetida.sku || "").trim()) await sb.from("piezas").update({ sku: payload.sku }).eq("id", repetida.id);
+          closeModal("modal-pieza");
+          if (await ajustarStockPieza(repetida.id, cantidad, "manual")) {
+            const actualizada = state.piezas.find((p) => p.id === repetida.id);
+            showToast(t("pieza_encontrada_stock_msg", { nombre: repetida.nombre, stock: actualizada ? actualizada.stock : "" }));
+          }
+        }
+        return;
+      }
+    }
 
     const anterior = id ? state.piezas.find((p) => p.id === id) : null;
     const precioCambio = !anterior || Number(anterior.costo) !== payload.costo || Number(anterior.precio_venta) !== payload.precio_venta;
@@ -9287,6 +9342,14 @@
     document.getElementById("btn-nueva-factura").addEventListener("click", () => openFacturaModal(null));
     document.getElementById("btn-imprimir-inventario").addEventListener("click", imprimirInventario);
     document.getElementById("btn-imprimir-codigos").addEventListener("click", imprimirCodigosPiezas);
+    document.getElementById("btn-codigo-pieza-nueva").addEventListener("click", abrirPiezaNuevaConCodigo);
+    document.getElementById("btn-codigo-sumar-existente").addEventListener("click", sumarCodigoAPiezaExistente);
+    document.getElementById("codigo-desconocido-input").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        sumarCodigoAPiezaExistente();
+      }
+    });
     document.getElementById("pieza-foto-input").addEventListener("change", (e) => subirFotoPieza(e.target.files[0]));
     document.getElementById("btn-quitar-foto-pieza").addEventListener("click", () => {
       mostrarFotoPieza("");

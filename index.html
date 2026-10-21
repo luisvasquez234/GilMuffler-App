@@ -1681,6 +1681,28 @@
   </div>
 </div>
 
+<div id="modal-codigo-desconocido" class="modal-backdrop" hidden>
+  <div class="modal">
+    <header class="modal-header">
+      <h2 data-i18n="codigo_desconocido_titulo">Código que no está en el inventario</h2>
+      <button class="icon-btn" data-close-modal="modal-codigo-desconocido" type="button" aria-label="Cerrar" data-i18n-aria-label="cerrar_label">&times;</button>
+    </header>
+    <div class="modal-body">
+      <p id="codigo-desconocido-texto" class="orden-nota"></p>
+      <div class="field">
+        <label for="codigo-desconocido-input" data-i18n="codigo_desconocido_buscar">¿Es una pieza que ya tienes? Búscala por nombre</label>
+        <input type="text" id="codigo-desconocido-input" list="codigo-desconocido-datalist" autocomplete="off" />
+        <datalist id="codigo-desconocido-datalist"></datalist>
+      </div>
+    </div>
+    <footer class="modal-footer">
+      <button type="button" class="btn-ghost" id="btn-codigo-pieza-nueva" data-i18n="codigo_desconocido_nueva">Es una pieza nueva</button>
+      <span class="spacer"></span>
+      <button type="button" class="btn-primary" id="btn-codigo-sumar-existente" data-i18n="codigo_desconocido_sumar">Sumarle 1 a esa pieza</button>
+    </footer>
+  </div>
+</div>
+
 <div id="modal-reserva" class="modal-backdrop" hidden>
   <div class="modal">
     <header class="modal-header">
