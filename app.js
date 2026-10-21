@@ -9343,6 +9343,14 @@
     document.getElementById("btn-imprimir-inventario").addEventListener("click", imprimirInventario);
     document.getElementById("btn-imprimir-codigos").addEventListener("click", imprimirCodigosPiezas);
     document.getElementById("btn-codigo-pieza-nueva").addEventListener("click", abrirPiezaNuevaConCodigo);
+    // A barcode scanner ends every code with Enter, which would save the whole form before
+    // the rest can be typed. In the SKU box Enter just moves on to the next empty field.
+    document.getElementById("pieza-sku").addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      const siguiente = ["pieza-nombre", "pieza-costo", "pieza-stock"].map((id) => document.getElementById(id)).find((el) => !el.value.trim() || el.value === "0");
+      (siguiente || document.getElementById("pieza-nombre")).focus();
+    });
     document.getElementById("btn-codigo-sumar-existente").addEventListener("click", sumarCodigoAPiezaExistente);
     document.getElementById("codigo-desconocido-input").addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
