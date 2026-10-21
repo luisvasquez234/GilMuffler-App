@@ -1826,6 +1826,43 @@
     openPrintWindow(html);
   }
 
+  async function imprimirCodigosPiezas() {
+    const conSku = state.piezas.filter((p) => (p.sku || "").trim());
+    const sinSku = state.piezas.length - conSku.length;
+    if (!conSku.length) {
+      showToast(t("codigos_ninguna_con_sku"), true);
+      return;
+    }
+    try {
+      await cargarJsBarcode();
+    } catch (e) {
+      showToast(t("error_cargar_escaner_conexion"), true);
+      return;
+    }
+    const etiquetas = conSku
+      .slice()
+      .sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""))
+      .map((p) => {
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        JsBarcode(svg, p.sku.trim(), { format: "CODE128", displayValue: true, height: 45, width: 1.6, fontSize: 13, margin: 4 });
+        return "<div class='etiqueta'><div class='nombre'>" + escapeHtml(p.nombre) + "</div>" + svg.outerHTML + "</div>";
+      })
+      .join("");
+    const html =
+      "<!doctype html><html><head><meta charset='utf-8'><title>" + t("btn_imprimir_codigos") + "</title><style>" +
+      "body{font-family:Arial,Helvetica,sans-serif;color:#000;margin:0;padding:1rem;}" +
+      ".rejilla{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;}" +
+      ".etiqueta{border:1px dashed #999;padding:.35rem;text-align:center;break-inside:avoid;}" +
+      ".nombre{font-weight:700;font-size:.8rem;margin-bottom:.1rem;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}" +
+      ".etiqueta svg{max-width:100%;height:auto;}" +
+      ".nota{font-size:.8rem;color:#555;margin-bottom:.6rem;}" +
+      "@media print{body{padding:0;}@page{margin:.4in;}.nota{display:none;}}" +
+      "</style></head><body>" +
+      "<p class='nota'>" + escapeHtml(t("codigos_nota", { n: conSku.length, sin: sinSku })) + "</p>" +
+      "<div class='rejilla'>" + etiquetas + "</div></body></html>";
+    openPrintWindow(html);
+  }
+
   function imprimirInventario() {
     const cfg = state.configNegocio || {};
     const nombreNegocio = cfg.nombre_negocio || "Gil Muffler";
@@ -4254,20 +4291,16 @@
     tr.querySelectorAll(".item-cant, .item-costo, .item-markup").forEach((input) => {
       input.addEventListener("input", recalcTotals);
     });
-    tr.querySelector(".item-desc").addEventListener("input", (e) => {
-      // The autocomplete lists two entries per part when it has a second price; picking the
-      // second one is marked with a suffix that is dropped here so the invoice shows the plain name.
-      const eligio2 = e.target.value.endsWith(SUFIJO_PRECIO_2);
-      const nombre = eligio2 ? e.target.value.slice(0, -SUFIJO_PRECIO_2.length) : e.target.value;
-      const pieza = state.piezas.find((p) => p.nombre === nombre);
-      if (pieza) {
-        if (eligio2) e.target.value = nombre;
-        const precio = eligio2 ? Number(pieza.precio_dealer) : pieza.costo != null ? Number(pieza.costo) : Number(pieza.precio_venta) || 0;
-        tr.querySelector(".item-costo").value = precio;
-        tr.querySelector(".item-markup").value = 0;
-        recalcTotals();
-      }
-    });
+    const aplicarPieza = (input, permitirSku) => {
+      const { pieza, eligio2 } = piezaDesdeTexto(input.value, permitirSku);
+      if (!pieza) return;
+      input.value = pieza.nombre;
+      const precio = eligio2 ? Number(pieza.precio_dealer) : pieza.costo != null ? Number(pieza.costo) : Number(pieza.precio_venta) || 0;
+      tr.querySelector(".item-costo").value = precio;
+      tr.querySelector(".item-markup").value = 0;
+      recalcTotals();
+    };
+    attachPiezaInput(tr.querySelector(".item-desc"), aplicarPieza);
     tr.querySelector(".item-remove").addEventListener("click", () => {
       tr.remove();
       recalcTotals();
@@ -4832,12 +4865,10 @@
     tr.querySelectorAll(".item-cant, .item-precio").forEach((input) => {
       input.addEventListener("input", recalcEstimadoTotals);
     });
-    tr.querySelector(".item-desc").addEventListener("input", (e) => {
-      const eligio2 = e.target.value.endsWith(SUFIJO_PRECIO_2);
-      const nombre = eligio2 ? e.target.value.slice(0, -SUFIJO_PRECIO_2.length) : e.target.value;
-      const pieza = state.piezas.find((p) => p.nombre === nombre);
+    attachPiezaInput(tr.querySelector(".item-desc"), (input, permitirSku) => {
+      const { pieza, eligio2 } = piezaDesdeTexto(input.value, permitirSku);
       if (!pieza) return;
-      if (eligio2) e.target.value = nombre;
+      input.value = pieza.nombre;
       tr.querySelector(".item-precio").value = eligio2 ? Number(pieza.precio_dealer) : pieza.costo != null ? Number(pieza.costo) : Number(pieza.precio_venta) || 0;
       recalcEstimadoTotals();
     });
@@ -5927,13 +5958,38 @@
 
   const SUFIJO_PRECIO_2 = " (precio 2)";
 
+  // A part can be typed by name (matched while typing) or by SKU. A SKU is only matched once the
+  // box is committed (Enter, which a barcode scanner sends, or leaving the box), because matching
+  // while the scanner is still typing could grab a shorter SKU that is a prefix of the real one.
+  function piezaDesdeTexto(texto, permitirSku) {
+    const eligio2 = texto.endsWith(SUFIJO_PRECIO_2);
+    const base = eligio2 ? texto.slice(0, -SUFIJO_PRECIO_2.length) : texto;
+    let pieza = state.piezas.find((p) => p.nombre === base);
+    if (!pieza && permitirSku) {
+      const q = base.trim().toLowerCase();
+      if (q) pieza = state.piezas.find((p) => (p.sku || "").trim().toLowerCase() === q);
+    }
+    return { pieza, eligio2 };
+  }
+
+  function attachPiezaInput(input, aplicar) {
+    input.addEventListener("input", () => aplicar(input, false));
+    input.addEventListener("change", () => aplicar(input, true));
+    input.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      // Enter would submit the whole form; here it only confirms the part.
+      e.preventDefault();
+      aplicar(input, true);
+    });
+  }
+
   function populatePiezasDatalist() {
     const datalist = document.getElementById("piezas-datalist");
     if (!datalist) return;
     datalist.innerHTML = state.piezas
       .map((p) => {
         const precio1 = p.costo != null ? p.costo : p.precio_venta;
-        let html = '<option value="' + escapeHtml(p.nombre) + '">' + escapeHtml(p.nombre) + " — " + money(precio1) + "</option>";
+        let html = '<option value="' + escapeHtml(p.nombre) + '">' + escapeHtml(p.nombre) + " — " + money(precio1) + (p.sku ? " · " + escapeHtml(p.sku) : "") + "</option>";
         if (p.precio_dealer != null) {
           html += '<option value="' + escapeHtml(p.nombre + SUFIJO_PRECIO_2) + '">' + escapeHtml(p.nombre) + " — " + t("precio_2_opcion", { precio: money(p.precio_dealer) }) + "</option>";
         }
@@ -9230,6 +9286,7 @@
 
     document.getElementById("btn-nueva-factura").addEventListener("click", () => openFacturaModal(null));
     document.getElementById("btn-imprimir-inventario").addEventListener("click", imprimirInventario);
+    document.getElementById("btn-imprimir-codigos").addEventListener("click", imprimirCodigosPiezas);
     document.getElementById("pieza-foto-input").addEventListener("change", (e) => subirFotoPieza(e.target.files[0]));
     document.getElementById("btn-quitar-foto-pieza").addEventListener("click", () => {
       mostrarFotoPieza("");
